@@ -15,7 +15,7 @@ let isInitialized = false;
 export function initWebMCP() {
   if (isInitialized) return webMcpManager;
 
-  console.log("🚀 [WebMCP] Bắt đầu khởi tạo và đăng ký E-Commerce Capabilities...");
+  console.log("🚀 [WebMCP] Bắt đầu khởi tạo và đăng ký ProcurePrime B2B Capabilities...");
 
   // Đăng ký Product Tools
   productMcpTools.forEach((tool) => webMcpManager.registerTool(tool));

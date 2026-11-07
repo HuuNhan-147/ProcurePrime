@@ -77,7 +77,7 @@ const ResetPassword = () => {
           </div>
         </div>
         <span className="text-xl font-extrabold tracking-tight text-white flex items-center gap-1.5">
-          NodeX <span className="text-xs px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30">SECURITY</span>
+          Procure<span className="text-indigo-400">Prime</span> <span className="text-xs px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30">SECURITY</span>
         </span>
       </div>
 

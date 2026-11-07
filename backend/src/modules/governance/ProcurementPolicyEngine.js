@@ -2,7 +2,7 @@
 // ============================================
 // PROCUREMENT POLICY ENGINE — Lõi Thẩm Định Quyền Hạn & Ngân Sách Độc Lập
 // Thiết kế Deterministic Policy Engine theo chuẩn 4 Decisions & 5 Classifications
-// Kế thừa nguyên lý bất biến: LLM không nắm quyền tự duyệt các hành vi nhạy cảm
+// Tích hợp: GovernancePolicyService hỗ trợ điều chỉnh ngưỡng động từ Admin UI
 // ============================================
 
 import { AppError } from '../../shared/errors/AppError.js';
@@ -13,6 +13,7 @@ import {
   POLICY_THRESHOLDS,
   POLICY_VERSION,
 } from './PolicyContracts.js';
+import { GovernancePolicyService } from './GovernancePolicyService.js';
 
 export class ProcurementPolicyEngine {
   /**
@@ -22,6 +23,7 @@ export class ProcurementPolicyEngine {
    * @param {number|null} params.maxBudget - Trần ngân sách tối đa
    * @param {number} params.currentTotal - Tổng giá trị đơn hàng tính toán
    * @param {Object|null} params.organization - Thông tin pháp nhân doanh nghiệp
+   * @param {Object|null} params.customThresholds - Ngưỡng tùy biến (nếu truyền riêng)
    * @returns {Object} Kết quả thẩm định chính sách minh bạch
    */
   static evaluatePolicy({
@@ -29,6 +31,7 @@ export class ProcurementPolicyEngine {
     maxBudget = null,
     currentTotal,
     organization = null,
+    customThresholds = null,
   }) {
     // 0. Fail-Fast input validation
     if (!Array.isArray(items)) {
@@ -105,30 +108,34 @@ export class ProcurementPolicyEngine {
       }
     }
 
-    // 3. Tầng 3: Kiểm tra Thẩm quyền Phê duyệt (BEYOND_AUTHORITY -> ESCALATE_TO_STAFF)
-    // Cấp cao nhất: Vượt 200M VNĐ -> Trình Giám đốc Tài chính CFO
-    if (currentTotal > POLICY_THRESHOLDS.MANAGER_APPROVAL_LIMIT) {
+    // 3. Tầng 3: Kiểm tra Thẩm quyền Phê duyệt theo Ngưỡng Động (BEYOND_AUTHORITY -> ESCALATE_TO_STAFF)
+    const activePolicy = GovernancePolicyService.getCachedPolicySync();
+    const autoApprovalLimit = customThresholds?.autoApprovalLimit ?? activePolicy?.thresholds?.autoApprovalLimit ?? POLICY_THRESHOLDS.AUTO_APPROVAL_LIMIT;
+    const managerApprovalLimit = customThresholds?.managerApprovalLimit ?? activePolicy?.thresholds?.managerApprovalLimit ?? POLICY_THRESHOLDS.MANAGER_APPROVAL_LIMIT;
+
+    // Cấp cao nhất: Vượt managerApprovalLimit -> Trình Giám đốc Tài chính CFO
+    if (currentTotal > managerApprovalLimit) {
       return {
         policyVersion: POLICY_VERSION,
         decision: POLICY_DECISION.ESCALATE_TO_STAFF,
         classification: POLICY_CLASSIFICATION.BEYOND_AUTHORITY,
         authorityLevel: AUTHORITY_LEVEL.CFO,
         requiresApproval: true,
-        reason: `Giá trị đơn hàng (${currentTotal.toLocaleString('vi-VN')} VNĐ) vượt hạn mức phân quyền thông thường (> ${POLICY_THRESHOLDS.MANAGER_APPROVAL_LIMIT.toLocaleString('vi-VN')} VNĐ). Bắt buộc phải có sự phê duyệt từ Giám đốc Tài chính (CFO).`,
+        reason: `Giá trị đơn hàng (${currentTotal.toLocaleString('vi-VN')} VNĐ) vượt hạn mức phân quyền thông thường (> ${managerApprovalLimit.toLocaleString('vi-VN')} VNĐ). Bắt buộc phải có sự phê duyệt từ Giám đốc Tài chính (CFO).`,
         actionableQuestion: 'Hệ thống đã chuẩn bị phiếu đề xuất mua sắm. Bạn có muốn gửi thông báo phê duyệt tới CFO không?',
         timestamp,
       };
     }
 
-    // Cấp trung: Từ 50M đến 200M VNĐ -> Trình Trưởng phòng Mua sắm (Procurement Manager)
-    if (currentTotal > POLICY_THRESHOLDS.AUTO_APPROVAL_LIMIT) {
+    // Cấp trung: Từ autoApprovalLimit đến managerApprovalLimit -> Trình Trưởng phòng Mua sắm (Procurement Manager)
+    if (currentTotal > autoApprovalLimit) {
       return {
         policyVersion: POLICY_VERSION,
         decision: POLICY_DECISION.ESCALATE_TO_STAFF,
         classification: POLICY_CLASSIFICATION.BEYOND_AUTHORITY,
         authorityLevel: AUTHORITY_LEVEL.MANAGER,
         requiresApproval: true,
-        reason: `Giá trị đơn hàng (${currentTotal.toLocaleString('vi-VN')} VNĐ) vượt hạn mức tự duyệt của nhân viên (> ${POLICY_THRESHOLDS.AUTO_APPROVAL_LIMIT.toLocaleString('vi-VN')} VNĐ). Cần có xác nhận phê duyệt từ Trưởng phòng Mua sắm (Procurement Manager).`,
+        reason: `Giá trị đơn hàng (${currentTotal.toLocaleString('vi-VN')} VNĐ) vượt hạn mức tự duyệt của nhân viên (> ${autoApprovalLimit.toLocaleString('vi-VN')} VNĐ). Cần có xác nhận phê duyệt từ Trưởng phòng Mua sắm (Procurement Manager).`,
         actionableQuestion: 'Hệ thống đã lập giỏ hàng. Bạn có muốn gửi yêu cầu phê duyệt tới Trưởng phòng Mua sắm không?',
         timestamp,
       };
@@ -141,10 +148,11 @@ export class ProcurementPolicyEngine {
       classification: POLICY_CLASSIFICATION.ROUTINE,
       authorityLevel: AUTHORITY_LEVEL.SPECIALIST,
       requiresApproval: false,
-      reason: `Đơn hàng nằm trong trần ngân sách và thuộc hạn mức tự động phê duyệt (<= ${POLICY_THRESHOLDS.AUTO_APPROVAL_LIMIT.toLocaleString('vi-VN')} VNĐ).`,
+      reason: `Đơn hàng nằm trong trần ngân sách và thuộc hạn mức tự động phê duyệt (<= ${autoApprovalLimit.toLocaleString('vi-VN')} VNĐ).`,
       actionableQuestion: null,
       timestamp,
     };
   }
 }
 
+export default ProcurementPolicyEngine;

@@ -15,6 +15,8 @@ import {
   ExternalLink,
   Sparkles,
   Layers,
+  Bot,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -74,6 +76,8 @@ const Sidebar: React.FC<SidebarProps> = ({
     { path: "/admin/categories", name: "Danh mục", icon: <Layers size={19} /> },
     { path: "/admin/orders", name: "Đơn hàng", icon: <ShoppingCart size={19} /> },
     { path: "/admin/users", name: "Khách hàng", icon: <Users size={19} /> },
+    { path: "/admin/workspace", name: "AI Copilot Mua Sắm", icon: <Bot size={19} />, badge: "AI" },
+    { path: "/admin/policies", name: "Quy chế & Ngân sách", icon: <SlidersHorizontal size={19} /> },
   ];
 
   return (
@@ -91,7 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <Link
           to="/admin"
           className="flex items-center gap-3 overflow-hidden group"
-          title="Trang quản trị NodeX"
+          title="Trang quản trị ProcurePrime B2B"
         >
           <div className="h-10 w-10 min-w-[40px] rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-lg shadow-indigo-500/25 flex items-center justify-center transition-transform group-hover:scale-105">
             <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
@@ -101,9 +105,9 @@ const Sidebar: React.FC<SidebarProps> = ({
           {!isCollapsed && (
             <div className="flex flex-col">
               <span className="text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
-                NodeX <span className="text-xs px-1.5 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">PRO</span>
+                Procure<span className="text-indigo-400">Prime</span> <span className="text-xs px-1.5 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">ENTERPRISE</span>
               </span>
-              <span className="text-[11px] text-slate-400 font-medium -mt-0.5">Admin Management</span>
+              <span className="text-[11px] text-slate-400 font-medium -mt-0.5">B2B Admin Console</span>
             </div>
           )}
         </Link>

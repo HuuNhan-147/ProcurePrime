@@ -6,6 +6,13 @@
 import { localServiceAdapter } from "./adapters/LocalServiceAdapter.js";
 import { webMCPAdapter } from "./adapters/WebMCPAdapter.js";
 
+// Danh sách các tool B2B cấp cao bắt buộc thực thi trực tiếp tại Server
+// (Ký băm SHA-256 Audit Trail, thẩm định hạn mức duyệt chi và lưu Database)
+export const SERVER_ONLY_TOOLS = new Set([
+  "create_quotation",
+  "evaluate_procurement_policy",
+]);
+
 export class ToolResolver {
   constructor(localAdapter = localServiceAdapter, mcpAdapter = webMCPAdapter) {
     this.localAdapter = localAdapter;
@@ -14,6 +21,7 @@ export class ToolResolver {
 
   /**
    * Điều phối thực thi tool theo cơ chế Dual-Path:
+   * - Tool nghiệp vụ máy chủ (SERVER_ONLY_TOOLS): Luôn chạy tại Server qua LocalServiceAdapter
    * - Nếu client hỗ trợ WebMCP: Ủy quyền cho trình duyệt qua WebMCPAdapter
    * - Mặc định / Fallback: Chạy trên Server qua LocalServiceAdapter
    *
@@ -27,10 +35,11 @@ export class ToolResolver {
     }
 
     const { clientSupportsWebMCP } = context;
+    const isServerOnly = SERVER_ONLY_TOOLS.has(tool.name);
 
-    // Chọn adapter phù hợp
-    const selectedAdapter = clientSupportsWebMCP ? this.mcpAdapter : this.localAdapter;
-    console.log(`🔀 [ToolResolver] Điều phối tool [${tool.name}] qua [${selectedAdapter.name}]`);
+    // Chọn adapter phù hợp: Các tool Server-Only không bao giờ đẩy sang Trình duyệt WebMCP
+    const selectedAdapter = clientSupportsWebMCP && !isServerOnly ? this.mcpAdapter : this.localAdapter;
+    console.log(`🔀 [ToolResolver] Điều phối tool [${tool.name}] qua [${selectedAdapter.name}]${isServerOnly ? " (Server-Side Enterprise Tool)" : ""}`);
 
     try {
       return await selectedAdapter.execute(tool, args, context);

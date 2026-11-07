@@ -7,6 +7,7 @@ import assert from "node:assert/strict";
 import { test, describe } from "node:test";
 import { QuotationService } from "../src/modules/quotation/QuotationService.js";
 import { QuotationTemplateRenderer } from "../src/modules/quotation/QuotationTemplateRenderer.js";
+import { QuotationExcelExporter, numberToVietnameseWords } from "../src/modules/quotation/QuotationExcelExporter.js";
 import { ToolRegistry } from "../modules/ai-agent/tools/ToolRegistry.js";
 import { AppError } from "../src/shared/errors/AppError.js";
 
@@ -164,6 +165,41 @@ describe("📑 ProcurePrime Phase 5: Quotation Engine & Pricing Rules Tests", ()
       assert.strictEqual(result.itemsCount, 2);
       assert.strictEqual(typeof result.auditFingerprint, "string");
       assert.strictEqual(result.auditFingerprint.length, 64);
+    });
+  });
+
+  describe("4. QuotationExcelExporter (Render Excel B2B Chuẩn Doanh Nghiệp)", () => {
+    test("Hàm numberToVietnameseWords chuyển đổi số tiền thành chữ tiếng Việt chuẩn", () => {
+      assert.strictEqual(
+        numberToVietnameseWords(85_850_000),
+        "Tám mươi lăm triệu tám trăm năm mươi nghìn đồng chẵn."
+      );
+      assert.strictEqual(
+        numberToVietnameseWords(50_000_000),
+        "Năm mươi triệu đồng chẵn."
+      );
+    });
+
+    test("Xuất Buffer file Excel (.xlsx) hợp lệ với định dạng nhị phân chuẩn PK", async () => {
+      const items = [
+        { productName: "Laptop ThinkPad E14 Gen 5", unitPrice: 17_000_000, quantity: 5 },
+      ];
+      const quotation = await QuotationService.createQuotation({
+        items,
+        organization: {
+          name: "Công ty TNHH AI Solutions",
+          taxCode: "0109998887",
+          address: "Hà Nội",
+          phone: "0912345678",
+          status: "ACTIVE",
+        },
+      });
+
+      const buffer = await QuotationExcelExporter.exportToBuffer(quotation);
+      assert.ok(Buffer.isBuffer(buffer), "Kết quả phải là một Buffer nhị phân");
+      assert.ok(buffer.length > 5000, "Dung lượng file Excel phải lớn hơn 5KB");
+      assert.strictEqual(buffer[0], 0x50, "Header byte 0 phải là 'P'");
+      assert.strictEqual(buffer[1], 0x4B, "Header byte 1 phải là 'K'");
     });
   });
 });

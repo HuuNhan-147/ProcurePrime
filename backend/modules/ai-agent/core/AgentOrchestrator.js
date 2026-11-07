@@ -149,7 +149,7 @@ export class AgentOrchestrator {
       );
 
       let iterationCount = 0;
-      const maxIterations = 5;
+      const maxIterations = 10;
       const allFunctionCalls = [];
 
       while (response.functionCalls && iterationCount < maxIterations) {
@@ -236,8 +236,8 @@ export class AgentOrchestrator {
           })),
         });
 
-        // Giãn cách 600ms giữa các vòng gọi để tránh Burst Rate Limit (429) của Google Gemini
-        await new Promise((r) => setTimeout(r, 600));
+        // Giãn cách 1200ms giữa các vòng gọi để tránh Burst Rate Limit (429) của Google Gemini
+        await new Promise((r) => setTimeout(r, 1200));
 
         response = await this.llmClient.streamGenerateContent(
           contents,
@@ -249,7 +249,35 @@ export class AgentOrchestrator {
         );
       }
 
-      const finalText = response.text || "Xin lỗi, tôi không thể xử lý yêu cầu này.";
+      // Nếu chạm trần vòng lặp nhưng chưa có text kết luận (do LLM vừa trả functionCall dở dang)
+      if (!response.text && allFunctionCalls.length > 0) {
+        try {
+          console.log("ℹ️ [AgentOrchestrator] Chạm ngưỡng lặp, yêu cầu LLM tóm tắt kết quả nghiệp vụ...");
+          contents.push({
+            role: "user",
+            parts: [{ text: "Hãy tóm tắt lại toàn bộ kết quả cấu hình thiết bị, các bước đã hoàn tất (như gom giỏ hàng B2B, khởi tạo báo giá) và thông tin hướng dẫn tiếp theo cho doanh nghiệp." }],
+          });
+          const summaryResponse = await this.llmClient.streamGenerateContent(
+            contents,
+            [], // Không truyền tools để ép LLM trả lời bằng text tóm tắt
+            systemInstruction,
+            (chunkText) => {
+              if (onChunk) onChunk(chunkText, currentSessionId);
+            }
+          );
+          if (summaryResponse?.text) {
+            response.text = summaryResponse.text;
+          }
+        } catch (sumErr) {
+          console.warn("⚠️ [AgentOrchestrator] Lỗi khi tạo summary fallback:", sumErr.message);
+        }
+      }
+
+      const finalText =
+        response.text ||
+        (allFunctionCalls.length > 0
+          ? "Đã xử lý và cập nhật thành công các thiết bị vào hệ thống B2B. Quý khách vui lòng kiểm tra Bảng Thảo Báo Giá hoặc Giỏ hàng Doanh nghiệp."
+          : "Xin lỗi, tôi chưa thể xử lý yêu cầu này. Quý khách vui lòng thử lại hoặc điều chỉnh thông số.");
 
       // 6. Định dạng Payload và lưu tin nhắn trợ lý ảo
       let assistantPayload = this._buildAssistantPayload(allFunctionCalls);

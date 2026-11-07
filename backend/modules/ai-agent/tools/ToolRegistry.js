@@ -333,7 +333,7 @@ export const toolInstances = [
       properties: {
         items: {
           type: "array",
-          description: "Danh sách thiết bị (mỗi thiết bị gồm productName, unitPrice, quantity)",
+          description: "Danh sách thiết bị (mỗi thiết bị gồm productName, unitPrice, quantity). Nếu không truyền, hệ thống sẽ tự động lấy danh sách từ giỏ hàng hiện tại.",
           items: {
             type: "object",
             properties: {
@@ -348,11 +348,35 @@ export const toolInstances = [
         taxCode: { type: "string", description: "Mã số thuế doanh nghiệp (nếu có)" },
         maxBudget: { type: "number", description: "Trần ngân sách (nếu có)" },
       },
-      required: ["items"],
     },
-    execute: async (args) => {
+    execute: async (args, context) => {
+      let items = args.items;
+      if (!Array.isArray(items) || items.length === 0) {
+        if (context?.userId && context?.token) {
+          try {
+            const cartRes = await getCart({ userId: context.userId, token: context.token });
+            if (cartRes?.cart?.items?.length > 0) {
+              items = cartRes.cart.items.map((it) => ({
+                productName: it.name,
+                unitPrice: it.price,
+                quantity: it.quantity,
+              }));
+            }
+          } catch {
+            // bỏ qua lỗi đọc giỏ hàng
+          }
+        }
+      }
+
+      if (!Array.isArray(items) || items.length === 0) {
+        return {
+          success: false,
+          error: "Chưa có danh sách thiết bị để lập báo giá. Vui lòng thêm sản phẩm vào giỏ hoặc truyền danh sách thiết bị.",
+        };
+      }
+
       const quotation = await QuotationService.createQuotation({
-        items: args.items,
+        items,
         organization: {
           name: args.companyName || "Doanh Nghiệp Mua Sắm B2B",
           taxCode: args.taxCode || "0101234567",
@@ -371,6 +395,7 @@ export const toolInstances = [
         status: quotation.status,
         auditFingerprint: quotation.auditFingerprint,
         previewUrl: `/api/quotations/${quotation.quotationNumber}/html`,
+        excelUrl: `/api/quotations/${quotation.quotationNumber}/excel`,
         itemsCount: quotation.items.length,
       };
     },

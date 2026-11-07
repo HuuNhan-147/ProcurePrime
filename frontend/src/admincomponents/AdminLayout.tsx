@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { io } from "socket.io-client";
@@ -94,6 +94,8 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     if (p.includes("/admin/categories")) return "Quản Lý Danh Mục";
     if (p.includes("/admin/orders")) return "Quản Lý Đơn Hàng";
     if (p.includes("/admin/users")) return "Quản Lý Khách Hàng";
+    if (p.includes("/admin/workspace")) return "AI Procurement Copilot";
+    if (p.includes("/admin/policies")) return "Quản Trị Quy Chế & Hạn Mức Mua Sắm B2B";
     return "Quản Trị Hệ Thống";
   };
 

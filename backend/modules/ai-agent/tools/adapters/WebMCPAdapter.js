@@ -66,6 +66,17 @@ export class WebMCPAdapter {
       const duration = Date.now() - startTime;
       console.log(`  ✅ [WebMCPAdapter] Trình duyệt phản hồi thành công [${tool.name}] (${duration}ms)`);
 
+      // Nếu client báo tool không tồn tại hoặc chưa đăng ký trên WebMCP trình duyệt, tự động fallback sang Server
+      if (
+        clientResult &&
+        clientResult.success === false &&
+        typeof clientResult.error === "string" &&
+        (clientResult.error.includes("không tồn tại") || clientResult.error.includes("chưa được đăng ký"))
+      ) {
+        console.warn(`  ⚠️ [WebMCPAdapter] Trình duyệt chưa đăng ký [${tool.name}], tự động fallback sang LocalServiceAdapter...`);
+        return await localServiceAdapter.execute(tool, args, context);
+      }
+
       return {
         success: clientResult.success !== false,
         source: "client_webmcp",

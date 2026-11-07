@@ -63,7 +63,19 @@ const ProductList: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Danh sách sản phẩm</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 pb-3 border-b border-slate-200 gap-2">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Danh Mục Thiết Bị Cung Ứng Doanh Nghiệp
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Thiết bị IT & Hạ tầng phần cứng tiêu chuẩn B2B kèm cam kết bảo hành On-site & Hóa đơn VAT
+          </p>
+        </div>
+        <span className="self-start sm:self-auto text-xs font-mono font-bold px-3 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-full">
+          100% CHÍNH HÃNG B2B
+        </span>
+      </div>
       <SearchFilter initialValues={getInitialValues()} />
       {loading ? (
         <div className="text-center py-8">Đang tải sản phẩm...</div>

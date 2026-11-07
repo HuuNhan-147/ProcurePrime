@@ -20,10 +20,13 @@ import {
   FaPrint,
   FaShieldAlt,
   FaUserCheck,
+  FaBolt,
+  FaComments,
 } from "react-icons/fa";
 import { QuotationModal } from "./procurement/QuotationModal";
 import { ApprovalPanel } from "./procurement/ApprovalPanel";
 import { BudgetProgressBar } from "./procurement/BudgetProgressBar";
+import { ProcurementWizard } from "./procurement/ProcurementWizard";
 
 // ✅ Interface cho Action Buttons
 interface ActionButton {
@@ -48,6 +51,7 @@ const AIAgentChat: React.FC = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(true);
+  const [activeTab, setActiveTab] = useState<"chat" | "wizard">("chat");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [selectedQuotation, setSelectedQuotation] = useState<string | null>(null);
   const [isQuotationModalOpen, setIsQuotationModalOpen] = useState(false);
@@ -87,7 +91,7 @@ const AIAgentChat: React.FC = () => {
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      console.log("🟢 Connected to Socket.IO from E-ComMate Chat!");
+      console.log("🟢 Connected to Socket.IO from ProcurePrime Copilot!");
     });
 
     // Lắng nghe chunk chữ truyền về từ server thời gian thực
@@ -260,6 +264,17 @@ const AIAgentChat: React.FC = () => {
         break;
       case "navigate":
         if (button.url) {
+          if (button.url.includes("/excel") || button.url.startsWith("/api/")) {
+            const downloadUrl = button.url.startsWith("http") ? button.url : `http://localhost:5000${button.url}`;
+            const link = document.createElement("a");
+            link.href = downloadUrl;
+            link.setAttribute("download", "");
+            link.target = "_blank";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            break;
+          }
           if (/^https?:\/\//i.test(button.url)) {
             window.open(button.url, "_blank", "noopener,noreferrer");
           } else {
@@ -321,7 +336,7 @@ const AIAgentChat: React.FC = () => {
     setMessages([
       {
         sender: "agent",
-        text: "Xin chào! Tôi là E-ComMate 🤖 — trợ lý mua sắm thông minh của bạn. Hãy cho tôi biết bạn cần tìm sản phẩm gì nhé!",
+        text: "Xin chào! Tôi là ProcurePrime Copilot 🤖 — trợ lý thu mua và quản trị ngân sách doanh nghiệp. Hãy cho tôi biết nhu cầu trang thiết bị của công ty bạn nhé!",
         timestamp: new Date(),
       },
     ]);
@@ -630,17 +645,16 @@ const AIAgentChat: React.FC = () => {
     );
   };
 
-  // ✅ HANDLE SEND MESSAGE VIA SOCKET.IO STREAM
-  const handleSend = async () => {
-    if (!input.trim() || loading || !socketRef.current) return;
+  // ✅ GỬI TIN NHẮN TÙY CHỌN (HỖ TRỢ CẢ FORM WIZARD VÀ CHAT TRỰC TIẾP)
+  const sendCustomMessage = (textToSend: string) => {
+    if (!textToSend.trim() || loading || !socketRef.current) return;
 
     const userMsg: Message = {
       sender: "user",
-      text: input,
+      text: textToSend,
       timestamp: new Date(),
     };
 
-    // Đẩy tin nhắn của user vào danh sách, đồng thời tạo trước khung tin nhắn của agent để nhận stream chữ
     const agentMsg: Message = {
       sender: "agent",
       text: "",
@@ -648,39 +662,46 @@ const AIAgentChat: React.FC = () => {
     };
 
     setMessages((prev) => [...prev, userMsg, agentMsg]);
-
-    const text = input;
-    setInput("");
     setLoading(true);
 
     try {
       const token = getToken ? getToken() : null;
 
-      // Gửi sự kiện đi qua Socket.io kèm cờ hỗ trợ WebMCP
       socketRef.current.emit("client_send_message", {
-        message: text,
+        message: textToSend,
         sessionId,
         userId: user?.id || null,
         token,
         hasWebMCP: true,
       });
 
-      console.log("📤 client_send_message emitted via Socket.io");
+      console.log("📤 client_send_message emitted via Socket.io:", textToSend.slice(0, 60));
     } catch (err) {
       console.error("❌ Chat Socket emit error:", err);
-      setMessages((prev) => {
-        // Thay thế khung trống bằng thông báo lỗi
-        return [
-          ...prev.slice(0, -1),
-          {
-            sender: "agent",
-            text: "⚠️ Xin lỗi, tôi đang gặp sự cố kết nối. Vui lòng thử lại sau.",
-            timestamp: new Date(),
-          },
-        ];
-      });
+      setMessages((prev) => [
+        ...prev.slice(0, -1),
+        {
+          sender: "agent",
+          text: "⚠️ Xin lỗi, tôi đang gặp sự cố kết nối. Vui lòng thử lại sau.",
+          timestamp: new Date(),
+        },
+      ]);
       setLoading(false);
     }
+  };
+
+  // ✅ XỬ LÝ SUBMIT TỪ FORM WIZARD TỰ ĐỘNG
+  const handleWizardSubmit = (compiledPrompt: string) => {
+    setActiveTab("chat");
+    sendCustomMessage(compiledPrompt);
+  };
+
+  // ✅ HANDLE SEND MESSAGE VIA SOCKET.IO STREAM
+  const handleSend = async () => {
+    if (!input.trim()) return;
+    const text = input;
+    setInput("");
+    sendCustomMessage(text);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -756,7 +777,42 @@ const AIAgentChat: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50 to-blue-50/30">
+      {/* Tab Navigation: Trò Chuyện vs Form Thu Mua Nhanh (Smart Wizard) */}
+      <div className="flex bg-slate-100 p-1 border-b border-gray-200 text-xs">
+        <button
+          type="button"
+          onClick={() => setActiveTab("chat")}
+          className={`flex-1 py-1.5 px-2 rounded-lg font-semibold flex items-center justify-center gap-1.5 transition ${
+            activeTab === "chat"
+              ? "bg-white text-blue-700 shadow-xs"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          <FaComments className="text-xs text-blue-600" />
+          <span>Trò Chuyện AI</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("wizard")}
+          className={`flex-1 py-1.5 px-2 rounded-lg font-semibold flex items-center justify-center gap-1.5 transition ${
+            activeTab === "wizard"
+              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xs"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          <FaBolt className={activeTab === "wizard" ? "text-amber-300 animate-pulse" : "text-amber-500"} />
+          <span>⚡ Form Thu Mua Nhanh (Smart Wizard)</span>
+        </button>
+      </div>
+
+      {/* Nội dung chính: Form Wizard hoặc Khung Chat */}
+      {activeTab === "wizard" ? (
+        <div className="flex-1 overflow-y-auto bg-white">
+          <ProcurementWizard onSubmit={handleWizardSubmit} />
+        </div>
+      ) : (
+        <>
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50 to-blue-50/30">
         {messages.map((msg, idx) => (
           <div
             key={idx}
@@ -859,6 +915,8 @@ const AIAgentChat: React.FC = () => {
           ProcurePrime • Tối ưu Thu mua Doanh nghiệp với AI Tự hành & WebMCP 🚀
         </p>
       </div>
+      </>
+      )}
 
       <QuotationModal
         isOpen={isQuotationModalOpen}

@@ -5,6 +5,7 @@
 
 import { QuotationService } from "../modules/quotation/QuotationService.js";
 import { QuotationTemplateRenderer } from "../modules/quotation/QuotationTemplateRenderer.js";
+import { QuotationExcelExporter } from "../modules/quotation/QuotationExcelExporter.js";
 import { successResponse } from "../shared/helpers/responseHelper.js";
 
 export class QuotationController {
@@ -44,6 +45,28 @@ export class QuotationController {
 
       res.setHeader("Content-Type", "text/html; charset=utf-8");
       return res.send(html);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/quotations/:quotationNumber/excel — Tự động tải file Excel báo giá doanh nghiệp (.xlsx)
+   */
+  static async getExcel(req, res, next) {
+    try {
+      const { quotationNumber } = req.params;
+      const quotation = await QuotationService.getQuotation(quotationNumber);
+      const buffer = await QuotationExcelExporter.exportToBuffer(quotation);
+
+      const orgName = (quotation.organizationSnapshot?.name || "DoanhNghiep")
+        .replace(/[^a-zA-Z0-9]/g, "_")
+        .slice(0, 20);
+      const fileName = `Bao_Gia_${quotation.quotationNumber}_${orgName}.xlsx`;
+
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+      return res.send(buffer);
     } catch (error) {
       next(error);
     }

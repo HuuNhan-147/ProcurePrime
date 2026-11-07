@@ -94,9 +94,9 @@ const RegisterPage: React.FC = () => {
           </div>
           <div>
             <span className="text-xl font-extrabold tracking-tight text-white flex items-center gap-1.5">
-              NodeX <span className="text-xs px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30">STORE</span>
+              Procure<span className="text-indigo-400">Prime</span> <span className="text-xs px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30">B2B PORTAL</span>
             </span>
-            <p className="text-xs text-slate-400 font-medium -mt-0.5">Sàn Thương Mại Điện Tử Hiện Đại</p>
+            <p className="text-xs text-slate-400 font-medium -mt-0.5">Nền Tảng Thu Mua &amp; Quản Trị B2B Doanh Nghiệp</p>
           </div>
         </div>
 
@@ -134,7 +134,7 @@ const RegisterPage: React.FC = () => {
 
         {/* Footer Note */}
         <div className="relative z-10 flex items-center justify-between text-xs text-slate-400 pt-6 border-t border-slate-800/80">
-          <span>© 2026 NodeX Store Inc. All rights reserved.</span>
+          <span>© 2026 ProcurePrime B2B Corporation. All rights reserved.</span>
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             Bảo mật thông tin khách hàng
@@ -361,7 +361,7 @@ const RegisterPage: React.FC = () => {
           {/* Link sang Đăng nhập */}
           <div className="mt-6 pt-5 border-t border-slate-100 text-center">
             <p className="text-xs text-slate-500">
-              Đã có tài khoản NodeX?{" "}
+              Đã có tài khoản ProcurePrime?{" "}
               <Link
                 to="/login"
                 className="font-bold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors ml-1"

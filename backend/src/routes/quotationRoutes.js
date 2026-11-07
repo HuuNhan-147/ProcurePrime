@@ -11,6 +11,7 @@ const router = express.Router();
 router.post("/", QuotationController.create);
 router.get("/:quotationNumber", QuotationController.getDetail);
 router.get("/:quotationNumber/html", QuotationController.getHtml);
+router.get("/:quotationNumber/excel", QuotationController.getExcel);
 router.patch("/:quotationNumber/approve", QuotationController.approve);
 
 export default router;

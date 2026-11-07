@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchCategory } from "../api/CategoryApi";
 import { ICategory } from "../types/category";
+import { useAuth } from "../context/AuthContext";
 
 // Cấu hình danh mục B2B tiêu biểu cho Interactive Matrix
 const B2B_SOLUTIONS = [
@@ -56,6 +57,7 @@ const Banner: React.FC = () => {
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [activeSolutionIndex, setActiveSolutionIndex] = useState(0);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -120,21 +122,30 @@ const Banner: React.FC = () => {
             {/* Call to Actions */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
-                onClick={() => navigate("/workspace")}
+                onClick={() => navigate("/products")}
                 className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm px-6 py-3 rounded-xl transition shadow-lg shadow-indigo-600/30 border border-indigo-400/30"
               >
-                <span>Mở Procurement Workstation (AI)</span>
+                <span>Khám Phá Danh Mục Thiết Bị B2B</span>
                 <span className="text-xs bg-indigo-950/80 px-2 py-0.5 rounded font-mono uppercase">
-                  B2B
+                  Chính Hãng
                 </span>
               </button>
 
               <button
-                onClick={() => navigate("/products")}
+                onClick={() => navigate("/cart")}
                 className="bg-slate-900 hover:bg-slate-800 text-slate-200 font-semibold text-sm px-5 py-3 rounded-xl border border-slate-700 transition"
               >
-                Khám Phá Danh Mục Thiết Bị
+                Tra Cứu Bảng Báo Giá (RFQ)
               </button>
+
+              {user?.isAdmin && (
+                <button
+                  onClick={() => navigate("/admin/workspace")}
+                  className="bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 font-semibold text-xs px-4 py-3 rounded-xl border border-indigo-500/40 transition flex items-center gap-1.5"
+                >
+                  <span>Mở AI Copilot (Staff)</span>
+                </button>
+              )}
             </div>
 
             {/* Trust & Policy Metrics */}

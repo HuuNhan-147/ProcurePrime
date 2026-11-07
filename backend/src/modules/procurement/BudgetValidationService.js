@@ -1,13 +1,15 @@
 // backend/src/modules/procurement/BudgetValidationService.js
 // ============================================
 // BUDGET VALIDATION SERVICE — Thẩm định Ngân sách Tất định (Strict Validation - No Fallback)
+// Tích hợp: GovernancePolicyService cho phép cấu hình chiết khấu và VAT động từ Admin UI
 // ============================================
 
 import { AppError } from "../../shared/errors/AppError.js";
+import { GovernancePolicyService } from "../governance/GovernancePolicyService.js";
 
 export class BudgetValidationService {
   /**
-   * Tính toán bảng giá mua sắm doanh nghiệp (Subtotal, 5% B2B discount, 10% VAT, GrandTotal)
+   * Tính toán bảng giá mua sắm doanh nghiệp (Subtotal, B2B discount, VAT, GrandTotal)
    * Tuyệt đối không dùng '|| 0' để che giấu đơn giá hoặc số lượng bị thiếu!
    *
    * @param {Array<Object>} items - Danh sách các thiết bị: [{ productId, productName, unitPrice, quantity }]
@@ -77,8 +79,15 @@ export class BudgetValidationService {
       });
     }
 
-    // Chính sách Chiết khấu B2B Volume Discount:
-    // Nếu đơn hàng từ 5 máy trở lên HOẶC tổng giá trị từ 50 triệu VNĐ -> áp chiết khấu sỉ 5%
+    // Lấy chính sách Chiết khấu B2B Volume Discount từ Governance Policy
+    const activePolicy = GovernancePolicyService.getCachedPolicySync();
+    const rules = activePolicy?.pricingRules || {
+      wholesaleThresholdQuantity: 5,
+      wholesaleThresholdSubtotal: 50_000_000,
+      wholesaleDiscountPercent: 5,
+      vatPercent: 10,
+    };
+
     let discountPercent = 0;
     if (customDiscountPercent !== null) {
       const p = Number(customDiscountPercent);
@@ -87,17 +96,19 @@ export class BudgetValidationService {
       } else {
         throw AppError.badRequest(`Mức chiết khấu tùy chỉnh không hợp lệ: ${customDiscountPercent}%`, "ERR_INVALID_DISCOUNT");
       }
-    } else if (totalQuantity >= 5 || subtotal >= 50000000) {
-      discountPercent = 5; // B2B Volume Discount chuẩn
+    } else if (
+      totalQuantity >= (rules.wholesaleThresholdQuantity ?? 5) ||
+      subtotal >= (rules.wholesaleThresholdSubtotal ?? 50_000_000)
+    ) {
+      discountPercent = rules.wholesaleDiscountPercent ?? 5; // B2B Volume Discount chuẩn
     }
 
     const discountAmount = Math.round((subtotal * discountPercent) / 100);
     const amountAfterDiscount = subtotal - discountAmount;
 
-    // Thuế GTGT VAT 10%
-    const vatPercent = 10;
+    // Thuế GTGT VAT theo cấu hình quy chế
+    const vatPercent = rules.vatPercent ?? 10;
     const vatAmount = Math.round((amountAfterDiscount * vatPercent) / 100);
-
     const grandTotal = amountAfterDiscount + vatAmount;
 
     return {

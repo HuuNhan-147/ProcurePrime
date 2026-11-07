@@ -8,6 +8,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { io, Socket } from "socket.io-client";
 import { useAuth } from "../context/AuthContext";
+import { webMcpManager } from "../webmcp";
+import { ProcurementWizard } from "../components/procurement/ProcurementWizard";
 
 interface ActionButton {
   label: string;
@@ -38,40 +40,67 @@ export const ProcurementWorkspace: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: "agent",
-      text: "Kính chào Quý Doanh nghiệp. Hệ thống Tác tử Thu mua B2B ProcurePrime đã sẵn sàng.\n\nVui lòng cung cấp yêu cầu cấu hình thiết bị, số lượng và trần ngân sách. Hệ thống sẽ tự động bóc tách thông số, so khớp cấu hình, tính toán chiết khấu sỉ và phát hành báo giá thương mại chính thức.",
+      text: "Chào bạn, tôi là ProcurePrime Copilot dành cho nhân viên kinh doanh & thu mua B2B.\n\nHãy nhập yêu cầu trang bị thiết bị từ khách hàng hoặc phòng ban (gồm cấu hình, số lượng, trần ngân sách), tôi sẽ đối soát tồn kho, áp dụng quy chế chiết khấu và lập bản báo giá chuẩn ngay lập tức.",
       timestamp: new Date(),
     },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [leftTab, setLeftTab] = useState<"wizard" | "chat">("wizard");
   const [sessionId, setSessionId] = useState<string | null>(null);
 
-  // Dữ liệu thời gian thực hiển thị tại Cột Phải (Live Canvas)
-  const [quotationNumber, setQuotationNumber] = useState<string>("PP-20261101-9F2B");
-  const [maxBudget, setMaxBudget] = useState<number>(90_000_000);
+  // Dữ liệu thời gian thực hiển thị tại Cột Phải (Live Canvas) - Khởi tạo sạch (No Mock)
+  const [quotationNumber, setQuotationNumber] = useState<string>("");
+  const [maxBudget, setMaxBudget] = useState<number>(0);
   const [status, setStatus] = useState<"DRAFT" | "ISSUED">("DRAFT");
-  const [auditFingerprint, setAuditFingerprint] = useState<string>(
-    "8f3a9e21b7c4d5a10982ef331a98bc741299ef01ac45bd87e91230489ba4cd12"
-  );
-  const [items, setItems] = useState<ItemRow[]>([
-    {
-      name: "Dell Latitude 5540 B2B Enterprise Laptop",
-      specsSummary: "Intel Core i5-1345U vPro • RAM 16GB • SSD 512GB NVMe",
-      quantity: 5,
-      unitPrice: 24_500_000,
-      subtotal: 122_500_000,
-    },
-    {
-      name: "Bộ Chuột Phím Không Dây Logitech MX Keys S Combo",
-      specsSummary: "Kết nối Logi Bolt FIPS • Pin 70 ngày",
-      quantity: 5,
-      unitPrice: 4_850_000,
-      subtotal: 24_250_000,
-    },
-  ]);
+  const [auditFingerprint, setAuditFingerprint] = useState<string>("");
+  const [items, setItems] = useState<ItemRow[]>([]);
+  const [canvasLoading, setCanvasLoading] = useState<boolean>(false);
+  const [canvasError, setCanvasError] = useState<string | null>(null);
 
   const socketRef = useRef<Socket | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Hàm tải dữ liệu báo giá thực tế từ Backend API
+  const fetchQuotationData = async (qNum: string) => {
+    if (!qNum) return;
+    try {
+      setCanvasLoading(true);
+      setCanvasError(null);
+      const res = await fetch(`http://localhost:5000/api/quotations/${qNum}`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        const q = json.data;
+        setQuotationNumber(q.quotationNumber || qNum);
+        setStatus(q.status || "DRAFT");
+        setAuditFingerprint(q.auditFingerprint || "");
+
+        if (q.maxBudget) {
+          setMaxBudget(Number(q.maxBudget));
+        } else if (q.policyEvaluation?.allocatedBudget) {
+          setMaxBudget(Number(q.policyEvaluation.allocatedBudget));
+        }
+
+        if (Array.isArray(q.items) && q.items.length > 0) {
+          const mappedItems: ItemRow[] = q.items.map((it: any) => ({
+            name: it.productName || it.name || "Thiết bị doanh nghiệp B2B",
+            specsSummary: it.specsSummary || "Cấu hình chuẩn B2B",
+            quantity: Number(it.quantity) || 1,
+            unitPrice: Number(it.unitPrice) || 0,
+            subtotal: Number(it.subtotal) || (Number(it.unitPrice || 0) * Number(it.quantity || 1)),
+          }));
+          setItems(mappedItems);
+        }
+      } else {
+        setCanvasError(json.message || "Không thể tải dữ liệu báo giá");
+      }
+    } catch (err: any) {
+      console.error("Lỗi khi tải báo giá:", err);
+      setCanvasError(err?.message || "Lỗi kết nối tới máy chủ báo giá");
+    } finally {
+      setCanvasLoading(false);
+    }
+  };
 
   // Tính toán các chỉ số tài chính
   const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0);
@@ -112,6 +141,18 @@ export const ProcurementWorkspace: React.FC = () => {
   };
 
   const handleActionClick = (btn: ActionButton) => {
+    if (btn.url?.includes("/excel") || btn.url?.startsWith("/api/") || btn.url?.startsWith("http")) {
+      const downloadUrl = btn.url.startsWith("http") ? btn.url : `http://localhost:5000${btn.url}`;
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", "");
+      link.target = "_blank";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+
     if (btn.action === "cart") {
       navigate("/cart");
     } else if (btn.action === "orders") {
@@ -166,24 +207,52 @@ export const ProcurementWorkspace: React.FC = () => {
         return prev;
       });
 
-      // Tự động nhận diện mã báo giá và cập nhật Canvas
+      // Tự động nhận diện mã báo giá và tải dữ liệu đồng bộ Canvas
       if (replyText) {
         const match = replyText.match(/(PP-\d{8}-[0-9A-F]{4})/i);
         if (match) {
-          setQuotationNumber(match[1].toUpperCase());
+          const detectedCode = match[1].toUpperCase();
+          setQuotationNumber(detectedCode);
+          fetchQuotationData(detectedCode);
         }
       }
     });
 
+    // ✅ WEBMCP DUAL-PATH: Lắng nghe yêu cầu ủy quyền thực thi WebMCP tool từ Agent Server
+    socket.on(
+      "execute_webmcp_tool",
+      async (data: { executionId: string; toolName: string; args: any }) => {
+        const { executionId, toolName, args } = data;
+        console.log(
+          `🌐 [Workspace WebMCP] Server ủy quyền thực thi tool [${toolName}] (ID: ${executionId}):`,
+          args
+        );
+        try {
+          const result = await webMcpManager.executeTool(toolName, args);
+          socket.emit(`webmcp_tool_result_${executionId}`, result);
+          console.log(`✅ [Workspace WebMCP] Hoàn tất và gửi kết quả [${toolName}] về Server:`, result);
+        } catch (err: any) {
+          console.error(`❌ [Workspace WebMCP] Lỗi thực thi [${toolName}]:`, err);
+          socket.emit(`webmcp_tool_result_${executionId}`, {
+            success: false,
+            error: err?.message || "Lỗi thực thi WebMCP tool trên trình duyệt",
+          });
+        }
+      }
+    );
+
     return () => {
+      socket.off("agent_response_chunk");
+      socket.off("agent_response_end");
+      socket.off("execute_webmcp_tool");
       socket.disconnect();
     };
   }, []);
 
-  const handleSend = () => {
-    if (!input.trim() || loading || !socketRef.current) return;
+  const sendMessageWithText = (textToSend: string) => {
+    if (!textToSend.trim() || loading || !socketRef.current) return;
 
-    const userText = input.trim();
+    const userText = textToSend.trim();
     setMessages((prev) => [
       ...prev,
       { sender: "user", text: userText, timestamp: new Date() },
@@ -201,6 +270,15 @@ export const ProcurementWorkspace: React.FC = () => {
     });
   };
 
+  const handleSend = () => {
+    sendMessageWithText(input);
+  };
+
+  const handleWizardSubmit = (compiledPrompt: string) => {
+    setLeftTab("chat"); // Tự động chuyển sang xem luồng suy luận của AI và cập nhật Canvas
+    sendMessageWithText(compiledPrompt);
+  };
+
   const handleApprove = async () => {
     if (!quotationNumber) return;
     try {
@@ -216,6 +294,7 @@ export const ProcurementWorkspace: React.FC = () => {
       if (data.success) {
         setStatus("ISSUED");
         alert(`Báo giá ${quotationNumber} đã được phê duyệt thành công!`);
+        fetchQuotationData(quotationNumber);
       }
     } catch {
       setStatus("ISSUED");
@@ -232,6 +311,12 @@ export const ProcurementWorkspace: React.FC = () => {
       },
     ]);
     setSessionId(null);
+    setQuotationNumber("");
+    setItems([]);
+    setMaxBudget(0);
+    setStatus("DRAFT");
+    setAuditFingerprint("");
+    setCanvasError(null);
   };
 
   return (
@@ -253,7 +338,11 @@ export const ProcurementWorkspace: React.FC = () => {
 
         <div className="flex items-center gap-4 text-xs font-mono">
           <div className="text-slate-400">
-            PHÁP NHÂN: <strong className="text-slate-200">CÔNG TY TNHH GIẢI PHÁP AI</strong>
+            PHÁP NHÂN: <strong className="text-slate-200">B2B SALES & PROCUREMENT COPILOT</strong>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link to="/admin" className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded text-xs transition">← Bảng Quản Trị</Link>
+          <Link to="/admin/policies" className="px-2.5 py-1 bg-indigo-950 hover:bg-indigo-900 text-indigo-300 border border-indigo-700/60 rounded text-xs transition">⚙️ Cấu Hình Quy Chế</Link>
           </div>
           <div className="px-2 py-0.5 border border-emerald-500/40 bg-emerald-950/40 text-emerald-400 rounded text-[11px] font-bold">
             DOANH NGHIỆP ĐÃ XÁC THỰC
@@ -280,90 +369,162 @@ export const ProcurementWorkspace: React.FC = () => {
             </button>
           </div>
 
-          {/* Khung Hội Thoại (Message Thread có Scroll dọc chuẩn) */}
-          <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-slate-50/50 text-xs leading-relaxed">
-            {messages.map((msg, idx) => (
-              <div key={idx} className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}>
-                <div className="text-[10px] font-mono uppercase text-slate-400 mb-1">
-                  {msg.sender === "user" ? "[ DOANH NGHIỆP ]" : "[ PROCUREPRIME REASONING ]"} •{" "}
-                  {msg.timestamp.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
-                </div>
-                <div
-                  className={`p-3.5 rounded-lg max-w-[92%] whitespace-pre-wrap ${
-                    msg.sender === "user"
-                      ? "bg-slate-900 text-slate-100 font-medium"
-                      : "bg-white border border-slate-200 text-slate-800 shadow-sm"
-                  }`}
-                >
-                  {msg.text || (
-                    <div className="font-mono text-slate-400 italic animate-pulse">
-                      Đang phân tích yêu cầu cấu hình & thẩm định ngân sách...
-                    </div>
-                  )}
+          {/* Thanh Chuyển Đổi Tab: Form Thu Mua Tự Động vs Luồng Chat Phân Tích */}
+          <div className="flex bg-slate-100 p-1 border-b border-slate-200 text-xs flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => setLeftTab("wizard")}
+              className={`flex-1 py-2 px-3 rounded font-bold font-mono text-[11px] flex items-center justify-center gap-1.5 transition ${
+                leftTab === "wizard"
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+              }`}
+            >
+              <span>FORM THU MUA TỰ ĐỘNG (SMART WIZARD)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setLeftTab("chat")}
+              className={`flex-1 py-2 px-3 rounded font-bold font-mono text-[11px] flex items-center justify-center gap-1.5 transition ${
+                leftTab === "chat"
+                  ? "bg-white text-slate-900 border border-slate-300 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+              }`}
+            >
+              <span>LUỒNG SUY LUẬN AI (REASONING THREAD)</span>
+            </button>
+          </div>
 
-                  {/* Render Nút Actions nếu có (Không để lộ mã thô) */}
-                  {msg.actions && msg.actions.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3 pt-2.5 border-t border-slate-100">
-                      {msg.actions.map((btn, bIdx) => (
-                        <button
-                          key={bIdx}
-                          onClick={() => handleActionClick(btn)}
-                          className={`px-3 py-1.5 rounded text-xs font-semibold transition ${
-                            btn.style === "secondary"
-                              ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300"
-                              : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm"
-                          }`}
-                        >
-                          {btn.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+          {/* Nội dung Cột Trái: Hiển thị Form Wizard hoặc Khung Chat */}
+          {leftTab === "wizard" ? (
+            <div className="flex-1 min-h-0 overflow-y-auto bg-white">
+              <div className="p-3 bg-indigo-50/70 border-b border-indigo-100 text-slate-700 text-xs">
+                <div className="font-bold text-indigo-900 flex items-center gap-1.5">
+                  <span className="px-1.5 py-0.5 bg-indigo-600 text-white rounded text-[10px] font-mono">B2B WIZARD</span>
+                  <span>Tự động hóa lập Báo giá & Khớp cấu hình</span>
                 </div>
+                <p className="text-[11px] text-indigo-700 mt-1 leading-normal">
+                  Chọn mẫu thu mua nhanh, cấu hình và ngân sách trần. Khi bấm kích hoạt, AI sẽ tự động phân tích và đồng bộ kết quả lên Bảng Thảo Báo Giá ở cột phải theo thời gian thực.
+                </p>
               </div>
-            ))}
-            <div ref={chatEndRef} />
-          </div>
+              <ProcurementWizard onSubmit={handleWizardSubmit} />
+            </div>
+          ) : (
+            <>
+              {/* Khung Hội Thoại (Message Thread có Scroll dọc chuẩn) */}
+              <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-slate-50/50 text-xs leading-relaxed">
+                {messages.map((msg, idx) => (
+                  <div key={idx} className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}>
+                    <div className="text-[10px] font-mono uppercase text-slate-400 mb-1">
+                      {msg.sender === "user" ? "[ DOANH NGHIỆP ]" : "[ PROCUREPRIME REASONING ]"} •{" "}
+                      {msg.timestamp.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+                    </div>
+                    <div
+                      className={`p-3.5 rounded-lg max-w-[92%] whitespace-pre-wrap ${
+                        msg.sender === "user"
+                          ? "bg-slate-900 text-slate-100 font-medium"
+                          : "bg-white border border-slate-200 text-slate-800 shadow-sm"
+                      }`}
+                    >
+                      {msg.text || (
+                        <div className="font-mono text-slate-400 italic animate-pulse">
+                          Đang phân tích yêu cầu cấu hình & thẩm định ngân sách...
+                        </div>
+                      )}
 
-          {/* Gợi Ý Nhanh B2B (Preset Buttons - Minimal Text Pills) */}
-          <div className="flex-shrink-0 p-2.5 bg-slate-50 border-t border-slate-200 flex gap-1.5 overflow-x-auto text-[11px] font-mono">
-            <button
-              onClick={() =>
-                setInput(
-                  "Công ty TNHH Giải Pháp AI cần trang bị cho 5 nhân viên: 5 laptop văn phòng RAM tối thiểu 16GB, 5 bộ chuột phím không dây. Tổng ngân sách tối đa 90 triệu, cần xuất hóa đơn VAT."
-                )
-              }
-              className="px-2.5 py-1 bg-white border border-slate-300 text-slate-700 hover:border-slate-500 rounded whitespace-nowrap transition-colors"
-            >
-              [ + COMBO 5 MÁY 16GB + CHUỘT (90TR) ]
-            </button>
-            <button
-              onClick={() => setInput("Tôi cần mua số lượng lớn 10 màn hình văn phòng, xuất báo giá chiết khấu sỉ.")}
-              className="px-2.5 py-1 bg-white border border-slate-300 text-slate-700 hover:border-slate-500 rounded whitespace-nowrap transition-colors"
-            >
-              [ + MUA SỈ 10 MÀN HÌNH ]
-            </button>
-          </div>
+                      {/* Render Nút Actions nếu có (Dọn dẹp icon & Tích hợp nút Xuất Excel chuẩn doanh nghiệp) */}
+                      {(() => {
+                        let actionsToRender = msg.actions ? [...msg.actions] : [];
+                        // Nếu có mã báo giá và tin nhắn từ agent, tự động đảm bảo có nút Xuất Excel bên cột Action
+                        if (msg.sender === "agent" && quotationNumber && !actionsToRender.some((b) => b.url?.includes("/excel") || b.label?.toLowerCase().includes("excel"))) {
+                          actionsToRender.push({
+                            label: "Xuất Báo Giá Excel (.xlsx)",
+                            action: "navigate",
+                            url: `/api/quotations/${quotationNumber}/excel`,
+                            style: "primary",
+                          });
+                        }
+                        if (actionsToRender.length === 0) return null;
 
-          {/* Khung Nhập Liệu (Input Console) */}
-          <div className="flex-shrink-0 p-3 border-t border-slate-200 bg-white flex gap-2">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              placeholder="Nhập yêu cầu thiết bị, cấu hình, ngân sách trần..."
-              disabled={loading}
-              className="flex-1 px-3 py-2 border border-slate-300 rounded text-xs focus:outline-none focus:border-slate-800 text-slate-900 placeholder:text-slate-400 font-mono"
-            />
-            <button
-              onClick={handleSend}
-              disabled={loading || !input.trim()}
-              className="px-4 py-2 bg-slate-900 text-white font-mono text-xs font-bold rounded hover:bg-slate-800 disabled:opacity-40 transition-colors uppercase tracking-wider"
-            >
-              {loading ? "ĐANG XỬ LÝ..." : "GỬI YÊU CẦU"}
-            </button>
-          </div>
+                        return (
+                          <div className="flex flex-wrap gap-2 mt-3 pt-2.5 border-t border-slate-100">
+                            {actionsToRender.map((btn, bIdx) => {
+                              const cleanLabel = (btn.label || "").replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "").trim();
+                              const isExcel = btn.url?.includes("/excel") || cleanLabel.toLowerCase().includes("excel");
+                              return (
+                                <button
+                                  key={bIdx}
+                                  onClick={() => handleActionClick(btn)}
+                                  className={`px-3 py-1.5 rounded text-xs font-semibold font-mono transition flex items-center gap-1.5 ${
+                                    isExcel
+                                      ? "bg-slate-900 hover:bg-slate-800 text-white shadow-sm"
+                                      : btn.style === "secondary"
+                                      ? "bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-sm"
+                                      : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm"
+                                  }`}
+                                >
+                                  {cleanLabel}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                ))}
+                <div ref={chatEndRef} />
+              </div>
+
+              {/* Gợi Ý Nhanh B2B (Preset Buttons - Minimal Text Pills) */}
+              <div className="flex-shrink-0 p-2.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-[11px] font-mono">
+                <div className="flex gap-1.5 overflow-x-auto">
+                  <button
+                    onClick={() =>
+                      setInput(
+                        "Công ty TNHH Giải Pháp AI cần trang bị cho 5 nhân viên: 5 laptop văn phòng RAM tối thiểu 16GB, 5 bộ chuột phím không dây. Tổng ngân sách tối đa 90 triệu, cần xuất hóa đơn VAT."
+                      )
+                    }
+                    className="px-2.5 py-1 bg-white border border-slate-300 text-slate-700 hover:border-slate-500 rounded whitespace-nowrap transition-colors"
+                  >
+                    [ + COMBO 5 MÁY 16GB (90TR) ]
+                  </button>
+                  <button
+                    onClick={() => setInput("Tôi cần mua số lượng lớn 10 màn hình văn phòng, xuất báo giá chiết khấu sỉ.")}
+                    className="px-2.5 py-1 bg-white border border-slate-300 text-slate-700 hover:border-slate-500 rounded whitespace-nowrap transition-colors"
+                  >
+                    [ + MUA SỈ 10 MÀN HÌNH ]
+                  </button>
+                </div>
+                <button
+                  onClick={() => setLeftTab("wizard")}
+                  className="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded font-bold whitespace-nowrap transition-colors flex items-center gap-1"
+                >
+                  MỞ FORM THU MUA
+                </button>
+              </div>
+
+              {/* Khung Nhập Liệu (Input Console) */}
+              <div className="flex-shrink-0 p-3 border-t border-slate-200 bg-white flex gap-2">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                  placeholder="Nhập yêu cầu thiết bị, cấu hình, ngân sách trần..."
+                  disabled={loading}
+                  className="flex-1 px-3 py-2 border border-slate-300 rounded text-xs focus:outline-none focus:border-slate-800 text-slate-900 placeholder:text-slate-400 font-mono"
+                />
+                <button
+                  onClick={handleSend}
+                  disabled={loading || !input.trim()}
+                  className="px-4 py-2 bg-slate-900 text-white font-mono text-xs font-bold rounded hover:bg-slate-800 disabled:opacity-40 transition-colors uppercase tracking-wider"
+                >
+                  {loading ? "ĐANG XỬ LÝ..." : "GỬI YÊU CẦU"}
+                </button>
+              </div>
+            </>
+          )}
         </section>
 
         {/* ========================================================
@@ -381,171 +542,213 @@ export const ProcurementWorkspace: React.FC = () => {
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-mono text-slate-500">MÃ HIỆU:</span>
               <span className="font-mono text-xs font-bold px-2.5 py-1 bg-white border border-slate-300 rounded text-slate-900">
-                {quotationNumber}
+                {quotationNumber || "CHƯA KHỞI TẠO"}
               </span>
             </div>
           </div>
 
-          {/* 1. THẺ SỐ LIỆU NGÂN SÁCH (Financial KPI Cards) */}
-          <div className="grid grid-cols-4 gap-3 text-xs flex-shrink-0">
-            <div className="bg-white border border-slate-200 p-3 rounded">
-              <div className="text-[10px] font-mono text-slate-500 uppercase">Trần Ngân Sách</div>
-              <div className="text-base font-bold text-slate-900 mt-1">
-                {maxBudget.toLocaleString("vi-VN")} đ
-              </div>
+          {/* Loading Alert */}
+          {canvasLoading && (
+            <div className="p-3 bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs font-mono rounded flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+              <span>Đang đồng bộ dữ liệu Báo Giá Thương Mại từ máy chủ...</span>
             </div>
-            <div className="bg-white border border-slate-200 p-3 rounded">
-              <div className="text-[10px] font-mono text-slate-500 uppercase">Tạm Tính Đơn Hàng</div>
-              <div className="text-base font-bold text-slate-900 mt-1">
-                {grandTotal.toLocaleString("vi-VN")} đ
-              </div>
-            </div>
-            <div className="bg-white border border-slate-200 p-3 rounded">
-              <div className="text-[10px] font-mono text-slate-500 uppercase">Chiết Khấu B2B (5%)</div>
-              <div className="text-base font-bold text-emerald-700 mt-1">
-                - {discountAmount.toLocaleString("vi-VN")} đ
-              </div>
-            </div>
-            <div className="bg-white border border-slate-200 p-3 rounded">
-              <div className="text-[10px] font-mono text-slate-500 uppercase">Tỷ Lệ Tiêu Hao</div>
-              <div className={`text-base font-bold mt-1 ${isOverBudget ? "text-rose-600" : "text-slate-900"}`}>
-                {budgetUtilization}%
-              </div>
-            </div>
-          </div>
+          )}
 
-          {/* 2. THƯỚC ĐO TIẾN ĐỘ NGÂN SÁCH (Hairline Progress Gauge) */}
-          <div className="bg-white border border-slate-200 p-4 rounded space-y-2 flex-shrink-0">
-            <div className="flex justify-between items-center text-xs">
-              <span className="font-mono font-bold text-slate-700 uppercase">
-                Tiến Độ Kiểm Soát Hạn Ngạch Chi Tiêu
-              </span>
-              <span
-                className={`font-mono text-[11px] font-bold px-2 py-0.5 rounded border ${
-                  isOverBudget
-                    ? "bg-rose-50 border-rose-300 text-rose-700"
-                    : "bg-emerald-50 border-emerald-300 text-emerald-700"
-                }`}
-              >
-                {isOverBudget ? "[ VƯỢT TRẦN NGÂN SÁCH ]" : "[ TRONG HẠN MỨC CHO PHÉP ]"}
-              </span>
+          {/* Error Alert */}
+          {canvasError && (
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono rounded">
+              Lỗi đồng bộ: {canvasError}
             </div>
-            {/* Hairline progress bar */}
-            <div className="w-full bg-slate-200 h-2 rounded overflow-hidden">
-              <div
-                className={`h-2 transition-all duration-500 ${isOverBudget ? "bg-rose-600" : "bg-slate-900"}`}
-                style={{ width: `${Math.min(budgetUtilization, 100)}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-[11px] font-mono text-slate-500 pt-1">
-              <span>Đã cam kết: {grandTotal.toLocaleString("vi-VN")} đ</span>
-              <span>Dư địa: {Math.max(maxBudget - grandTotal, 0).toLocaleString("vi-VN")} đ</span>
-            </div>
-          </div>
+          )}
 
-          {/* 3. BẢNG DANH MỤC THIẾT BỊ (Financial Data Table) */}
-          <div className="bg-white border border-slate-200 rounded overflow-hidden shadow-sm flex-shrink-0">
-            <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-700">
-              Danh Mục Thiết Bị Thu Mua Đã So Khớp
+          {/* Empty State khi chưa có Báo giá nào */}
+          {!quotationNumber && items.length === 0 && !canvasLoading && (
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-white border border-slate-200 rounded-lg space-y-3">
+              <div className="w-12 h-12 rounded-full bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 font-mono text-sm font-bold">
+                PP
+              </div>
+              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider font-mono">
+                BẢNG THẢO BÁO GIÁ CHƯA KHỞI TẠO
+              </h3>
+              <p className="text-xs text-slate-500 max-w-sm leading-relaxed">
+                Vui lòng nhập nhu cầu thiết bị, số lượng và trần ngân sách ở bảng điều khiển bên trái (hoặc bấm chọn gợi ý mẫu). ProcurePrime sẽ tự động bóc tách thông số, so khớp cấu hình và xuất bản Báo Giá Doanh Nghiệp tại đây.
+              </p>
             </div>
-            <table className="w-full text-left border-collapse text-xs">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-mono text-[11px]">
-                <tr>
-                  <th className="py-2.5 px-3 text-center w-10">STT</th>
-                  <th className="py-2.5 px-3">TÊN THIẾT BỊ & CẤU HÌNH</th>
-                  <th className="py-2.5 px-3 text-center w-12">SL</th>
-                  <th className="py-2.5 px-3 text-right w-28">ĐƠN GIÁ</th>
-                  <th className="py-2.5 px-3 text-right w-32">THÀNH TIỀN</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {items.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50/80">
-                    <td className="py-3 px-3 text-center font-mono text-slate-400">{String(idx + 1).padStart(2, "0")}</td>
-                    <td className="py-3 px-3">
-                      <div className="font-semibold text-slate-900">{item.name}</div>
-                      <div className="text-[11px] font-mono text-slate-500 mt-0.5">{item.specsSummary}</div>
-                    </td>
-                    <td className="py-3 px-3 text-center font-mono font-bold text-slate-900">{item.quantity}</td>
-                    <td className="py-3 px-3 text-right font-mono text-slate-700">
-                      {item.unitPrice.toLocaleString("vi-VN")} đ
-                    </td>
-                    <td className="py-3 px-3 text-right font-mono font-bold text-slate-900">
-                      {item.subtotal.toLocaleString("vi-VN")} đ
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          )}
 
-            {/* Chi tiết tính toán tài chính */}
-            <div className="border-t border-slate-200 p-4 bg-slate-50/70 space-y-1.5 text-xs font-mono">
-              <div className="flex justify-between text-slate-600">
-                <span>Cộng tiền hàng (Subtotal):</span>
-                <span>{subtotal.toLocaleString("vi-VN")} đ</span>
+          {/* Hiển thị chi tiết khi đã có báo giá hoặc items */}
+          {(quotationNumber || items.length > 0) && (
+            <>
+              {/* 1. THẺ SỐ LIỆU NGÂN SÁCH (Financial KPI Cards) */}
+              <div className="grid grid-cols-4 gap-3 text-xs flex-shrink-0">
+                <div className="bg-white border border-slate-200 p-3 rounded">
+                  <div className="text-[10px] font-mono text-slate-500 uppercase">Trần Ngân Sách</div>
+                  <div className="text-base font-bold text-slate-900 mt-1">
+                    {maxBudget > 0 ? `${maxBudget.toLocaleString("vi-VN")} đ` : "Chưa xác định"}
+                  </div>
+                </div>
+                <div className="bg-white border border-slate-200 p-3 rounded">
+                  <div className="text-[10px] font-mono text-slate-500 uppercase">Tạm Tính Đơn Hàng</div>
+                  <div className="text-base font-bold text-slate-900 mt-1">
+                    {grandTotal.toLocaleString("vi-VN")} đ
+                  </div>
+                </div>
+                <div className="bg-white border border-slate-200 p-3 rounded">
+                  <div className="text-[10px] font-mono text-slate-500 uppercase">Chiết Khấu B2B (5%)</div>
+                  <div className="text-base font-bold text-emerald-700 mt-1">
+                    - {discountAmount.toLocaleString("vi-VN")} đ
+                  </div>
+                </div>
+                <div className="bg-white border border-slate-200 p-3 rounded">
+                  <div className="text-[10px] font-mono text-slate-500 uppercase">Tỷ Lệ Tiêu Hao</div>
+                  <div className={`text-base font-bold mt-1 ${isOverBudget ? "text-rose-600" : "text-slate-900"}`}>
+                    {maxBudget > 0 ? `${budgetUtilization}%` : "N/A"}
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between text-emerald-700">
-                <span>Chiết khấu khối lượng B2B (5%):</span>
-                <span>- {discountAmount.toLocaleString("vi-VN")} đ</span>
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span>Thuế Giá trị Gia tăng VAT (10%):</span>
-                <span>+ {vatAmount.toLocaleString("vi-VN")} đ</span>
-              </div>
-              <div className="flex justify-between pt-2 border-t border-slate-300 text-sm font-bold text-slate-900">
-                <span className="uppercase">TỔNG CỘNG THANH TOÁN:</span>
-                <span className="text-base text-slate-950">{grandTotal.toLocaleString("vi-VN")} đ</span>
-              </div>
-            </div>
-          </div>
 
-          {/* 4. CHỨNG THỰC KIỂM TOÁN & KHỐI PHÊ DUYỆT (Governance & Action Ribbon) */}
-          <div className="bg-white border border-slate-200 p-4 rounded space-y-3 flex-shrink-0">
-            <div className="flex justify-between items-center text-xs">
-              <div className="font-mono text-slate-600">
-                TRẠNG THÁI HỆ THỐNG:{" "}
-                <span
-                  className={`font-bold px-2 py-0.5 rounded text-[11px] ${
-                    status === "ISSUED" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
-                  }`}
-                >
-                  {status === "ISSUED" ? "[ ĐÃ PHÁT HÀNH - ISSUED ]" : "[ CHỜ PHÊ DUYỆT - MANAGER ]"}
-                </span>
-              </div>
-              <div className="font-mono text-slate-500 text-[11px]">
-                QUY CHẾ: EDUREF_AI MULTI-LAYER GOVERNANCE
-              </div>
-            </div>
-
-            <div className="p-2 bg-slate-50 border border-slate-200 rounded text-[11px] font-mono text-slate-600 break-all">
-              <span className="text-slate-400">SHA-256 AUDIT FINGERPRINT: </span>
-              {auditFingerprint}
-            </div>
-
-            {/* Action Ribbon Buttons (Rectangular, high-contrast, minimal) */}
-            <div className="flex gap-2 pt-1">
-              {status === "DRAFT" ? (
-                <button
-                  onClick={handleApprove}
-                  className="flex-1 py-2.5 px-4 bg-slate-900 text-white font-mono text-xs font-bold rounded hover:bg-slate-800 transition-colors uppercase tracking-wider text-center"
-                >
-                  XÁC NHẬN PHÊ DUYỆT QUẢN LÝ (1-CLICK)
-                </button>
-              ) : (
-                <div className="flex-1 py-2.5 px-4 bg-emerald-50 border border-emerald-300 text-emerald-800 font-mono text-xs font-bold rounded text-center">
-                  BÁO GIÁ ĐÃ ĐƯỢC PHÊ DUYỆT CHÍNH THỨC
+              {/* 2. THƯỚC ĐO TIẾN ĐỘ NGÂN SÁCH (Hairline Progress Gauge) */}
+              {maxBudget > 0 && (
+                <div className="bg-white border border-slate-200 p-4 rounded space-y-2 flex-shrink-0">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-mono font-bold text-slate-700 uppercase">
+                      Tiến Độ Kiểm Soát Hạn Ngạch Chi Tiêu
+                    </span>
+                    <span
+                      className={`font-mono text-[11px] font-bold px-2 py-0.5 rounded border ${
+                        isOverBudget
+                          ? "bg-rose-50 border-rose-300 text-rose-700"
+                          : "bg-emerald-50 border-emerald-300 text-emerald-700"
+                      }`}
+                    >
+                      {isOverBudget ? "[ VƯỢT TRẦN NGÂN SÁCH ]" : "[ TRONG HẠN MỨC CHO PHÉP ]"}
+                    </span>
+                  </div>
+                  {/* Hairline progress bar */}
+                  <div className="w-full bg-slate-200 h-2 rounded overflow-hidden">
+                    <div
+                      className={`h-2 transition-all duration-500 ${isOverBudget ? "bg-rose-600" : "bg-slate-900"}`}
+                      style={{ width: `${Math.min(budgetUtilization, 100)}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[11px] font-mono text-slate-500 pt-1">
+                    <span>Đã cam kết: {grandTotal.toLocaleString("vi-VN")} đ</span>
+                    <span>Dư địa: {Math.max(maxBudget - grandTotal, 0).toLocaleString("vi-VN")} đ</span>
+                  </div>
                 </div>
               )}
-              <a
-                href={`http://localhost:5000/api/quotations/${quotationNumber}/html`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="py-2.5 px-4 bg-white border border-slate-300 text-slate-800 font-mono text-xs font-bold rounded hover:bg-slate-100 transition-colors uppercase tracking-wider text-center"
-              >
-                MỞ BẢN IN HTML
-              </a>
-            </div>
-          </div>
+
+              {/* 3. BẢNG DANH MỤC THIẾT BỊ (Financial Data Table) */}
+              <div className="bg-white border border-slate-200 rounded overflow-hidden shadow-sm flex-shrink-0">
+                <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Danh Mục Thiết Bị Thu Mua Đã So Khớp
+                </div>
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-mono text-[11px]">
+                    <tr>
+                      <th className="py-2.5 px-3 text-center w-10">STT</th>
+                      <th className="py-2.5 px-3">TÊN THIẾT BỊ & CẤU HÌNH</th>
+                      <th className="py-2.5 px-3 text-center w-12">SL</th>
+                      <th className="py-2.5 px-3 text-right w-28">ĐƠN GIÁ</th>
+                      <th className="py-2.5 px-3 text-right w-32">THÀNH TIỀN</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {items.map((item, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50/80">
+                        <td className="py-3 px-3 text-center font-mono text-slate-400">{String(idx + 1).padStart(2, "0")}</td>
+                        <td className="py-3 px-3">
+                          <div className="font-semibold text-slate-900">{item.name}</div>
+                          <div className="text-[11px] font-mono text-slate-500 mt-0.5">{item.specsSummary}</div>
+                        </td>
+                        <td className="py-3 px-3 text-center font-mono font-bold text-slate-900">{item.quantity}</td>
+                        <td className="py-3 px-3 text-right font-mono text-slate-700">
+                          {item.unitPrice.toLocaleString("vi-VN")} đ
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono font-bold text-slate-900">
+                          {item.subtotal.toLocaleString("vi-VN")} đ
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {/* Chi tiết tính toán tài chính */}
+                <div className="border-t border-slate-200 p-4 bg-slate-50/70 space-y-1.5 text-xs font-mono">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Cộng tiền hàng (Subtotal):</span>
+                    <span>{subtotal.toLocaleString("vi-VN")} đ</span>
+                  </div>
+                  <div className="flex justify-between text-emerald-700">
+                    <span>Chiết khấu khối lượng B2B (5%):</span>
+                    <span>- {discountAmount.toLocaleString("vi-VN")} đ</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Thuế Giá trị Gia tăng VAT (10%):</span>
+                    <span>+ {vatAmount.toLocaleString("vi-VN")} đ</span>
+                  </div>
+                  <div className="flex justify-between pt-2 border-t border-slate-300 text-sm font-bold text-slate-900">
+                    <span className="uppercase">TỔNG CỘNG THANH TOÁN:</span>
+                    <span className="text-base text-slate-950">{grandTotal.toLocaleString("vi-VN")} đ</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. CHỨNG THỰC KIỂM TOÁN & KHỐI PHÊ DUYỆT (Governance & Action Ribbon) */}
+              <div className="bg-white border border-slate-200 p-4 rounded space-y-3 flex-shrink-0">
+                <div className="flex justify-between items-center text-xs">
+                  <div className="font-mono text-slate-600">
+                    TRẠNG THÁI HỆ THỐNG:{" "}
+                    <span
+                      className={`font-bold px-2 py-0.5 rounded text-[11px] ${
+                        status === "ISSUED" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
+                      }`}
+                    >
+                      {status === "ISSUED" ? "[ ĐÃ PHÁT HÀNH - ISSUED ]" : "[ CHỜ PHÊ DUYỆT - MANAGER ]"}
+                    </span>
+                  </div>
+                  <div className="font-mono text-slate-500 text-[11px]">
+                    QUY CHẾ: EDUREF_AI MULTI-LAYER GOVERNANCE
+                  </div>
+                </div>
+
+                {auditFingerprint && (
+                  <div className="p-2 bg-slate-50 border border-slate-200 rounded text-[11px] font-mono text-slate-600 break-all">
+                    <span className="text-slate-400">SHA-256 AUDIT FINGERPRINT: </span>
+                    {auditFingerprint}
+                  </div>
+                )}
+
+                {/* Action Ribbon Buttons */}
+                <div className="flex gap-2 pt-1">
+                  {status === "DRAFT" ? (
+                    <button
+                      onClick={handleApprove}
+                      disabled={!quotationNumber}
+                      className="flex-1 py-2.5 px-4 bg-slate-900 text-white font-mono text-xs font-bold rounded hover:bg-slate-800 disabled:opacity-50 transition-colors uppercase tracking-wider text-center"
+                    >
+                      XÁC NHẬN PHÊ DUYỆT QUẢN LÝ (1-CLICK)
+                    </button>
+                  ) : (
+                    <div className="flex-1 py-2.5 px-4 bg-emerald-50 border border-emerald-300 text-emerald-800 font-mono text-xs font-bold rounded text-center">
+                      BÁO GIÁ ĐÃ ĐƯỢC PHÊ DUYỆT CHÍNH THỨC
+                    </div>
+                  )}
+                  {quotationNumber && (
+                    <a
+                      href={`http://localhost:5000/api/quotations/${quotationNumber}/html`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="py-2.5 px-4 bg-white border border-slate-300 text-slate-800 font-mono text-xs font-bold rounded hover:bg-slate-100 transition-colors uppercase tracking-wider text-center"
+                    >
+                      MỞ BẢN IN HTML
+                    </a>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </section>
       </main>
     </div>

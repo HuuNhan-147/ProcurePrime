@@ -3,7 +3,7 @@ import { IProduct } from "../types/product";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
-import { ShoppingCart, Check } from "lucide-react";
+import { FileSpreadsheet, Check, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface AddToCartButtonProps {
@@ -26,7 +26,7 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
   const handleAddToCart = async () => {
     const token = getToken();
     if (!token) {
-      toast.warning("Vui lòng đăng nhập để thêm vào giỏ hàng!", {
+      toast.warning("Vui lòng đăng nhập tài khoản Doanh nghiệp để lưu yêu cầu báo giá!", {
         position: "top-right",
         autoClose: 2000,
       });
@@ -45,15 +45,16 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
       setIsSuccess(true);
       setTimeout(() => setIsSuccess(false), 2000);
 
-      toast.success("Đã thêm vào giỏ hàng!", {
+      toast.success("Đã thêm vào Danh mục Yêu cầu Báo Giá (RFQ)!", {
         position: "top-right",
         autoClose: 2000,
       });
 
       if (onAddToCart) onAddToCart();
     } catch (error: any) {
-      console.error("Lỗi khi thêm vào giỏ hàng:", error);
-      const errorMessage = error.response?.data?.message || "Thêm vào giỏ hàng thất bại!";
+      console.error("Lỗi khi thêm vào RFQ:", error);
+      const errorMessage =
+        error.response?.data?.message || "Không thể thêm vào danh mục báo giá!";
       toast.error(errorMessage, {
         position: "top-right",
         autoClose: 2000,
@@ -69,20 +70,17 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
       disabled={product.countInStock <= 0 || isLoading || isSuccess}
       className={`${className} ${
         product.countInStock <= 0
-          ? "bg-gray-400 cursor-not-allowed"
+          ? "bg-slate-200 text-slate-400 cursor-not-allowed border-slate-200"
           : isSuccess
-          ? "bg-green-500"
-          : "bg-blue-600 hover:bg-blue-700"
-      } text-white px-4 py-2 rounded-md transition-all duration-300 flex items-center justify-center relative overflow-hidden`}
+          ? "bg-emerald-600 text-white border-emerald-600"
+          : "bg-white hover:bg-slate-50 text-slate-800 border-slate-300"
+      } border text-xs font-semibold py-2 px-2.5 rounded-lg transition-all duration-200 flex items-center justify-center gap-1.5`}
+      title="Đưa thiết bị vào bảng tổng hợp Yêu cầu Báo Giá (RFQ)"
     >
-      {isSuccess && (
-        <div className="absolute inset-0 bg-green-500 animate-ping opacity-30"></div>
-      )}
-
       {isLoading ? (
         <>
           <svg
-            className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+            className="animate-spin h-3.5 w-3.5 text-indigo-600"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -101,20 +99,20 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             ></path>
           </svg>
-          Đang thêm...
+          <span>Đang lưu...</span>
         </>
       ) : isSuccess ? (
         <>
-          <Check className="h-5 w-5 mr-2 animate-bounce" />
-          Đã thêm!
+          <Check className="h-3.5 w-3.5 text-white" />
+          <span>Đã Lưu RFQ</span>
         </>
       ) : product.countInStock > 0 ? (
         <>
-          <ShoppingCart className="h-5 w-5 mr-2" />
-          Thêm vào giỏ
+          <FileSpreadsheet className="h-3.5 w-3.5 text-indigo-600" />
+          <span>+ Đưa Vào RFQ</span>
         </>
       ) : (
-        "Hết hàng"
+        <span>Hết hàng dự án</span>
       )}
     </button>
   );

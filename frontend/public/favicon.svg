@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="ppGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="50%" stop-color="#4f46e5" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="#020617" />
+  <rect x="1" y="1" width="30" height="30" rx="7" stroke="url(#ppGrad)" stroke-width="1.5" />
+  <path d="M10 23V9h6.5c3 0 5 1.5 5 4s-2 4-5 4H14v6h-4zm4-9.5h2.5c1.2 0 2-.6 2-1.5s-.8-1.5-2-1.5H14v3z" fill="url(#ppGrad)" />
+</svg>
+

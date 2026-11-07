@@ -10,7 +10,6 @@ import CartButton from "../components/Header/CartButton";
 import OrdersButton from "../components/Header/OrdersButton";
 import AuthButtons from "../components/Header/AuthButtons";
 import { ShieldCheck, ArrowRight } from "lucide-react";
-import logo from "../assets/logo.png";
 
 const Header = () => {
   const { user, logout, token } = useAuth();
@@ -155,11 +154,11 @@ const Header = () => {
               className="flex items-center gap-2.5 group"
               title="ProcurePrime - Nền Tảng Thu Mua & Báo Giá Doanh Nghiệp"
             >
-              <img
-                src={logo}
-                alt="ProcurePrime"
-                className="w-8 h-8 object-cover rounded-lg border border-slate-700 group-hover:scale-105 transition-transform"
-              />
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-md shadow-indigo-500/20 flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
+                <div className="w-full h-full bg-slate-950 rounded-[9px] flex items-center justify-center">
+                  <ShieldCheck size={18} className="text-indigo-400" />
+                </div>
+              </div>
               <div className="flex items-center gap-2">
                 <span className="text-xl font-black tracking-tight text-white group-hover:text-indigo-300 transition-colors">
                   Procure<span className="text-indigo-400">Prime</span>

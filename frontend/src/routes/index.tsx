@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import HomePage from "../pages/HomePage";
 import ProductList from "../components/FeaturedProducts";
@@ -28,6 +28,7 @@ import OrderDetails from "../admincomponents/OrderDetails";
 import SearchProduct from "../admincomponents/SearchProduct";
 import AIAgentChat from "../components/AIAgentChat";
 import ProcurementWorkspace from "../pages/ProcurementWorkspace";
+import PolicyManagement from "../admincomponents/PolicyManagement";
 
 const AppRoutes = () => {
   return (
@@ -90,6 +91,8 @@ const AppRoutes = () => {
                     <Route path="/users" element={<AdminUserManagement />} />
                     <Route path="/orders" element={<AdminOrderManager />} />
                     <Route path="/orders/:id" element={<OrderDetails />} />
+                    <Route path="/workspace" element={<ProcurementWorkspace />} />
+                    <Route path="/policies" element={<PolicyManagement />} />
                     <Route
                       path="/products/search"
                       element={<SearchProduct />}
