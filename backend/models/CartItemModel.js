@@ -6,6 +6,7 @@ const cartItemSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Cart",
       required: true,
+      index: true,
     },
     product: {
       type: mongoose.Schema.Types.ObjectId,
@@ -23,6 +24,9 @@ const cartItemSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Tối ưu tra cứu item trong giỏ
+cartItemSchema.index({ cart: 1, product: 1 });
 
 const CartItem = mongoose.model("CartItem", cartItemSchema);
 export default CartItem;

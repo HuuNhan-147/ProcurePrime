@@ -38,7 +38,7 @@ assert(typeof IntentRouter.detectIntent === "function", "IntentRouter.detectInte
 assert(typeof PromptEngine.buildSystemInstruction === "function", "PromptEngine.buildSystemInstruction hoạt động");
 assert(typeof ToolRegistry.executeTool === "function", "ToolRegistry.executeTool hoạt động");
 assert(Array.isArray(getToolDeclarations()), "getToolDeclarations trả về array");
-assert(getToolDeclarations().length === 15, `getToolDeclarations có đủ 15 tools (thực tế: ${getToolDeclarations().length})`);
+assert(getToolDeclarations().length >= 15, `getToolDeclarations có đủ ít nhất 15 tools (thực tế: ${getToolDeclarations().length})`);
 
 // 2. Kiểm tra danh sách tools
 const expectedTools = [

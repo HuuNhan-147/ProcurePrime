@@ -4,6 +4,10 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import sendEmail from "../utils/sendEmail.js";
 import Order from "../models/OrderModel.js";
+import { escapeRegex } from "../utils/securityUtils.js";
+
+const getAccessSecret = () => process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET || "fallback_access_secret_32_characters";
+const getRefreshSecret = () => process.env.REFRESH_TOKEN_SECRET || (getAccessSecret() + "_refresh");
 
 export const createUser = async (userData) => {
   const { name, email, password, phone, isAdmin } = userData;
@@ -26,13 +30,13 @@ export const createUser = async (userData) => {
 
   const accessToken = jwt.sign(
     { id: newUser._id, email: newUser.email, isAdmin: newUser.isAdmin },
-    process.env.ACCESS_TOKEN_SECRET,
+    getAccessSecret(),
     { expiresIn: "1h" }
   );
   
   const refreshToken = jwt.sign(
     { id: newUser._id },
-    process.env.REFRESH_TOKEN_SECRET,
+    getRefreshSecret(),
     { expiresIn: "7d" }
   );
 
@@ -51,13 +55,13 @@ export const loginUser = async (loginData) => {
 
   const accessToken = jwt.sign(
     { id: user._id, email: user.email, isAdmin: user.isAdmin },
-    process.env.ACCESS_TOKEN_SECRET,
+    getAccessSecret(),
     { expiresIn: "3h" }
   );
   
   const refreshToken = jwt.sign(
     { id: user._id },
-    process.env.REFRESH_TOKEN_SECRET,
+    getRefreshSecret(),
     { expiresIn: "7d" }
   );
 
@@ -65,7 +69,7 @@ export const loginUser = async (loginData) => {
 };
 
 export const getUserProfile = async (userId) => {
-  const user = await User.findById(userId).select("-password -access_token -refresh_token -createdAt -updatedAt");
+  const user = await User.findById(userId).select("-password -access_token -refresh_token -createdAt -updatedAt").lean();
   if (!user) throw new Error("Người dùng không tồn tại!");
   return user;
 };
@@ -100,11 +104,11 @@ export const updateUserByAdmin = async (userId, updateData) => {
 };
 
 export const getAllUsers = async () => {
-  return await User.find().select("-password -access_token -refresh_token");
+  return await User.find().select("-password -access_token -refresh_token").lean();
 };
 
 export const getUserOrders = async (userId) => {
-  const orders = await Order.find({ user: userId }).populate("orderItems.product");
+  const orders = await Order.find({ user: userId }).populate("orderItems.product").lean();
   if (!orders.length) throw new Error("Không có đơn hàng nào!");
   return orders;
 };
@@ -162,17 +166,22 @@ export const updatePassword = async (userId, oldPassword, newPassword) => {
 };
 
 export const getUserById = async (userId) => {
-  const user = await User.findById(userId).select("-password -access_token -refresh_token -createdAt -updatedAt");
+  const user = await User.findById(userId).select("-password -access_token -refresh_token -createdAt -updatedAt").lean();
   if (!user) throw new Error("Người dùng không tồn tại!");
   return user;
 };
 
 export const searchUsers = async (query) => {
+  const safeQuery = escapeRegex(query);
+  if (!safeQuery) return [];
+
   return await User.find({
     $or: [
-      { name: { $regex: query, $options: "i" } },
-      { email: { $regex: query, $options: "i" } },
-      { phone: { $regex: query, $options: "i" } },
+      { name: { $regex: safeQuery, $options: "i" } },
+      { email: { $regex: safeQuery, $options: "i" } },
+      { phone: { $regex: safeQuery, $options: "i" } },
     ],
-  });
+  })
+    .select("-password -resetPasswordToken -resetPasswordExpires")
+    .lean();
 };

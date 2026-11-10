@@ -65,5 +65,9 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
+// Tối ưu hóa truy vấn đơn hàng với Indexes
+orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ quotationNumber: 1 });
+
 const Order = mongoose.model("Order", orderSchema);
 export default Order;

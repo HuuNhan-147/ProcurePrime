@@ -43,6 +43,11 @@ export function validateEnv() {
     throw new Error(errorMsg);
   }
 
+  // Đảm bảo REFRESH_TOKEN_SECRET luôn sẵn sàng
+  if (!process.env.REFRESH_TOKEN_SECRET || process.env.REFRESH_TOKEN_SECRET.trim() === "") {
+    process.env.REFRESH_TOKEN_SECRET = `${process.env.JWT_SECRET}_refresh`;
+  }
+
   // 1. Thẩm định cổng PORT
   let parsedPort = 5000;
   if (process.env.PORT !== undefined && process.env.PORT !== "") {
@@ -71,6 +76,7 @@ export function validateEnv() {
     PORT: parsedPort,
     MONGO_URI: process.env.MONGO_URI.trim(),
     JWT_SECRET: process.env.JWT_SECRET.trim(),
+    REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET.trim(),
     GEMINI_API_KEY: geminiApiKey,
     REDIS_URL: redisUrl,
     FRONTEND_URL: frontendUrl,

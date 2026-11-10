@@ -12,6 +12,12 @@ import { validateEnv } from "./src/config/envValidator.js"; // ✅ Foundation: T
 import { logger } from "./src/shared/logger.js"; // ✅ Foundation: Structured Logger
 import { errorHandler } from "./src/shared/middlewares/errorHandler.js"; // ✅ Foundation: Xử lý lỗi tập trung
 import { AppError } from "./src/shared/errors/AppError.js";
+import {
+  securityHeaders,
+  apiRateLimiter,
+  authRateLimiter,
+  aiAgentRateLimiter,
+} from "./middleware/securityMiddleware.js";
 
 dotenv.config();
 
@@ -19,6 +25,8 @@ dotenv.config();
 const env = validateEnv();
 
 const app = express();
+app.disable("x-powered-by"); // Ẩn thông tin công nghệ máy chủ chống fingerprinting
+
 const PORT = env.PORT;
 const MONGO_URI = env.MONGO_URI;
 
@@ -73,7 +81,7 @@ io.on("connection", (socket) => {
         requiresAuth: result.requiresAuth,
         hasPayload: result.hasPayload,
         productCount: result.productCount,
-        _debug: result._debug
+        _debug: result._debug,
       });
 
       console.log(`📡 Socket response end sent successfully to ${socket.id}`);
@@ -83,7 +91,7 @@ io.on("connection", (socket) => {
         success: false,
         reply: "Ối, trợ lý ảo đang gặp sự cố nhỏ. Bạn thử lại nhé! 🙏",
         sessionId: sessionId || null,
-        payload: null
+        payload: null,
       });
     }
   });
@@ -99,23 +107,35 @@ app.use((req, res, next) => {
   next();
 });
 
+// ✅ Security Headers chống Clickjacking, MIME-Sniffing & XSS
+app.use(securityHeaders);
+
 app.use(
   cors({
-    origin: [
-      process.env.FRONTEND_URL || "http://localhost:5173",
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: [process.env.FRONTEND_URL || "http://localhost:5173"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
   })
 );
-app.use(express.json()); // ✅ Middleware JSON
-app.use(express.urlencoded({ extended: true })); // Xử lý dữ liệu form
-app.use("/api", routes); // ✅ Gọi routes
+
+// ✅ Body-parser có giới hạn tải trọng an toàn
+app.use(express.json({ limit: "2mb" }));
+app.use(express.urlencoded({ extended: true, limit: "2mb" }));
+
+// ✅ Áp dụng Rate Limiting bảo vệ máy chủ
+app.use("/api/users/login", authRateLimiter);
+app.use("/api/users/register", authRateLimiter);
+app.use("/api/ai-agent", aiAgentRateLimiter);
+app.use("/api", apiRateLimiter);
+
+// ✅ Định tuyến routes chính
+app.use("/api", routes);
+
 app.get("/", (req, res) => {
   res.send("Chào mừng bạn đến với API của tôi!");
 });
 
-// Cấu hình CORS
+// ✅ Kết nối Cơ sở dữ liệu & Khởi động Server
 mongoose
   .connect(MONGO_URI)
   .then(() => {
@@ -123,8 +143,8 @@ mongoose
 
     // Initialize Redis (if configured)
     connectRedis()
-      .then(() => console.log('Redis initialized'))
-      .catch((err) => console.warn('Redis not initialized:', err.message));
+      .then(() => console.log("Redis initialized"))
+      .catch((err) => console.warn("Redis not initialized:", err.message));
 
     httpServer.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
@@ -142,3 +162,19 @@ app.use((req, res, next) => {
 
 // ✅ Middleware xử lý lỗi tập trung toàn cục
 app.use(errorHandler);
+
+// ✅ Graceful Shutdown
+const handleShutdown = async () => {
+  console.log("\n🛑 Đang đóng các kết nối và dừng máy chủ an toàn...");
+  try {
+    await disconnectRedis();
+    await mongoose.connection.close();
+    process.exit(0);
+  } catch (err) {
+    console.error("Lỗi khi tắt kết nối:", err);
+    process.exit(1);
+  }
+};
+
+process.on("SIGTERM", handleShutdown);
+process.on("SIGINT", handleShutdown);

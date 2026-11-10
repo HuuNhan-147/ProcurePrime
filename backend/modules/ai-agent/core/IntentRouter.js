@@ -52,7 +52,7 @@ export const DOMAIN_KEYWORDS = {
       "có bán không", "giá bao nhiêu", "laptop", "máy tính",
       "thinkpad", "latitude", "optiplex", "workstation", "ultrasharp",
       "cisco", "synology", "nas", "switch", "laserjet", "máy in", "canon",
-      "hội nghị", "webcam họp", "meetup", "mx keys", "jabra", "tai nghe call center",
+      "hội nghị", "webcam họp", "meetup", "mx keys", "jabra", "tai nghe call center", "tai nghe bluetooth", "tai nghe", "bluetooth", "sony",
       "macbook", "dell", "hp", "lenovo", "lg dualup", "màn hình", "phụ kiện văn phòng",
       "xem", "gợi ý", "recommend", "so sánh", "compare", "tốt nhất", "cấu hình",
       "trong tầm giá", "review", "đánh giá sản phẩm", "chuẩn doanh nghiệp"

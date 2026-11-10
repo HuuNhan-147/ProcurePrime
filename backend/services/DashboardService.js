@@ -4,14 +4,16 @@ import Order from "../models/OrderModel.js";
 import Payment from "../models/PaymentModel.js";
 
 export const getDashboardStats = async () => {
-  const totalProducts = await Product.countDocuments();
-  const totalUsers = await User.countDocuments();
-  const totalOrders = await Order.countDocuments();
-
-  const revenueData = await Payment.aggregate([
-    { $match: { isPaid: true } },
-    { $group: { _id: null, total: { $sum: "$totalPrice" } } },
+  const [totalProducts, totalUsers, totalOrders, revenueData] = await Promise.all([
+    Product.countDocuments(),
+    User.countDocuments(),
+    Order.countDocuments(),
+    Payment.aggregate([
+      { $match: { isPaid: true } },
+      { $group: { _id: null, total: { $sum: "$totalPrice" } } },
+    ]),
   ]);
+
   const totalRevenue = revenueData[0]?.total || 0;
 
   return { totalProducts, totalUsers, totalOrders, totalRevenue };
@@ -75,14 +77,16 @@ export const getLatestOrders = async () => {
   return await Order.find()
     .sort({ createdAt: -1 })
     .limit(5)
-    .populate("user", "name email");
+    .populate("user", "name email")
+    .lean();
 };
 
 export const getLatestUsers = async () => {
   return await User.find()
     .sort({ createdAt: -1 })
     .limit(5)
-    .select("-password -resetPasswordToken -resetPasswordExpires");
+    .select("-password -resetPasswordToken -resetPasswordExpires")
+    .lean();
 };
 
 export const getOrderStatusStats = async () => {

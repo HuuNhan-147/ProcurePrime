@@ -12,9 +12,10 @@ export const protect = async (req, res, next) => {
     try {
       token = req.headers.authorization.split(" ")[1];
 
-      const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+      const secret = process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET;
+      const decoded = jwt.verify(token, secret);
 
-      const user = await User.findById(decoded.id).select("-password");
+      const user = await User.findById(decoded.id).select("-password").lean();
       if (!user) {
         return res.status(401).json({ message: "Người dùng không tồn tại!" });
       }

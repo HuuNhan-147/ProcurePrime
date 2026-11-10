@@ -1,7 +1,5 @@
 import mongoose from "mongoose";
 
-
-
 /* =======================
    PRODUCT SCHEMA
 ======================= */
@@ -69,6 +67,11 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Tối ưu hóa truy vấn MongoDB với Indexes
+productSchema.index({ category: 1, price: 1 });
+productSchema.index({ createdAt: -1 });
+productSchema.index({ name: "text", description: "text" });
 
 /* =======================
    MODEL EXPORT
