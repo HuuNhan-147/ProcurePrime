@@ -4,6 +4,7 @@ import Product from "../models/ProductModel.js";
 import OrderItem from "../models/OrderItemModel.js";
 import Payment from "../models/PaymentModel.js";
 import mongoose from "mongoose";
+import { escapeRegex } from "../utils/securityUtils.js";
 
 export const createOrder = async (userId, orderData) => {
   const session = await mongoose.startSession();
@@ -84,7 +85,7 @@ export const createOrder = async (userId, orderData) => {
 };
 
 export const getAllOrders = async () => {
-  return await Order.find().populate("user", "name email").populate("payment");
+  return await Order.find().populate("user", "name email").populate("payment").lean();
 };
 
 export const getOrderById = async (id, user) => {
@@ -110,9 +111,14 @@ export const getOrderById = async (id, user) => {
   return order;
 };
 
-export const updateOrderToPaid = async (id) => {
+export const updateOrderToPaid = async (id, user = null) => {
   const order = await Order.findById(id).populate("payment").populate("orderItems");
   if (!order || !order.payment) throw new Error("Đơn hàng hoặc thanh toán không tồn tại!");
+
+  // Kiểm soát quyền truy cập IDOR: Chỉ chủ đơn hàng hoặc Admin mới được cập nhật
+  if (user && user._id.toString() !== order.user.toString() && !user.isAdmin) {
+    throw new Error("forbidden");
+  }
 
   const payment = order.payment;
   payment.isPaid = true;
@@ -152,7 +158,8 @@ export const getUserOrders = async (userId) => {
     })
     .populate("user", "name email")
     .populate("payment")
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
 
   return orders;
 };
@@ -217,12 +224,16 @@ export const updateOrderStatus = async (id, statusData) => {
 };
 
 export const searchOrders = async (query) => {
-  return await Order.find({ orderCode: { $regex: query, $options: "i" } }).populate("user", "name email");
+  const safeQuery = escapeRegex(query);
+  if (!safeQuery) return [];
+  return await Order.find({ orderCode: { $regex: safeQuery, $options: "i" } }).populate("user", "name email").lean();
 };
 
 export const searchOrdersByUserName = async (name) => {
-  const users = await User.find({ name: { $regex: name, $options: "i" } }).select("_id");
+  const safeName = escapeRegex(name);
+  if (!safeName) return [];
+  const users = await User.find({ name: { $regex: safeName, $options: "i" } }).select("_id").lean();
   if (users.length === 0) return [];
   const userIds = users.map((u) => u._id);
-  return await Order.find({ user: { $in: userIds } }).populate("user", "name email");
+  return await Order.find({ user: { $in: userIds } }).populate("user", "name email").lean();
 };

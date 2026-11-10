@@ -8,7 +8,7 @@ export const createOrder = async (req, res) => {
       req.io.emit("new_order", {
         message: "Có đơn hàng mới được đặt!",
         orderCode: populatedOrder.orderCode,
-        totalPrice: populatedOrder.payment.totalPrice
+        totalPrice: populatedOrder.payment?.totalPrice
       });
     }
 
@@ -74,10 +74,12 @@ export const getOrderById = async (req, res) => {
 
 export const updateOrderToPaid = async (req, res) => {
   try {
-    const updatedOrder = await orderService.updateOrderToPaid(req.params.id);
+    const updatedOrder = await orderService.updateOrderToPaid(req.params.id, req.user);
     res.status(200).json({ message: "Thanh toán thành công!", order: updatedOrder });
   } catch (error) {
-    res.status(error.message.includes("không tồn tại") ? 404 : 500).json({ message: error.message });
+    const status = error.message === "forbidden" ? 403 : (error.message.includes("không tồn tại") ? 404 : 500);
+    const message = error.message === "forbidden" ? "Bạn không có quyền cập nhật đơn hàng này!" : error.message;
+    res.status(status).json({ message });
   }
 };
 
@@ -102,7 +104,7 @@ export const getUserOrders = async (req, res) => {
       const uniqueItems = [];
       const itemMap = new Map();
 
-      order.orderItems.forEach((item) => {
+      order.orderItems?.forEach((item) => {
         if (!item) return;
         const productId = item.product && item.product._id ? item.product._id : item.product;
         if (productId) {

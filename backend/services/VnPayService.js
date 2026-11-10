@@ -1,6 +1,5 @@
 import moment from "moment";
 import crypto from "crypto";
-import qs from "qs";
 import Order from "../models/OrderModel.js";
 import Product from "../models/ProductModel.js";
 import mongoose from "mongoose";
@@ -68,7 +67,10 @@ export const processVnPayReturn = async (vnp_Params) => {
 
   const sortedParams = sortObject(vnp_Params_Copy);
   const secretKey = process.env.VNP_HASH_SECRET;
-  const signData = qs.stringify(sortedParams, { encode: false });
+  // Dùng native serialization thay vì thư viện qs ngoài
+  const signData = Object.entries(sortedParams)
+    .map(([key, val]) => `${key}=${val}`)
+    .join("&");
   const signed = crypto.createHmac("sha512", secretKey).update(Buffer.from(signData, "utf-8")).digest("hex");
 
   if (secureHash.toLowerCase() !== (signed || "").toLowerCase()) throw new Error("Invalid signature");
@@ -78,7 +80,8 @@ export const processVnPayReturn = async (vnp_Params) => {
   const transactionId = vnp_Params["vnp_TransactionNo"];
   const amount = vnp_Params["vnp_Amount"] / 100;
 
-  const order = await Order.findById(orderId).populate("payment");
+  // Bổ sung populate("orderItems") để trừ tồn kho chính xác khi thanh toán thành công
+  const order = await Order.findById(orderId).populate("payment").populate("orderItems");
   if (!order) throw new Error("Order not found");
 
   const session = await mongoose.startSession();
@@ -96,10 +99,13 @@ export const processVnPayReturn = async (vnp_Params) => {
 
       if (!order.stockReduced) {
         for (const item of order.orderItems) {
-          const product = await Product.findById(item.product).session(session);
-          if (product) {
-            product.countInStock -= item.quantity;
-            await product.save({ session });
+          const productId = item.product?._id || item.product;
+          if (productId) {
+            const product = await Product.findById(productId).session(session);
+            if (product) {
+              product.countInStock -= item.quantity;
+              await product.save({ session });
+            }
           }
         }
         order.stockReduced = true;

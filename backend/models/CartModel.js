@@ -6,6 +6,8 @@ const cartSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User", // Liên kết với bảng User
       required: true,
+      unique: true,
+      index: true,
     },
     cartItems: [
       {

@@ -2,15 +2,17 @@ import Product from "../models/ProductModel.js";
 import Category from "../models/CategoryModel.js";
 import Review from "../models/ReviewModel.js";
 import Specification from "../models/SpecificationModel.js";
+import { escapeRegex } from "../utils/securityUtils.js";
 
 export const getAllProducts = async () => {
   const products = await Product.find()
     .populate("category", "name")
     .populate("specifications")
-    .populate("reviews");
+    .populate("reviews")
+    .lean();
 
   return products.map((product) => ({
-    ...product._doc,
+    ...product,
     category: product.category ? product.category.name : "Không có danh mục",
     image: product.image || "",
   }));
@@ -20,14 +22,16 @@ export const getProductById = async (id) => {
   const product = await Product.findById(id)
     .populate("category", "name")
     .populate("specifications")
-    .populate("reviews");
+    .populate("reviews")
+    .lean();
 
   if (!product) {
     throw new Error("Sản phẩm không tồn tại!");
   }
 
   return {
-    ...product._doc,
+    ...product,
+    category: product.category ? product.category.name : "Không có danh mục",
     image: product.image || "",
   };
 };
@@ -135,11 +139,12 @@ export const deleteProduct = async (id) => {
   return product;
 };
 
-export const getProducts = async (query) => {
+export const getProducts = async (query = {}) => {
   const { keyword, category, minPrice, maxPrice, rating, sortBy } = query;
   let filter = {};
 
-  if (keyword) filter.name = { $regex: keyword, $options: "i" };
+  const safeKeyword = escapeRegex(keyword);
+  if (safeKeyword) filter.name = { $regex: safeKeyword, $options: "i" };
   if (category) filter.category = category;
 
   if (minPrice || maxPrice) {
@@ -159,7 +164,8 @@ export const getProducts = async (query) => {
     .sort(sortOption)
     .populate("category", "name")
     .populate("specifications")
-    .populate("reviews");
+    .populate("reviews")
+    .lean();
 };
 
 export const addReview = async (productId, user, reviewData) => {
