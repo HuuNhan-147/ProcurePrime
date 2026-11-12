@@ -1,3 +1,5 @@
+import { tx, uiMessage, uiText, useLocale, localizedSwal } from "../i18n";
+import { AccessibleDialog } from "../components/ui/PresentationAccess";
 import React, { useEffect, useState } from "react";
 import {
   getAllUsers,
@@ -11,6 +13,7 @@ import Swal from "sweetalert2";
 import AdminPagination from "./AdminPagination";
 
 const AdminUserManagement = () => {
+  useLocale();
   const { getToken } = useAuth();
   const [users, setUsers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
@@ -33,8 +36,8 @@ const AdminUserManagement = () => {
         const data = await getAllUsers(token);
         setUsers(data);
       } catch (err: any) {
-        setError("Không thể tải danh sách người dùng");
-        Swal.fire("Lỗi", "Không thể tải danh sách người dùng", "error");
+        setError(uiMessage("adminUsers:unableToLoadUsers"));
+        localizedSwal(Swal, uiMessage("adminUsers:error"), uiMessage("adminUsers:unableToLoadUsers"), "error");
       } finally {
         setLoading(false);
       }
@@ -60,8 +63,8 @@ const AdminUserManagement = () => {
           setUsers(results);
         }
       } catch (err: any) {
-        setError("Không thể tìm kiếm người dùng");
-        Swal.fire("Lỗi", "Không thể tìm kiếm người dùng", "error");
+        setError(uiMessage("adminUsers:unableToSearchUsers"));
+        localizedSwal(Swal, uiMessage("adminUsers:error"), uiMessage("adminUsers:unableToSearchUsers"), "error");
       } finally {
         setLoading(false);
       }
@@ -79,11 +82,11 @@ const AdminUserManagement = () => {
             user._id === updatedUser._id ? updatedUser : user
           )
         );
-        Swal.fire("Thành công", "Cập nhật người dùng thành công", "success");
+        localizedSwal(Swal, uiMessage("adminUsers:success"), uiMessage("adminUsers:userUpdatedSuccessfully"), "success");
         setIsEditing(false);
       } catch (err: any) {
-        setError("Cập nhật người dùng thất bại");
-        Swal.fire("Lỗi", "Cập nhật người dùng thất bại", "error");
+        setError(uiMessage("adminUsers:unableToUpdateUser"));
+        localizedSwal(Swal, uiMessage("adminUsers:error"), uiMessage("adminUsers:unableToUpdateUser"), "error");
       } finally {
         setLoading(false);
       }
@@ -91,15 +94,15 @@ const AdminUserManagement = () => {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    const result = await Swal.fire({
-      title: "Bạn có chắc chắn?",
-      text: "Bạn sẽ không thể hoàn tác hành động này!",
+    const result = await localizedSwal(Swal, {
+      title: uiMessage("adminUsers:areYouSure"),
+      text: uiMessage("adminUsers:youCannotUndoThisAction"),
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
-      confirmButtonText: "Vâng, xóa nó!",
-      cancelButtonText: "Hủy bỏ",
+      confirmButtonText: uiMessage("adminUsers:yesDelete"),
+      cancelButtonText: uiMessage("adminUsers:cancel"),
     });
 
     if (result.isConfirmed) {
@@ -111,10 +114,10 @@ const AdminUserManagement = () => {
           setUsers((prevUsers) =>
             prevUsers.filter((user) => user._id !== userId)
           );
-          Swal.fire("Đã xóa!", "Người dùng đã được xóa.", "success");
+          localizedSwal(Swal, uiMessage("adminUsers:deleted"), uiMessage("adminUsers:theUserHasBeenDeleted"), "success");
         } catch (err: any) {
-          setError("Xóa người dùng thất bại");
-          Swal.fire("Lỗi", "Xóa người dùng thất bại", "error");
+          setError(uiMessage("adminUsers:unableToDeleteUser"));
+          localizedSwal(Swal, uiMessage("adminUsers:error"), uiMessage("adminUsers:unableToDeleteUser"), "error");
         } finally {
           setLoading(false);
         }
@@ -131,8 +134,8 @@ const AdminUserManagement = () => {
         setSelectedUser(user);
         setIsEditing(true);
       } catch (err: any) {
-        setError("Không thể lấy thông tin người dùng");
-        Swal.fire("Lỗi", "Không thể lấy thông tin người dùng", "error");
+        setError(uiMessage("adminUsers:unableToLoadUserDetails"));
+        localizedSwal(Swal, uiMessage("adminUsers:error"), uiMessage("adminUsers:unableToLoadUserDetails"), "error");
       } finally {
         setLoading(false);
       }
@@ -144,22 +147,16 @@ const AdminUserManagement = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2 border-b border-slate-200/80">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Quản Lý Khách Hàng
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Danh sách tài khoản khách hàng và phân quyền quản trị viên
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">{tx("adminUsers:customerManagement")}</h1>
+          <p className="text-slate-500 text-sm mt-1">{tx("adminUsers:customerAccountsAndAdministratorAccess")}</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="px-3.5 py-1.5 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl shadow-xs">
-            Tổng cộng: {users.length} người dùng
-          </span>
+          <span className="px-3.5 py-1.5 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-lg">{tx("common:counts.users", {count: users.length})}</span>
         </div>
       </div>
 
       {/* Search Input Bar */}
-      <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-4">
+      <div className="bg-white rounded-lg border border-slate-200/80 p-4">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
             <svg
@@ -176,10 +173,10 @@ const AdminUserManagement = () => {
               />
             </svg>
           </div>
-          <input
+          <input aria-label={tx("adminUsers:searchByNameEmailOrPhoneNumber")}
             type="text"
-            className="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all"
-            placeholder="Tìm kiếm người dùng theo tên, email hoặc số điện thoại..."
+            className="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all"
+            placeholder={tx("adminUsers:searchByNameEmailOrPhoneNumber")}
             value={searchQuery}
             onChange={handleSearch}
           />
@@ -187,21 +184,19 @@ const AdminUserManagement = () => {
       </div>
 
       {/* Table Container */}
-      <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden">
+      <div className="bg-white rounded-lg border border-slate-200/80 overflow-hidden">
         {loading && !isEditing ? (
           <div className="flex flex-col items-center justify-center py-24">
             <div className="h-10 w-10 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mb-3" />
-            <p className="text-xs font-semibold text-slate-600">
-              Đang tải danh sách tài khoản...
-            </p>
+            <p className="text-xs font-semibold text-slate-600">{tx("adminUsers:loadingAccounts")}</p>
           </div>
         ) : error ? (
           <div className="p-8 text-center text-rose-600 text-xs font-semibold">
-            {error}
+            {uiText(error)}
           </div>
         ) : users.length === 0 ? (
           <div className="text-center py-20 px-4">
-            <div className="inline-flex p-3.5 bg-slate-100 rounded-2xl text-slate-400 mb-2">
+            <div className="inline-flex p-3.5 bg-slate-100 rounded-lg text-slate-400 mb-2">
               <svg
                 className="h-8 w-8"
                 fill="none"
@@ -216,26 +211,24 @@ const AdminUserManagement = () => {
                 />
               </svg>
             </div>
-            <h4 className="font-bold text-slate-800 text-sm">
-              Không tìm thấy người dùng nào
-            </h4>
+            <h4 className="font-bold text-slate-800 text-sm">{tx("adminUsers:noUsersFound")}</h4>
             <p className="text-xs text-slate-500 mt-0.5">
-              {searchQuery
-                ? "Thử với từ khóa tìm kiếm khác"
-                : "Hệ thống chưa có người dùng nào"}
+              {uiText(searchQuery
+                ? tx("adminUsers:tryADifferentSearchTerm")
+                : tx("adminUsers:noUsersYet"))}
             </p>
           </div>
         ) : (
           <>
             <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <div className="pp-table-region" role="region" aria-label={tx("adminUsers:dataTable")} tabIndex={0}><table className="w-full text-left text-xs">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/80 text-slate-500 font-semibold uppercase tracking-wider">
-                  <th className="py-3.5 px-6">Tài Khoản</th>
-                  <th className="py-3.5 px-4">Email</th>
-                  <th className="py-3.5 px-4">Số Điện Thoại</th>
-                  <th className="py-3.5 px-4">Vai Trò</th>
-                  <th className="py-3.5 px-6 text-right">Thao Tác</th>
+                  <th scope="col" className="py-3.5 px-6">{tx("adminUsers:account")}</th>
+                  <th scope="col" className="py-3.5 px-4">{tx("adminUsers:email")}</th>
+                  <th scope="col" className="py-3.5 px-4">{tx("adminUsers:phoneNumber")}</th>
+                  <th scope="col" className="py-3.5 px-4">{tx("adminUsers:role")}</th>
+                  <th scope="col" className="py-3.5 px-6 text-right">{tx("adminUsers:actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -252,15 +245,14 @@ const AdminUserManagement = () => {
                     {/* Cột Tên & Avatar */}
                     <td className="py-3.5 px-6">
                       <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
-                          {user.name?.charAt(0)?.toUpperCase() || "U"}
+                        <div className="h-9 w-9 rounded-lg bg-[#254AD7] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                          {uiText(user.name?.charAt(0)?.toUpperCase() || "U")}
                         </div>
                         <div className="min-w-0">
-                          <p className="font-bold text-slate-800 text-sm truncate group-hover:text-indigo-600 transition-colors">
-                            {user.name || "Chưa cập nhật"}
+                          <p className="font-bold text-slate-800 text-sm truncate group-hover:text-[#254AD7] transition-colors">
+                            {uiText(user.name || tx("adminUsers:notProvided"))}
                           </p>
-                          <p className="text-[11px] text-slate-400 font-mono mt-0.5 truncate">
-                            ID: {user._id?.slice(-8)}
+                          <p className="text-[11px] text-slate-400 font-mono mt-0.5 truncate">{tx("adminUsers:id")}{" "}{uiText(user._id?.slice(-8))}
                           </p>
                         </div>
                       </div>
@@ -268,43 +260,43 @@ const AdminUserManagement = () => {
 
                     {/* Email */}
                     <td className="py-3.5 px-4 font-mono text-slate-600">
-                      {user.email}
+                      {uiText(user.email)}
                     </td>
 
                     {/* Phone */}
                     <td className="py-3.5 px-4 text-slate-600">
                       {user.phone ? (
-                        <span className="font-mono">{user.phone}</span>
+                        <span className="font-mono">{uiText(user.phone)}</span>
                       ) : (
-                        <span className="text-slate-400 italic">Chưa có SĐT</span>
+                        <span className="text-slate-400 italic">{tx("adminUsers:noPhoneNumber")}</span>
                       )}
                     </td>
 
                     {/* Role */}
                     <td className="py-3.5 px-4">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+                        className={` inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
                           user.isAdmin
-                            ? "bg-purple-50 text-purple-700 border border-purple-200"
-                            : "bg-blue-50 text-blue-700 border border-blue-200"
-                        }`}
+                            ? "bg-[#edf1ff] text-[#254AD7] border border-purple-200"
+                            : "bg-[#edf1ff] text-[#254AD7] border border-blue-200"
+                        }  `}
                       >
                         <span
-                          className={`w-1.5 h-1.5 rounded-full ${
+                          className={` w-1.5 h-1.5 rounded-full ${
                             user.isAdmin ? "bg-purple-500" : "bg-blue-500"
-                          }`}
+                          }  `}
                         />
-                        {user.isAdmin ? "Quản trị viên (Admin)" : "Khách hàng"}
+                        {uiText(user.isAdmin ? tx("adminUsers:administratorAdmin") : tx("adminUsers:customer"))}
                       </span>
                     </td>
 
                     {/* Thao tác */}
                     <td className="py-3.5 px-6 text-right">
                       <div className="inline-flex items-center gap-1.5">
-                        <button
+                        <button aria-label={tx("adminUsers:editDetails")} type="button"
                           onClick={() => handleSelectUser(user._id)}
-                          className="p-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border border-transparent hover:border-indigo-100 transition-all"
-                          title="Chỉnh sửa thông tin"
+                          className="p-2 rounded-lg text-slate-500 hover:text-[#254AD7] hover:bg-[#edf1ff] border border-transparent hover:border-indigo-100 transition-all"
+                          title={tx("adminUsers:editDetails")}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -315,10 +307,10 @@ const AdminUserManagement = () => {
                             <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                           </svg>
                         </button>
-                        <button
+                        <button aria-label={tx("adminUsers:deleteUser")} type="button"
                           onClick={() => handleDeleteUser(user._id)}
-                          className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all"
-                          title="Xóa người dùng"
+                          className="p-2 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all"
+                          title={tx("adminUsers:deleteUser")}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -338,7 +330,7 @@ const AdminUserManagement = () => {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
 
             {/* Pagination Footer */}
@@ -356,16 +348,15 @@ const AdminUserManagement = () => {
 
       {/* Edit Modal (Glassmorphism backdrop) */}
       {isEditing && selectedUser && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
+        <AccessibleDialog onClose={() => setIsEditing(false)} aria-label={tx("adminUsers:editUser")} className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <div className="bg-white rounded-lg max-w-md w-full overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
             <div className="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
               <div>
-                <h3 className="font-bold text-base">Cập Nhật Thông Tin</h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  ID: {selectedUser._id}
+                <h3 className="font-bold text-base">{tx("adminUsers:updateDetails")}</h3>
+                <p className="text-xs text-slate-400 mt-0.5">{tx("adminUsers:id")}{" "}{uiText(selectedUser._id)}
                 </p>
               </div>
-              <button
+              <button type="button"
                 onClick={() => setIsEditing(false)}
                 className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
               >
@@ -399,12 +390,11 @@ const AdminUserManagement = () => {
               className="p-6 space-y-4 text-xs"
             >
               <div>
-                <label className="block text-slate-700 font-semibold mb-1.5">
-                  Họ và tên <span className="text-rose-500">*</span>
+                <label className="block text-slate-700 font-semibold mb-1.5">{tx("adminUsers:fullName")}{" "}<span className="text-rose-500">*</span>
                 </label>
-                <input
+                <input aria-label={tx("adminUsers:fullName")}
                   type="text"
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-xs"
+                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-xs"
                   value={selectedUser.name || ""}
                   onChange={(e) =>
                     setSelectedUser({ ...selectedUser, name: e.target.value })
@@ -414,12 +404,11 @@ const AdminUserManagement = () => {
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1.5">
-                  Địa chỉ Email <span className="text-rose-500">*</span>
+                <label className="block text-slate-700 font-semibold mb-1.5">{tx("adminUsers:emailAddress")}{" "}<span className="text-rose-500">*</span>
                 </label>
-                <input
+                <input aria-label={tx("adminUsers:emailAddress")}
                   type="email"
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-xs"
+                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-xs"
                   value={selectedUser.email || ""}
                   onChange={(e) =>
                     setSelectedUser({
@@ -432,12 +421,10 @@ const AdminUserManagement = () => {
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1.5">
-                  Số điện thoại
-                </label>
-                <input
+                <label className="block text-slate-700 font-semibold mb-1.5">{tx("adminUsers:phoneNumber2")}</label>
+                <input aria-label={tx("adminUsers:phoneNumber2")}
                   type="text"
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-xs"
+                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-xs"
                   value={selectedUser.phone || ""}
                   onChange={(e) =>
                     setSelectedUser({
@@ -449,11 +436,10 @@ const AdminUserManagement = () => {
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1.5">
-                  Phân quyền hệ thống <span className="text-rose-500">*</span>
+                <label className="block text-slate-700 font-semibold mb-1.5">{tx("adminUsers:systemRole")}{" "}<span className="text-rose-500">*</span>
                 </label>
-                <select
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-xs font-semibold"
+                <select aria-label={tx("adminUsers:systemRole")}
+                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-xs font-semibold"
                   value={selectedUser.isAdmin ? "admin" : "user"}
                   onChange={(e) =>
                     setSelectedUser({
@@ -462,8 +448,8 @@ const AdminUserManagement = () => {
                     })
                   }
                 >
-                  <option value="user">Khách hàng thông thường</option>
-                  <option value="admin">Quản trị viên (Super Admin)</option>
+                  <option value="user">{tx("adminUsers:standardCustomer")}</option>
+                  <option value="admin">{tx("adminUsers:administratorSuperAdmin")}</option>
                 </select>
               </div>
 
@@ -471,21 +457,19 @@ const AdminUserManagement = () => {
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold transition"
-                >
-                  Hủy bỏ
-                </button>
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition"
+                >{tx("adminUsers:cancel")}</button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition shadow-sm shadow-indigo-600/30"
+                  className="px-5 py-2 bg-[#254AD7] hover:bg-[#254AD7] text-white rounded-lg font-bold transition"
                   disabled={loading}
                 >
-                  {loading ? "Đang lưu..." : "Lưu Thay Đổi"}
+                  {uiText(loading ? tx("adminUsers:saving") : tx("adminUsers:saveChanges"))}
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </AccessibleDialog>
       )}
     </div>
   );

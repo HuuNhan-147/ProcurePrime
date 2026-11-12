@@ -1,3 +1,4 @@
+import { tx, uiMessage, uiText, useLocale, locale, formatVND } from "../i18n";
 import React, { useEffect, useState } from "react";
 import {
   fetchProductDetails,
@@ -16,6 +17,7 @@ interface Review {
   comment: string;
 }
 const GetDetail: React.FC = () => {
+  useLocale();
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<IProduct | null>(null);
   const [categories, setCategories] = useState<ICategory[]>([]);
@@ -47,13 +49,13 @@ const GetDetail: React.FC = () => {
         const data = await fetchCategory();
         setCategories(data);
       } catch {
-        setError("Không thể tải danh mục.");
+        setError(uiMessage("adminProducts:unableToLoadCategories2"));
       }
     };
 
     const getProductDetail = async () => {
       try {
-        if (!id) return setError("Không tìm thấy ID sản phẩm.");
+        if (!id) return setError(uiMessage("adminProducts:productIdNotFound"));
         const data = await fetchProductDetails(id);
         setProduct(data);
         setName(data.name);
@@ -63,7 +65,7 @@ const GetDetail: React.FC = () => {
         setCountInStock(data.countInStock);
         setSpecifications(data.specifications || []);
       } catch {
-        setError("Không thể tải thông tin sản phẩm.");
+        setError(uiMessage("adminProducts:unableToLoadProductDetails"));
       } finally {
         setLoading(false);
       }
@@ -83,7 +85,7 @@ const GetDetail: React.FC = () => {
         );
         setHasReviewed(userHasReviewed);
       } catch {
-        alert("Lỗi khi lấy đánh giá.");
+        alert(tx("adminProducts:unableToLoadReviews"));
       }
     }
     setShowReviews((prev) => !prev);
@@ -100,25 +102,25 @@ const GetDetail: React.FC = () => {
 
     try {
       const updated = await updateProduct(id!, formData, token!);
-      alert("Cập nhật sản phẩm thành công!");
+      alert(tx("adminProducts:productUpdatedSuccessfully"));
       setProduct(updated.product); // ✅ Lấy đúng product
       setIsEditing(false);
     } catch (err) {
-      alert("Lỗi khi cập nhật sản phẩm.");
+      alert(tx("adminProducts:unableToUpdateProduct"));
     }
   };
 
   if (loading)
     return (
       <div className="flex justify-center items-center h-screen">
-        <p>Đang tải thông tin sản phẩm...</p>
+        <p>{tx("adminProducts:loadingProductDetails")}</p>
       </div>
     );
 
   if (error)
     return (
       <div className="flex justify-center items-center h-screen">
-        <p className="text-red-500">{error}</p>
+        <p className="text-red-500">{uiText(error)}</p>
       </div>
     );
 
@@ -132,8 +134,8 @@ const GetDetail: React.FC = () => {
         <div className="md:w-1/2">
           <img
             src={product?.image}
-            alt={product?.name}
-            className="w-full rounded-lg shadow-lg object-cover"
+            alt={uiText(product?.name)}
+            className="w-full rounded-lg object-cover"
           />
         </div>
 
@@ -142,117 +144,113 @@ const GetDetail: React.FC = () => {
             {!isEditing ? (
               <>
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                  {product?.name}
+                  {uiText(product?.name)}
                 </h1>
                 <p className="text-gray-700">
-                  <span className="font-semibold">Mô tả:</span>{" "}
-                  {product?.description}
+                  <span className="font-semibold">{tx("adminProducts:description")}</span>{" "}
+                  {uiText(product?.description)}
                 </p>
                 {product ? (
                   <p className="text-2xl font-bold text-red-600">
-                    {product.price.toLocaleString()} VND
+                    {formatVND(product.price)}
                   </p>
                 ) : (
-                  <p>Đang tải giá...</p>
+                  <p>{tx("adminProducts:loadingPrice")}</p>
                 )}
 
                 <p className="text-gray-700">
-                  <span className="font-semibold">Tình trạng:</span>{" "}
+                  <span className="font-semibold">{tx("adminProducts:availability")}</span>{" "}
                   <span
                     className={
                       product?.countInStock ? "text-green-600" : "text-red-600"
                     }
                   >
-                    {product?.countInStock ? "Còn hàng" : "Hết hàng"}
+                    {uiText(product?.countInStock ? tx("adminProducts:inStock") : tx("adminProducts:outOfStock"))}
                   </span>
                 </p>
                 <p className="text-gray-700">
-                  <span className="font-semibold">Danh mục:</span>{" "}
-                  {categoryName || "Không có danh mục"}
+                  <span className="font-semibold">{tx("adminProducts:category2")}</span>{" "}
+                  {uiText(categoryName || tx("adminProducts:noCategory"))}
                 </p>
 
                 {/* Hiển thị thông số kỹ thuật (View Mode) */}
                 {product?.specifications && product.specifications.length > 0 && (
                   <div className="mt-4">
-                    <h3 className="font-semibold text-lg border-b pb-1 mb-2">Thông số kỹ thuật</h3>
+                    <h3 className="font-semibold text-lg border-b pb-1 mb-2">{tx("adminProducts:specifications")}</h3>
                     <div className="bg-gray-50 rounded-lg p-3 text-sm">
                       {product.specifications.map((spec, index) => (
                         <div key={index} className="grid grid-cols-2 py-1 border-b last:border-0 border-gray-200">
-                          <span className="text-gray-600 font-medium">{spec.key}</span>
-                          <span className="text-gray-800">{spec.value} {spec.unit && <span className="text-gray-500 text-xs">({spec.unit})</span>}</span>
+                          <span className="text-gray-600 font-medium">{uiText(spec.key)}</span>
+                          <span className="text-gray-800">{uiText(spec.value)} {spec.unit && <span className="text-gray-500 text-xs">({uiText(spec.unit)})</span>}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                <button
+                <button type="button"
                   onClick={() => setIsEditing(true)}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg"
-                >
-                  Chỉnh sửa
-                </button>
+                  className="px-6 py-2 bg-[#254AD7] text-white rounded-lg"
+                >{tx("adminProducts:edit")}</button>
               </>
             ) : (
               <>
-                <input
+                <input aria-label={tx("adminProducts:productName")}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Tên sản phẩm"
+                  placeholder={tx("adminProducts:productName")}
                   className="w-full px-4 py-2 border rounded-md"
                 />
-                <textarea
+                <textarea aria-label={tx("adminProducts:productDescription")}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Mô tả sản phẩm"
+                  placeholder={tx("adminProducts:productDescription")}
                   rows={4}
                   className="w-full px-4 py-2 border rounded-md"
                 />
-                <input
+                <input aria-label={tx("adminProducts:productPrice")}
                   type="number"
                   value={price}
                   onChange={(e) => setPrice(Number(e.target.value))}
-                  placeholder="Giá sản phẩm"
+                  placeholder={tx("adminProducts:productPrice")}
                   className="w-full px-4 py-2 border rounded-md"
                 />
-                <select
+                <select aria-label={tx("adminProducts:productCategory")}
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full px-4 py-2 border rounded-md"
                 >
-                  <option value="">Chọn danh mục</option>
+                  <option value="">{tx("adminProducts:selectACategory3")}</option>
                   {categories.map((c) => (
                     <option key={c._id} value={c._id}>
-                      {c.name}
+                      {uiText(c.name)}
                     </option>
                   ))}
                 </select>
-                <input
+                <input aria-label={tx("adminProducts:stockQuantity2")}
                   type="number"
                   value={countInStock}
                   onChange={(e) => setCountInStock(Number(e.target.value))}
-                  placeholder="Số lượng trong kho"
+                  placeholder={tx("adminProducts:stockQuantity2")}
                   className="w-full px-4 py-2 border rounded-md"
                 />
 
                 {/* Edit Specifications */}
                 <div className="border rounded-md p-3 bg-gray-50">
                    <div className="flex justify-between items-center mb-2">
-                    <label className="text-sm font-semibold text-gray-700">Thông số kỹ thuật</label>
+                    <label className="text-sm font-semibold text-gray-700">{tx("adminProducts:specifications")}</label>
                     <button
                       type="button"
                       onClick={() => setSpecifications([...specifications, { key: "", value: "", unit: "", group: "" }])}
-                      className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200"
-                    >
-                      + Thêm
-                    </button>
+                      className="text-xs bg-[#edf1ff] text-[#254AD7] px-2 py-1 rounded hover:bg-blue-200"
+                    >{tx("adminProducts:add")}</button>
                   </div>
                   <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                     {specifications.map((spec, index) => (
-                      <div key={index} className="flex gap-2 items-start bg-white p-2 rounded border shadow-sm">
+                      <div key={index} className="flex gap-2 items-start bg-white p-2 rounded border">
                         <div className="grid grid-cols-2 gap-2 flex-1">
-                          <input
-                            placeholder="Tên (RAM)"
+                          <input aria-label={tx("adminProducts:nameRam")}
+                            placeholder={tx("adminProducts:nameRam")}
                             value={spec.key}
                             onChange={(e) => {
                               const newSpecs = [...specifications];
@@ -261,8 +259,8 @@ const GetDetail: React.FC = () => {
                             }}
                             className="text-xs px-2 py-1 border rounded"
                           />
-                          <input
-                            placeholder="Giá trị (8GB)"
+                          <input aria-label={tx("adminProducts:value8Gb")}
+                            placeholder={tx("adminProducts:value8Gb")}
                             value={spec.value}
                             onChange={(e) => {
                               const newSpecs = [...specifications];
@@ -271,8 +269,8 @@ const GetDetail: React.FC = () => {
                             }}
                             className="text-xs px-2 py-1 border rounded"
                           />
-                          <input
-                            placeholder="Đơn vị (GB)"
+                          <input aria-label={tx("adminProducts:unitGb")}
+                            placeholder={tx("adminProducts:unitGb")}
                             value={spec.unit}
                             onChange={(e) => {
                               const newSpecs = [...specifications];
@@ -281,8 +279,8 @@ const GetDetail: React.FC = () => {
                             }}
                             className="text-xs px-2 py-1 border rounded"
                           />
-                          <input
-                            placeholder="Nhóm"
+                          <input aria-label={tx("adminProducts:group")}
+                            placeholder={tx("adminProducts:group")}
                             value={spec.group}
                             onChange={(e) => {
                               const newSpecs = [...specifications];
@@ -304,24 +302,20 @@ const GetDetail: React.FC = () => {
                   </div>
                 </div>
 
-                <input
+                <input aria-label={tx("adminProducts:productImage")}
                   type="file"
                   onChange={(e) => setImage(e.target.files?.[0] || null)}
                   className="w-full px-4 py-2 border rounded-md"
                 />
                 <div className="flex space-x-4">
-                  <button
+                  <button type="button"
                     onClick={handleUpdateProduct}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg"
-                  >
-                    Cập nhật
-                  </button>
-                  <button
+                    className="px-6 py-2 bg-[#254AD7] text-white rounded-lg"
+                  >{tx("adminProducts:update")}</button>
+                  <button type="button"
                     onClick={() => setIsEditing(false)}
                     className="px-6 py-2 bg-gray-600 text-white rounded-lg"
-                  >
-                    Hủy
-                  </button>
+                  >{tx("adminProducts:cancel")}</button>
                 </div>
               </>
             )}
@@ -332,33 +326,33 @@ const GetDetail: React.FC = () => {
       {/* Reviews */}
       <div className="mt-12 border-t pt-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Đánh giá sản phẩm</h2>
-          <button
+          <h2 className="text-2xl font-bold">{tx("adminProducts:productReviews")}</h2>
+          <button type="button"
             onClick={handleGetReviews}
             className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
           >
-            {showReviews ? "Ẩn đánh giá" : "Xem đánh giá"}
+            {uiText(showReviews ? tx("adminProducts:hideReviews") : tx("adminProducts:viewReviews"))}
           </button>
         </div>
 
         {showReviews && (
           <div className="space-y-6 mb-8">
             {reviews.length === 0 ? (
-              <p>Chưa có đánh giá nào.</p>
+              <p>{tx("adminProducts:noReviewsYet")}</p>
             ) : (
               reviews.map((review, index) => (
                 <div key={index} className="bg-gray-50 p-4 rounded">
-                  <p className="font-semibold">{review.name}</p>
+                  <p className="font-semibold">{uiText(review.name)}</p>
                   <div className="text-yellow-400">
-                    {"★".repeat(review.rating)}
+                    {uiText("★".repeat(review.rating))}
                     <span className="text-gray-300">
-                      {"★".repeat(5 - review.rating)}
+                      {uiText("★".repeat(5 - review.rating))}
                     </span>
                   </div>
                   <p className="text-sm text-gray-500">
-                    {new Date(review.createdAt).toLocaleDateString("vi-VN")}
+                    {uiText(new Date(review.createdAt).toLocaleDateString(locale()))}
                   </p>
-                  <p>{review.comment}</p>
+                  <p>{uiText(review.comment)}</p>
                 </div>
               ))
             )}

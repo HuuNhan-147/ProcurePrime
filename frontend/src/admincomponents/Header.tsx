@@ -1,3 +1,6 @@
+import { tx, uiMessage, uiText, useLocale } from "../i18n";
+import { usePresentationFocus } from "../components/ui/PresentationAccess";
+import ProcurePrimeWordmark from "../components/brand/ProcurePrimeWordmark";
 import React, { useState } from "react";
 import {
   LogOut,
@@ -24,13 +27,21 @@ import { updateUserProfile } from "../api/UserApi";
 
 interface SidebarProps {
   isCollapsed?: boolean;
+  isCompact?: boolean;
+  mobileOpen?: boolean;
+  onCloseMobile?: () => void;
   onToggleCollapse?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed = false,
+  isCompact = false,
+  mobileOpen = false,
+  onCloseMobile,
   onToggleCollapse,
 }) => {
+  useLocale();
+  const sidebarRef = usePresentationFocus<HTMLElement>(isCompact && mobileOpen, () => onCloseMobile?.());
   const { user, logout, token } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -42,7 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   });
 
   const handleLogout = () => {
-    if (window.confirm("Bạn có chắc chắn muốn đăng xuất không?")) {
+    if (window.confirm(tx("admin:areYouSureYouWantToSign"))) {
       logout();
       navigate("/login");
     }
@@ -62,73 +73,60 @@ const Sidebar: React.FC<SidebarProps> = ({
     try {
       if (!token) return;
       await updateUserProfile(profileData, token);
-      alert("Cập nhật thông tin thành công!");
+      alert(tx("admin:detailsUpdatedSuccessfully"));
       setIsEditing(false);
     } catch (error) {
       console.error("Lỗi khi cập nhật thông tin người dùng:", error);
-      alert("Cập nhật thông tin thất bại.");
+      alert(tx("admin:unableToUpdateDetails"));
     }
   };
 
   const navItems = [
-    { path: "/admin", name: "Tổng quan", icon: <Home size={19} />, badge: "Live" },
-    { path: "/admin/products", name: "Sản phẩm", icon: <Package size={19} /> },
-    { path: "/admin/categories", name: "Danh mục", icon: <Layers size={19} /> },
-    { path: "/admin/orders", name: "Đơn hàng", icon: <ShoppingCart size={19} /> },
-    { path: "/admin/users", name: "Khách hàng", icon: <Users size={19} /> },
-    { path: "/admin/workspace", name: "AI Copilot Mua Sắm", icon: <Bot size={19} />, badge: "AI" },
-    { path: "/admin/policies", name: "Quy chế & Ngân sách", icon: <SlidersHorizontal size={19} /> },
+    { path: "/admin", name: uiMessage("admin:overview"), icon: <Home size={19} />, badge: "Live" },
+    { path: "/admin/products", name: uiMessage("admin:products"), icon: <Package size={19} /> },
+    { path: "/admin/categories", name: uiMessage("admin:categories"), icon: <Layers size={19} /> },
+    { path: "/admin/orders", name: uiMessage("admin:orders"), icon: <ShoppingCart size={19} /> },
+    { path: "/admin/users", name: uiMessage("admin:customers"), icon: <Users size={19} /> },
+    { path: "/admin/workspace", name: uiMessage("admin:procurementCopilot"), icon: <Bot size={19} />, badge: "AI" },
+    { path: "/admin/policies", name: uiMessage("admin:policiesBudgets"), icon: <SlidersHorizontal size={19} /> },
   ];
 
   return (
-    <aside
-      className={`fixed left-0 top-0 h-full ${
+    <aside ref={sidebarRef} id="pp-admin-sidebar" data-mobile-open={mobileOpen} inert={isCompact && !mobileOpen} role={isCompact && mobileOpen ? "dialog" : undefined} aria-modal={isCompact && mobileOpen ? true : undefined} aria-label={tx("admin:adminNavigation2")}
+      className={`pp-admin-sidebar  fixed left-0 top-0 h-full ${
         isCollapsed ? "w-20" : "w-64"
-      } bg-slate-900 text-slate-300 flex flex-col shadow-2xl z-50 transition-all duration-300 ease-in-out border-r border-slate-800/80 select-none`}
+      } bg-slate-900 text-slate-300 flex flex-col z-50 transition-all duration-300 ease-in-out border-r border-slate-800/80 select-none `}
     >
       {/* Branding Header */}
       <div
-        className={`h-16 flex items-center ${
+        className={` h-16 flex items-center ${
           isCollapsed ? "justify-center px-0" : "justify-between px-4"
-        } border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md transition-all`}
+        } border-b border-slate-800/80 bg-slate-950/60 transition-all `}
       >
         <Link
           to="/admin"
           className="flex items-center gap-3 overflow-hidden group"
-          title="Trang quản trị ProcurePrime B2B"
+          title={tx("admin:procureprimeB2bAdministration")}
         >
-          <div className="h-10 w-10 min-w-[40px] rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-lg shadow-indigo-500/25 flex items-center justify-center transition-transform group-hover:scale-105">
-            <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-              <ShieldCheck size={20} className="text-indigo-400" />
-            </div>
-          </div>
-          {!isCollapsed && (
-            <div className="flex flex-col">
-              <span className="text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
-                Procure<span className="text-indigo-400">Prime</span> <span className="text-xs px-1.5 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">ENTERPRISE</span>
-              </span>
-              <span className="text-[11px] text-slate-400 font-medium -mt-0.5">B2B Admin Console</span>
-            </div>
-          )}
+          {isCollapsed ? <span aria-label={tx("admin:procureprime")} className="text-xl text-white">{tx("admin:p")}</span> : <ProcurePrimeWordmark />}
         </Link>
 
         {onToggleCollapse && !isCollapsed && (
-          <button
+          <button aria-label={tx("admin:collapseNavigation")} type="button"
             onClick={onToggleCollapse}
             className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors"
-            title="Thu gọn thanh menu"
+            title={tx("admin:collapseNavigation")}
           >
             <ChevronLeft size={18} />
           </button>
         )}
       </div>
 
+      <button type="button" className="pp-admin-mobile-close" onClick={onCloseMobile}>{tx("admin:closeMenu")}</button>
       {/* Navigation Section */}
       <nav className="flex-1 overflow-y-auto py-5 px-3 space-y-1.5 scrollbar-thin scrollbar-thumb-slate-800">
         {!isCollapsed && (
-          <p className="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-            Menu Quản Trị
-          </p>
+          <p className="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">{tx("admin:adminMenu")}</p>
         )}
         {navItems.map((item) => {
           const isActive =
@@ -138,36 +136,37 @@ const Sidebar: React.FC<SidebarProps> = ({
           return (
             <Link
               key={item.path}
+              aria-current={isActive ? "page" : undefined}
               to={item.path}
-              title={isCollapsed ? item.name : undefined}
-              className={`group relative flex items-center ${
+              title={uiText(isCollapsed ? item.name : undefined)}
+              className={` group relative flex items-center ${
                 isCollapsed
-                  ? "justify-center w-11 h-11 mx-auto rounded-xl p-0"
-                  : "px-3.5 py-2.5 rounded-xl"
+                  ? "justify-center w-11 h-11 mx-auto rounded-lg p-0"
+                  : "px-3.5 py-2.5 rounded-lg"
               } transition-all duration-200 font-medium text-sm ${
                 isActive
                   ? isCollapsed
-                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 ring-2 ring-indigo-400/50"
-                    : "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-600/30"
+                    ? "bg-[#254AD7] text-white ring-2 ring-indigo-400/50"
+                    : "bg-[#254AD7] text-white"
                   : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/60"
-              }`}
+              }  `}
             >
               <span
-                className={`transition-colors ${
+                className={` transition-colors ${
                   isActive
                     ? "text-white"
                     : "text-slate-400 group-hover:text-indigo-400"
-                }`}
+                }  `}
               >
-                {item.icon}
+                {uiText(item.icon)}
               </span>
 
               {!isCollapsed && (
                 <>
-                  <span className="ml-3 truncate">{item.name}</span>
+                  <span className="ml-3 min-w-0 flex-1 whitespace-normal break-words">{uiText(item.name)}</span>
                   {item.badge && (
-                    <span className="ml-auto text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 animate-pulse">
-                      {item.badge}
+                    <span className="ml-auto shrink-0 whitespace-nowrap text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 animate-pulse">
+                      {uiText(item.badge)}
                     </span>
                   )}
                   {isActive && !item.badge && (
@@ -184,17 +183,17 @@ const Sidebar: React.FC<SidebarProps> = ({
           <Link
             to="/?view=storefront"
             target="_blank"
-            className={`group flex items-center ${
+            className={` group flex items-center ${
               isCollapsed
-                ? "justify-center w-11 h-11 mx-auto rounded-xl p-0"
-                : "px-3.5 py-2.5 rounded-xl"
-            } text-slate-400 hover:text-emerald-400 hover:bg-emerald-950/20 border border-transparent hover:border-emerald-800/30 transition-all text-sm font-medium`}
-            title={isCollapsed ? "Xem cửa hàng người dùng" : undefined}
+                ? "justify-center w-11 h-11 mx-auto rounded-lg p-0"
+                : "px-3.5 py-2.5 rounded-lg"
+            } text-slate-400 hover:text-emerald-400 hover:bg-emerald-950/20 border border-transparent hover:border-emerald-800/30 transition-all text-sm font-medium `}
+            title={uiText(isCollapsed ? tx("admin:viewPublicStore") : undefined)}
           >
-            <ExternalLink size={18} className="group-hover:rotate-12 transition-transform" />
+            <ExternalLink size={18} className="transition-transform" />
             {!isCollapsed && (
               <>
-                <span className="ml-3 truncate">Xem Cửa Hàng</span>
+                <span className="ml-3 truncate">{tx("admin:viewStore")}</span>
                 <span className="ml-auto text-xs text-slate-400">↗</span>
               </>
             )}
@@ -206,16 +205,16 @@ const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-3 border-t border-slate-800/80 bg-slate-950/70">
         {user ? (
           <div className="relative">
-            <button
+            <button aria-label={uiText(isCollapsed ? tx("admin:valueValue", { v0: (user.name), v1: (user.email) }) : undefined)} type="button"
               onClick={handleToggleProfile}
-              className={`w-full flex items-center ${
+              className={` w-full flex items-center ${
                 isCollapsed ? "justify-center p-0" : "p-2"
-              } rounded-xl hover:bg-slate-800/80 transition-colors group text-left`}
-              title={isCollapsed ? `${user.name} (${user.email})` : undefined}
+              } rounded-lg hover:bg-slate-800/80 transition-colors group text-left `}
+              title={uiText(isCollapsed ? tx("admin:valueValue", { v0: (user.name), v1: (user.email) }) : undefined)}
             >
               <div className="relative">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-600/20 border border-indigo-400/30">
-                  {user.name?.charAt(0).toUpperCase() || "A"}
+                <div className="h-10 w-10 rounded-lg bg-[#254AD7] text-white flex items-center justify-center font-bold text-sm border border-indigo-400/30">
+                  {uiText(user.name?.charAt(0).toUpperCase() || "A")}
                 </div>
                 <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-950" />
               </div>
@@ -223,10 +222,10 @@ const Sidebar: React.FC<SidebarProps> = ({
               {!isCollapsed && (
                 <div className="ml-3 overflow-hidden flex-1">
                   <p className="text-xs font-semibold text-white truncate group-hover:text-indigo-300 transition-colors">
-                    {user.name || "Quản trị viên"}
+                    {uiText(user.name || tx("admin:administrator2"))}
                   </p>
                   <p className="text-[11px] text-slate-400 truncate font-mono">
-                    {user.email}
+                    {uiText(user.email)}
                   </p>
                 </div>
               )}
@@ -235,21 +234,19 @@ const Sidebar: React.FC<SidebarProps> = ({
             {/* Profile Popover */}
             {showProfile && (
               <div
-                className={`absolute bottom-full ${
+                className={` absolute bottom-full ${
                   isCollapsed ? "left-16" : "left-0"
-                } mb-3 w-72 bg-white rounded-2xl shadow-2xl overflow-hidden z-50 border border-slate-200 ring-1 ring-black/5 animate-in slide-in-from-bottom-2 fade-in duration-200`}
+                } mb-3 w-72 pp-admin-profile bg-white rounded-lg overflow-hidden z-50 border border-slate-200 ring-1 ring-black/5 animate-in slide-in- fade-in duration-200 `}
               >
-                <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 p-4 text-white flex justify-between items-start">
+                <div className="bg-[#254AD7] p-4 text-white flex justify-between items-start">
                   <div>
-                    <h3 className="font-bold text-base">{user.name}</h3>
+                    <h3 className="font-bold text-base">{uiText(user.name)}</h3>
                     <p className="text-xs text-indigo-100 opacity-90 truncate max-w-[200px]">
-                      {user.email}
+                      {uiText(user.email)}
                     </p>
-                    <span className="mt-1.5 inline-block text-[10px] font-bold uppercase tracking-wider bg-white/20 text-white px-2 py-0.5 rounded-full">
-                      Super Administrator
-                    </span>
+                    <span className="mt-1.5 inline-block text-[10px] font-bold uppercase tracking-wider bg-white/20 text-white px-2 py-0.5 rounded-full">{tx("admin:superAdministrator")}</span>
                   </div>
-                  <button
+                  <button aria-label={tx("admin:close")} type="button"
                     onClick={() => setShowProfile(false)}
                     className="text-white/80 hover:text-white transition p-1 hover:bg-white/10 rounded-lg"
                   >
@@ -261,10 +258,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                   {isEditing ? (
                     <div className="space-y-3">
                       <div>
-                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                          Tên hiển thị
-                        </label>
-                        <input
+                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{tx("admin:displayName")}</label>
+                        <input aria-label={tx("admin:displayName")}
                           type="text"
                           name="name"
                           value={profileData.name}
@@ -273,10 +268,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                          Số điện thoại
-                        </label>
-                        <input
+                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{tx("admin:phoneNumber")}</label>
+                        <input aria-label={tx("admin:phoneNumber")}
                           type="tel"
                           name="phone"
                           value={profileData.phone}
@@ -285,47 +278,37 @@ const Sidebar: React.FC<SidebarProps> = ({
                         />
                       </div>
                       <div className="flex gap-2 pt-2">
-                        <button
+                        <button type="button"
                           onClick={() => setIsEditing(false)}
                           className="flex-1 px-3 py-2 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition"
-                        >
-                          Hủy
-                        </button>
-                        <button
+                        >{tx("admin:cancel")}</button>
+                        <button type="button"
                           onClick={handleSaveProfile}
-                          className="flex-1 px-3 py-2 text-xs text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg font-medium transition shadow-sm"
-                        >
-                          Lưu thay đổi
-                        </button>
+                          className="flex-1 px-3 py-2 text-xs text-white bg-[#254AD7] hover:bg-[#254AD7] rounded-lg font-medium transition"
+                        >{tx("admin:saveChanges")}</button>
                       </div>
                     </div>
                   ) : (
                     <div className="space-y-1">
-                      <button
+                      <button type="button"
                         onClick={() => {
                           setShowProfile(false);
                           navigate("/change-password");
                         }}
-                        className="w-full flex items-center px-3 py-2 text-xs font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition"
+                        className="w-full flex items-center px-3 py-2 text-xs font-medium text-slate-700 hover:bg-[#edf1ff] hover:text-[#254AD7] rounded-lg transition"
                       >
-                        <Key size={15} className="mr-2.5 text-slate-400" />
-                        Đổi mật khẩu tài khoản
-                      </button>
-                      <button
+                        <Key size={15} className="mr-2.5 text-slate-400" />{tx("admin:changeAccountPassword")}</button>
+                      <button type="button"
                         onClick={() => setIsEditing(true)}
-                        className="w-full flex items-center px-3 py-2 text-xs font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition"
+                        className="w-full flex items-center px-3 py-2 text-xs font-medium text-slate-700 hover:bg-[#edf1ff] hover:text-[#254AD7] rounded-lg transition"
                       >
-                        <Edit size={15} className="mr-2.5 text-slate-400" />
-                        Chỉnh sửa thông tin
-                      </button>
+                        <Edit size={15} className="mr-2.5 text-slate-400" />{tx("admin:editDetails")}</button>
                       <div className="h-px bg-slate-100 my-2"></div>
-                      <button
+                      <button type="button"
                         onClick={handleLogout}
                         className="w-full flex items-center px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 rounded-lg transition"
                       >
-                        <LogOut size={15} className="mr-2.5 text-rose-500" />
-                        Đăng xuất hệ thống
-                      </button>
+                        <LogOut size={15} className="mr-2.5 text-rose-500" />{tx("admin:signOut")}</button>
                     </div>
                   )}
                 </div>
@@ -335,10 +318,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         ) : (
           <Link
             to="/login"
-            className="flex items-center justify-center w-full px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition font-medium text-xs shadow-md"
-          >
-            Đăng nhập
-          </Link>
+            className="flex items-center justify-center w-full px-3 py-2 bg-[#254AD7] hover:bg-[#254AD7] text-white rounded-lg transition font-medium text-xs"
+          >{tx("admin:signIn")}</Link>
         )}
       </div>
     </aside>

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { tx, uiText, useLocale } from "../../i18n";
+import React, { useState, useEffect, useId } from "react";
 import { useNavigate } from "react-router-dom";
 import { Edit, X } from "lucide-react";
 import { getUserProfile, updateUserProfile } from "../../api/UserApi";
@@ -19,6 +20,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
   onAutoLogout,
   onUpdateUser,
 }) => {
+  useLocale();
+  const fieldId = useId();
   const [user, setUser] = useState<UserType | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({ name: "", phone: "" });
@@ -27,7 +30,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   useEffect(() => {
     const fetchUser = async () => {
       if (!token) {
-        onAutoLogout("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
+        onAutoLogout(tx("navigation:yourSessionIsInvalidPleaseSignIn"));
         return;
       }
 
@@ -41,7 +44,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
       } catch (error) {
         console.error("Lỗi khi lấy thông tin người dùng:", error);
         onAutoLogout(
-          "Không thể lấy thông tin người dùng. Vui lòng đăng nhập lại."
+          tx("navigation:unableToLoadYourProfilePleaseSign")
         );
       }
     };
@@ -59,12 +62,12 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const handleSaveProfile = async () => {
     try {
       if (!token) {
-        onAutoLogout("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
+        onAutoLogout(tx("navigation:yourSessionIsInvalidPleaseSignIn"));
         return;
       }
 
       await updateUserProfile(profileData, token);
-      alert("Cập nhật thông tin thành công!");
+      alert(tx("navigation:detailsUpdatedSuccessfully"));
       setIsEditing(false);
       // Làm mới lại dữ liệu sau khi cập nhật
       const updatedUser = await getUserProfile(token);
@@ -72,21 +75,23 @@ const UserProfile: React.FC<UserProfileProps> = ({
       onUpdateUser(updatedUser);
     } catch (error) {
       console.error("Lỗi khi cập nhật thông tin người dùng:", error);
-      alert("Cập nhật thông tin thất bại. Vui lòng thử lại sau.");
+      alert(tx("navigation:unableToUpdateYourDetailsPleaseTry"));
     }
   };
 
   if (!showProfile || !user) return null;
 
   return (
-    <div className="absolute right-0 top-12 bg-white rounded-lg shadow-xl overflow-hidden w-72 z-50 border border-gray-200">
+    <div className="pp-user-profile absolute right-0 top-12 bg-white rounded-lg shadow-xl overflow-hidden w-72 z-50 border border-gray-200">
       <div className="p-4 bg-gray-800 text-white flex justify-between items-center">
-        <h3 className="font-semibold text-lg">Thông tin tài khoản</h3>
+        <h3 className="font-semibold text-lg">{tx("navigation:accountDetails")}</h3>
         <button
+          type="button"
+          aria-label={tx("navigation:closeAccountDetails")}
           onClick={onToggleProfile}
-          className="text-gray-300 hover:text-white"
+          className="pp-popup-close pp-popup-close--contrast text-gray-300 hover:text-white"
         >
-          <X className="h-5 w-5" />
+          <X className="h-5 w-5" aria-hidden="true" />
         </button>
       </div>
 
@@ -95,10 +100,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
           // === FORM EDIT ===
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tên
-              </label>
+              <label htmlFor={`${fieldId}-name`} className="block text-sm font-medium text-gray-700 mb-1">{tx("navigation:name")}</label>
               <input
+                id={`${fieldId}-name`}
                 type="text"
                 name="name"
                 value={profileData.name}
@@ -107,10 +111,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
-              </label>
+              <label htmlFor={`${fieldId}-email`} className="block text-sm font-medium text-gray-700 mb-1">{tx("navigation:email")}</label>
               <input
+                id={`${fieldId}-email`}
                 type="email"
                 value={user.email}
                 disabled
@@ -118,10 +121,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Điện thoại
-              </label>
+              <label htmlFor={`${fieldId}-phone`} className="block text-sm font-medium text-gray-700 mb-1">{tx("navigation:phone")}</label>
               <input
+                id={`${fieldId}-phone`}
                 type="tel"
                 name="phone"
                 value={profileData.phone}
@@ -133,15 +135,11 @@ const UserProfile: React.FC<UserProfileProps> = ({
               <button
                 onClick={() => setIsEditing(false)}
                 className="text-sm text-gray-700 px-4 py-2 rounded-md hover:bg-gray-100"
-              >
-                Hủy
-              </button>
+              >{tx("navigation:cancel")}</button>
               <button
                 onClick={handleSaveProfile}
                 className="text-sm bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
-              >
-                Lưu thay đổi
-              </button>
+              >{tx("navigation:saveChanges")}</button>
             </div>
           </div>
         ) : (
@@ -149,25 +147,25 @@ const UserProfile: React.FC<UserProfileProps> = ({
           <div className="space-y-3">
             <div className="flex items-center space-x-3">
               <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xl">
-                {user.name?.charAt(0).toUpperCase()}
+                {uiText(user.name?.charAt(0).toUpperCase())}
               </div>
               <div>
-                <h4 className="font-semibold">{user.name}</h4>
-                <p className="text-sm text-gray-600">{user.email}</p>
+                <h4 className="font-semibold">{uiText(user.name)}</h4>
+                <p className="text-sm text-gray-600">{uiText(user.email)}</p>
               </div>
             </div>
 
             <div className="border-t border-gray-200 pt-3 mt-3 space-y-2">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Điện thoại:</span>
+                <span className="text-sm text-gray-600">{tx("navigation:phone2")}</span>
                 <span className="text-sm font-medium">
-                  {user.phone || "Chưa cập nhật"}
+                  {uiText(user.phone || tx("navigation:notProvided"))}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Vai trò:</span>
+                <span className="text-sm text-gray-600">{tx("navigation:role")}</span>
                 <span className="text-sm font-medium">
-                  {user.isAdmin ? "Quản trị viên" : "Người dùng"}
+                  {uiText(user.isAdmin ? tx("navigation:administrator") : tx("navigation:user"))}
                 </span>
               </div>
             </div>
@@ -188,18 +186,14 @@ const UserProfile: React.FC<UserProfileProps> = ({
                     d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
                     clipRule="evenodd"
                   />
-                </svg>
-                Đổi mật khẩu
-              </button>
+                </svg>{tx("navigation:changePassword")}</button>
             </div>
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setIsEditing(true)}
                 className="flex items-center px-3 py-1 text-sm bg-indigo-50 text-indigo-600 rounded-md hover:bg-indigo-100"
               >
-                <Edit className="h-4 w-4 mr-1" />
-                Cập nhật
-              </button>
+                <Edit className="h-4 w-4 mr-1" />{tx("navigation:update")}</button>
             </div>
           </div>
         )}

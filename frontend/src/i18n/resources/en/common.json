@@ -1,0 +1,29 @@
+{
+  "notifications": { "name": "Notifications", "dismiss": "Dismiss notification" },
+  "assistant": { "open": "Open the ProcurePrime procurement assistant", "name": "ProcurePrime procurement assistant", "close": "Close assistant" },
+  "screen": {
+    "retryInterface": "Retry loading the interface",
+    "loading": "Loading the interface…",
+    "unavailable": "This screen could not be loaded.",
+    "explanation": "Check your connection, then try reloading. Reloading may discard unsaved changes on this page.",
+    "home": "Go to homepage",
+    "reload": "Reload page"
+  },
+  "counts": {
+    "orders_one": "Total: {{count, number}} order",
+    "orders_other": "Total: {{count, number}} orders",
+    "users_one": "Total: {{count, number}} user",
+    "users_other": "Total: {{count, number}} users",
+    "range_one": "Showing {{start, number}}–{{end, number}} of {{count, number}} item",
+    "range_other": "Showing {{start, number}}–{{end, number}} of {{count, number}} items",
+    "comparison_one": "Comparing {{count, number}} equipment line — read only",
+    "comparison_other": "Comparing {{count, number}} equipment lines — read only"
+  },
+  "language": {
+    "choose": "Interface language"
+  },
+  "errors": {
+    "original": "Original message",
+    "signInFailed": "Unable to sign in."
+  }
+}

@@ -1,3 +1,4 @@
+import { tx, uiMessage, uiText, useLocale, locale, formatVND } from "../i18n";
 // frontend/src/pages/ProcurementWorkspace.tsx
 // ============================================
 // PROCUREPRIME WORKSPACE — Không Gian Thu Mua & Báo Giá Doanh Nghiệp (Split-Screen)
@@ -5,11 +6,17 @@
 // ============================================
 
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { io, Socket } from "socket.io-client";
 import { useAuth } from "../context/AuthContext";
 import { webMcpManager } from "../webmcp";
 import { ProcurementWizard } from "../components/procurement/ProcurementWizard";
+import WorkspaceOptions from "../components/procurement/WorkspaceOptions";
+import "../components/procurement/workspace.css";
+import LandingDraftBridge from "../components/landing/LandingDraftBridge";
+import WorkspaceHeaderActions from "../components/procurement/WorkspaceHeaderActions";
+import WorkspaceWelcome from "../components/procurement/WorkspaceWelcome";
+import { ArrowUp } from "lucide-react";
 
 interface ActionButton {
   label: string;
@@ -34,19 +41,21 @@ interface ItemRow {
 }
 
 export const ProcurementWorkspace: React.FC = () => {
+  useLocale();
   const { user, token } = useAuth();
   const navigate = useNavigate();
+  const landingLocation = useLocation();
 
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: "agent",
-      text: "Chào bạn, tôi là ProcurePrime Copilot dành cho nhân viên kinh doanh & thu mua B2B.\n\nHãy nhập yêu cầu trang bị thiết bị từ khách hàng hoặc phòng ban (gồm cấu hình, số lượng, trần ngân sách), tôi sẽ đối soát tồn kho, áp dụng quy chế chiết khấu và lập bản báo giá chuẩn ngay lập tức.",
+      text: uiMessage("workspace:helloIAmProcureprimeCopilotForB2b"),
       timestamp: new Date(),
     },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [leftTab, setLeftTab] = useState<"wizard" | "chat">("wizard");
+  const [leftTab, setLeftTab] = useState<"wizard" | "chat">("chat");
   const [sessionId, setSessionId] = useState<string | null>(null);
 
   // Dữ liệu thời gian thực hiển thị tại Cột Phải (Live Canvas) - Khởi tạo sạch (No Mock)
@@ -60,6 +69,19 @@ export const ProcurementWorkspace: React.FC = () => {
 
   const socketRef = useRef<Socket | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const historyRef = useRef<HTMLDivElement>(null);
+  const followConversation = useRef(true);
+  const [viewMode, setViewMode] = useState<"split" | "ai" | "options" | "quote">("split");
+  const [isNarrow, setIsNarrow] = useState(() => window.matchMedia("(max-width: 767px)").matches);
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsNarrow(media.matches);
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+  useEffect(() => {
+    if (landingLocation.state?.procurePrimeDraft) setViewMode("ai");
+  }, [landingLocation.key]);
 
   // Hàm tải dữ liệu báo giá thực tế từ Backend API
   const fetchQuotationData = async (qNum: string) => {
@@ -92,11 +114,11 @@ export const ProcurementWorkspace: React.FC = () => {
           setItems(mappedItems);
         }
       } else {
-        setCanvasError(json.message || "Không thể tải dữ liệu báo giá");
+        setCanvasError(json.message || uiMessage("workspace:unableToLoadQuotationData"));
       }
     } catch (err: any) {
       console.error("Lỗi khi tải báo giá:", err);
-      setCanvasError(err?.message || "Lỗi kết nối tới máy chủ báo giá");
+      setCanvasError(err?.message || uiMessage("workspace:unableToConnectToTheQuotationServer"));
     } finally {
       setCanvasLoading(false);
     }
@@ -165,7 +187,9 @@ export const ProcurementWorkspace: React.FC = () => {
   };
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const region = historyRef.current;
+    if (!region || !followConversation.current) return;
+    region.scrollTo({ top: region.scrollHeight, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
   }, [messages, loading]);
 
   useEffect(() => {
@@ -293,12 +317,12 @@ export const ProcurementWorkspace: React.FC = () => {
       const data = await res.json();
       if (data.success) {
         setStatus("ISSUED");
-        alert(`Báo giá ${quotationNumber} đã được phê duyệt thành công!`);
+        alert(tx("workspace:quotationValueApprovedSuccessfully", { v0: (quotationNumber) }));
         fetchQuotationData(quotationNumber);
       }
     } catch {
       setStatus("ISSUED");
-      alert(`Đã phê duyệt báo giá ${quotationNumber}`);
+      alert(tx("workspace:quotationValueApproved", { v0: (quotationNumber) }));
     }
   };
 
@@ -306,7 +330,7 @@ export const ProcurementWorkspace: React.FC = () => {
     setMessages([
       {
         sender: "agent",
-        text: "Phiên làm việc mới đã khởi tạo. Mời Quý Doanh nghiệp cung cấp yêu cầu mua sắm thiết bị tiếp theo.",
+        text: uiMessage("workspace:aNewSessionHasStartedEnterYour"),
         timestamp: new Date(),
       },
     ]);
@@ -320,125 +344,50 @@ export const ProcurementWorkspace: React.FC = () => {
   };
 
   return (
-    <div className="h-screen max-h-screen overflow-hidden bg-slate-100 text-slate-900 font-sans antialiased flex flex-col">
-      {/* 1. TOP HEADER (Enterprise Minimalist Bar - Fixed Height) */}
-      <header className="flex-shrink-0 bg-slate-900 text-white px-6 py-3 flex items-center justify-between border-b border-slate-800">
-        <div className="flex items-center gap-3">
-          <Link
-            to="/"
-            className="font-mono text-xs uppercase tracking-widest px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded transition"
-            title="Quay về trang chủ"
-          >
-            ← TRANG CHỦ
-          </Link>
-          <h1 className="text-sm font-semibold tracking-wide text-slate-100">
-            PROCUREPRIME <span className="text-slate-500">•</span> Autonomous B2B Procurement Workstation
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-4 text-xs font-mono">
-          <div className="text-slate-400">
-            PHÁP NHÂN: <strong className="text-slate-200">B2B SALES & PROCUREMENT COPILOT</strong>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link to="/admin" className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded text-xs transition">← Bảng Quản Trị</Link>
-          <Link to="/admin/policies" className="px-2.5 py-1 bg-indigo-950 hover:bg-indigo-900 text-indigo-300 border border-indigo-700/60 rounded text-xs transition">⚙️ Cấu Hình Quy Chế</Link>
-          </div>
-          <div className="px-2 py-0.5 border border-emerald-500/40 bg-emerald-950/40 text-emerald-400 rounded text-[11px] font-bold">
-            DOANH NGHIỆP ĐÃ XÁC THỰC
-          </div>
-        </div>
+    <div className="pw-workspace" data-view={viewMode}>
+      <header className="pw-header">
+        <Link to="/" className="pw-brand" aria-label={tx("workspace:procureprimeHome")}>Procure<strong>Prime</strong></Link>
+        <div className="pw-heading"><h1>{tx("workspace:procurementWorkspace")}</h1><p>{tx("workspace:clearRequirementsDecisionsInYourHands")}</p></div>
+        <WorkspaceHeaderActions />
       </header>
-
-      {/* 2. MAIN WORKSPACE (Split-Screen 2 Panes with Viewport Lock) */}
-      <main className="flex-1 min-h-0 grid grid-cols-12 gap-0 overflow-hidden">
-        {/* ========================================================
-            CỘT TRÁI (42%): AI Procurement Copilot & Reasoning Thread
-           ======================================================== */}
-        <section className="col-span-12 lg:col-span-5 bg-white border-r border-slate-200 flex flex-col h-full min-h-0">
-          {/* Header Cột Trái */}
-          <div className="flex-shrink-0 px-5 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-            <div className="text-xs font-bold uppercase tracking-wider text-slate-700">
-              [ 01 ] Bàn Điều Khiển & Phân Tích Yêu Cầu
-            </div>
-            <button
-              onClick={handleReset}
-              className="text-[11px] font-mono text-slate-500 hover:text-slate-900 px-2 py-1 border border-slate-300 rounded hover:bg-slate-100 transition-colors"
-            >
-              LÀM MỚI PHIÊN
-            </button>
+      <nav className="pw-view-switch" aria-label={tx("workspace:workspaceViews")}>
+        <button type="button" className="pw-split-control" aria-pressed={viewMode === "split"} onClick={() => setViewMode("split")}>{tx("workspace:splitWorkspace")}</button>
+        <button type="button" aria-pressed={viewMode === "ai" || (isNarrow && viewMode === "split")} onClick={() => setViewMode("ai")}>{tx("workspace:aiAssistant")}</button>
+        <button type="button" aria-pressed={viewMode === "options"} onClick={() => setViewMode("options")}>{tx("workspace:devicesComparison")}</button>
+        <button type="button" aria-pressed={viewMode === "quote"} onClick={() => setViewMode("quote")}>{tx("workspace:quotation")}{" "}{items.length > 0 && <span>({uiText(items.length)})</span>}</button>
+      </nav>
+      <main className="pw-main">
+        <section className="pw-assistant" aria-label={tx("workspace:aiAssistantAndWizard")}>
+          <div className="pw-panel-heading"><h2>{tx("workspace:workWithAi")}</h2><button type="button" onClick={handleReset}>{tx("workspace:newSession2")}</button></div>
+          <LandingDraftBridge currentDraft={input} busy={loading} onApplyDraft={(text) => {
+            setInput((existing) => existing.trim() ? `${existing} ${text}` : text);
+            setLeftTab("chat");
+            setViewMode("ai");
+          }} />
+          <div className="pw-tools" role="group" aria-label={tx("workspace:requestEntryMethod")}>
+            <button type="button" aria-pressed={leftTab === "chat"} onClick={() => setLeftTab("chat")}>{tx("workspace:conversation")}</button>
+            <button type="button" aria-pressed={leftTab === "wizard"} onClick={() => setLeftTab("wizard")}>{tx("workspace:procurementWizard")}</button>
           </div>
-
-          {/* Thanh Chuyển Đổi Tab: Form Thu Mua Tự Động vs Luồng Chat Phân Tích */}
-          <div className="flex bg-slate-100 p-1 border-b border-slate-200 text-xs flex-shrink-0">
-            <button
-              type="button"
-              onClick={() => setLeftTab("wizard")}
-              className={`flex-1 py-2 px-3 rounded font-bold font-mono text-[11px] flex items-center justify-center gap-1.5 transition ${
-                leftTab === "wizard"
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
-              }`}
-            >
-              <span>FORM THU MUA TỰ ĐỘNG (SMART WIZARD)</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setLeftTab("chat")}
-              className={`flex-1 py-2 px-3 rounded font-bold font-mono text-[11px] flex items-center justify-center gap-1.5 transition ${
-                leftTab === "chat"
-                  ? "bg-white text-slate-900 border border-slate-300 shadow-sm"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
-              }`}
-            >
-              <span>LUỒNG SUY LUẬN AI (REASONING THREAD)</span>
-            </button>
+          <div className="pw-wizard" hidden={leftTab !== "wizard"}>
+            <p className="pw-wizard-note">{tx("workspace:structureYourRequirementsTheWizardSendButton")}</p>
+            <ProcurementWizard onSubmit={handleWizardSubmit} />
           </div>
-
-          {/* Nội dung Cột Trái: Hiển thị Form Wizard hoặc Khung Chat */}
-          {leftTab === "wizard" ? (
-            <div className="flex-1 min-h-0 overflow-y-auto bg-white">
-              <div className="p-3 bg-indigo-50/70 border-b border-indigo-100 text-slate-700 text-xs">
-                <div className="font-bold text-indigo-900 flex items-center gap-1.5">
-                  <span className="px-1.5 py-0.5 bg-indigo-600 text-white rounded text-[10px] font-mono">B2B WIZARD</span>
-                  <span>Tự động hóa lập Báo giá & Khớp cấu hình</span>
-                </div>
-                <p className="text-[11px] text-indigo-700 mt-1 leading-normal">
-                  Chọn mẫu thu mua nhanh, cấu hình và ngân sách trần. Khi bấm kích hoạt, AI sẽ tự động phân tích và đồng bộ kết quả lên Bảng Thảo Báo Giá ở cột phải theo thời gian thực.
-                </p>
-              </div>
-              <ProcurementWizard onSubmit={handleWizardSubmit} />
-            </div>
-          ) : (
-            <>
-              {/* Khung Hội Thoại (Message Thread có Scroll dọc chuẩn) */}
-              <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-slate-50/50 text-xs leading-relaxed">
-                {messages.map((msg, idx) => (
-                  <div key={idx} className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}>
-                    <div className="text-[10px] font-mono uppercase text-slate-400 mb-1">
-                      {msg.sender === "user" ? "[ DOANH NGHIỆP ]" : "[ PROCUREPRIME REASONING ]"} •{" "}
-                      {msg.timestamp.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
-                    </div>
-                    <div
-                      className={`p-3.5 rounded-lg max-w-[92%] whitespace-pre-wrap ${
-                        msg.sender === "user"
-                          ? "bg-slate-900 text-slate-100 font-medium"
-                          : "bg-white border border-slate-200 text-slate-800 shadow-sm"
-                      }`}
-                    >
-                      {msg.text || (
-                        <div className="font-mono text-slate-400 italic animate-pulse">
-                          Đang phân tích yêu cầu cấu hình & thẩm định ngân sách...
-                        </div>
-                      )}
-
-                      {/* Render Nút Actions nếu có (Dọn dẹp icon & Tích hợp nút Xuất Excel chuẩn doanh nghiệp) */}
+          <div className="pw-chat" hidden={leftTab !== "chat"}>
+            <div ref={historyRef} className="pw-history" role="region" aria-label={tx("workspace:conversationContent")} tabIndex={0} onScroll={(event) => {
+              const element = event.currentTarget;
+              followConversation.current = element.scrollHeight - element.scrollTop - element.clientHeight < 96;
+            }}>
+              {messages.map((msg, idx) => <article key={idx} className={`pw-message pw-message--${msg.sender}`}>
+                <p className="pw-message-meta">{uiText(msg.sender === "user" ? tx("workspace:you") : tx("workspace:procureprimeAi"))} <time>{uiText(msg.timestamp.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }))}</time></p>
+                <div className="pw-message-body">{idx === 0 && msg.text === uiMessage("workspace:helloIAmProcureprimeCopilotForB2b")
+                  ? <WorkspaceWelcome original={uiText(msg.text)} />
+                  : uiText(msg.text) || <span className="pw-muted">{tx("workspace:waitingForAiResponse")}</span>}
                       {(() => {
                         let actionsToRender = msg.actions ? [...msg.actions] : [];
                         // Nếu có mã báo giá và tin nhắn từ agent, tự động đảm bảo có nút Xuất Excel bên cột Action
                         if (msg.sender === "agent" && quotationNumber && !actionsToRender.some((b) => b.url?.includes("/excel") || b.label?.toLowerCase().includes("excel"))) {
                           actionsToRender.push({
-                            label: "Xuất Báo Giá Excel (.xlsx)",
+                            label: uiMessage("workspace:exportQuotationToExcelXlsx"),
                             action: "navigate",
                             url: `/api/quotations/${quotationNumber}/excel`,
                             style: "primary",
@@ -463,102 +412,47 @@ export const ProcurementWorkspace: React.FC = () => {
                                       : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm"
                                   }`}
                                 >
-                                  {cleanLabel}
+                                  {uiText(cleanLabel)}
                                 </button>
                               );
                             })}
                           </div>
                         );
                       })()}
-                    </div>
-                  </div>
-                ))}
-                <div ref={chatEndRef} />
-              </div>
-
-              {/* Gợi Ý Nhanh B2B (Preset Buttons - Minimal Text Pills) */}
-              <div className="flex-shrink-0 p-2.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-[11px] font-mono">
-                <div className="flex gap-1.5 overflow-x-auto">
-                  <button
-                    onClick={() =>
-                      setInput(
-                        "Công ty TNHH Giải Pháp AI cần trang bị cho 5 nhân viên: 5 laptop văn phòng RAM tối thiểu 16GB, 5 bộ chuột phím không dây. Tổng ngân sách tối đa 90 triệu, cần xuất hóa đơn VAT."
-                      )
-                    }
-                    className="px-2.5 py-1 bg-white border border-slate-300 text-slate-700 hover:border-slate-500 rounded whitespace-nowrap transition-colors"
-                  >
-                    [ + COMBO 5 MÁY 16GB (90TR) ]
-                  </button>
-                  <button
-                    onClick={() => setInput("Tôi cần mua số lượng lớn 10 màn hình văn phòng, xuất báo giá chiết khấu sỉ.")}
-                    className="px-2.5 py-1 bg-white border border-slate-300 text-slate-700 hover:border-slate-500 rounded whitespace-nowrap transition-colors"
-                  >
-                    [ + MUA SỈ 10 MÀN HÌNH ]
-                  </button>
                 </div>
-                <button
-                  onClick={() => setLeftTab("wizard")}
-                  className="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded font-bold whitespace-nowrap transition-colors flex items-center gap-1"
-                >
-                  MỞ FORM THU MUA
-                </button>
-              </div>
-
-              {/* Khung Nhập Liệu (Input Console) */}
-              <div className="flex-shrink-0 p-3 border-t border-slate-200 bg-white flex gap-2">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                  placeholder="Nhập yêu cầu thiết bị, cấu hình, ngân sách trần..."
-                  disabled={loading}
-                  className="flex-1 px-3 py-2 border border-slate-300 rounded text-xs focus:outline-none focus:border-slate-800 text-slate-900 placeholder:text-slate-400 font-mono"
-                />
-                <button
-                  onClick={handleSend}
-                  disabled={loading || !input.trim()}
-                  className="px-4 py-2 bg-slate-900 text-white font-mono text-xs font-bold rounded hover:bg-slate-800 disabled:opacity-40 transition-colors uppercase tracking-wider"
-                >
-                  {loading ? "ĐANG XỬ LÝ..." : "GỬI YÊU CẦU"}
-                </button>
-              </div>
-            </>
-          )}
-        </section>
-
-        {/* ========================================================
-            CỘT PHẢI (58%): Live Procurement Canvas & Quotation Sheet
-           ======================================================== */}
-        <section className="col-span-12 lg:col-span-7 bg-slate-100 p-6 overflow-y-auto min-h-0 flex flex-col space-y-5">
-          {/* Header Cột Phải */}
-          <div className="flex items-center justify-between border-b border-slate-300 pb-3 flex-shrink-0">
-            <div>
-              <div className="text-[11px] font-mono text-slate-500 uppercase tracking-widest">[ 02 ] LIVE PROCUREMENT CANVAS</div>
-              <h2 className="text-base font-bold text-slate-900 tracking-tight">
-                Bảng Thảo Thu Mua & Báo Giá Thương Mại
-              </h2>
+              </article>)}
+              <div ref={chatEndRef} />
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-mono text-slate-500">MÃ HIỆU:</span>
-              <span className="font-mono text-xs font-bold px-2.5 py-1 bg-white border border-slate-300 rounded text-slate-900">
-                {quotationNumber || "CHƯA KHỞI TẠO"}
-              </span>
-            </div>
+            <p className="pw-response-status" role="status">{uiText(loading ? tx("workspace:aiIsRespondingYouCanContinueReviewing") : tx("workspace:reviewAiProvidedInformationBeforeDeciding"))}</p>
+            <details className="pw-suggestions"><summary>{tx("workspace:suggestedRequests")}</summary><div>
+              <button type="button" onClick={() => setInput("Công ty TNHH Giải Pháp AI cần trang bị cho 5 nhân viên: 5 laptop văn phòng RAM tối thiểu 16GB, 5 bộ chuột phím không dây. Tổng ngân sách tối đa 90 triệu, cần xuất hóa đơn VAT.")}>{tx("workspace:equip5TeamMembers")}</button>
+              <button type="button" onClick={() => setInput("Tôi cần mua số lượng lớn 10 màn hình văn phòng, xuất báo giá chiết khấu sỉ.")}>{tx("workspace:wholesaleOrderFor10Monitors2")}</button>
+            </div></details>
           </div>
-
-          {/* Loading Alert */}
+            <div className="pw-composer">
+              <label htmlFor="pw-request">{tx("workspace:currentRequest")}</label>
+              <div><input id="pw-request" type="text" data-landing-draft-input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => {
+                if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+                if (e.key === "Enter") handleSend();
+              }} placeholder={tx("workspace:devicesSpecificationsQuantitiesBudget")} disabled={loading} />
+              <button type="button" onClick={handleSend} disabled={loading || !input.trim()}><span className="pw-send-label">{uiText(loading ? tx("workspace:processing") : tx("workspace:sendRequest"))}</span><ArrowUp size={20} aria-hidden="true" /></button></div>
+            </div>
+        </section>
+        <section className="pw-comparison" aria-label={tx("workspace:devicesAndComparisonTable")}><WorkspaceOptions items={items} /></section>
+        <section className="pw-quote" aria-label={tx("workspace:currentQuotation")}>
+          <div className="pw-panel-heading"><div><p className="pw-muted">{tx("workspace:procurementDocument")}</p><h2>{tx("workspace:currentQuotation")}</h2></div><span className="pw-quote-code">{uiText(quotationNumber || tx("workspace:noQuotationReferenceYet"))}</span></div>
+<div className="pw-quote-body">          {/* Loading Alert */}
           {canvasLoading && (
             <div className="p-3 bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs font-mono rounded flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
-              <span>Đang đồng bộ dữ liệu Báo Giá Thương Mại từ máy chủ...</span>
+              <span>{tx("workspace:syncingCommercialQuotationDataFromTheServer")}</span>
             </div>
           )}
 
           {/* Error Alert */}
           {canvasError && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono rounded">
-              Lỗi đồng bộ: {canvasError}
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono rounded">{tx("workspace:syncError")}{" "}{uiText(canvasError)}
+              {quotationNumber && <button type="button" onClick={() => fetchQuotationData(quotationNumber)} disabled={canvasLoading}>{tx("workspace:retryLoading")}</button>}
             </div>
           )}
 
@@ -568,12 +462,8 @@ export const ProcurementWorkspace: React.FC = () => {
               <div className="w-12 h-12 rounded-full bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 font-mono text-sm font-bold">
                 PP
               </div>
-              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider font-mono">
-                BẢNG THẢO BÁO GIÁ CHƯA KHỞI TẠO
-              </h3>
-              <p className="text-xs text-slate-500 max-w-sm leading-relaxed">
-                Vui lòng nhập nhu cầu thiết bị, số lượng và trần ngân sách ở bảng điều khiển bên trái (hoặc bấm chọn gợi ý mẫu). ProcurePrime sẽ tự động bóc tách thông số, so khớp cấu hình và xuất bản Báo Giá Doanh Nghiệp tại đây.
-              </p>
+              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider font-mono">{tx("workspace:yourQuotationWillAppearHere")}</h3>
+              <p className="text-xs text-slate-500 max-w-sm leading-relaxed">{tx("workspace:enterRequirementsInTheConversationOrWizard")}</p>
             </div>
           )}
 
@@ -583,27 +473,25 @@ export const ProcurementWorkspace: React.FC = () => {
               {/* 1. THẺ SỐ LIỆU NGÂN SÁCH (Financial KPI Cards) */}
               <div className="grid grid-cols-4 gap-3 text-xs flex-shrink-0">
                 <div className="bg-white border border-slate-200 p-3 rounded">
-                  <div className="text-[10px] font-mono text-slate-500 uppercase">Trần Ngân Sách</div>
+                  <div className="text-[10px] font-mono text-slate-500 uppercase">{tx("workspace:budgetLimit")}</div>
                   <div className="text-base font-bold text-slate-900 mt-1">
-                    {maxBudget > 0 ? `${maxBudget.toLocaleString("vi-VN")} đ` : "Chưa xác định"}
+                    {uiText(maxBudget > 0 ? tx("workspace:value", { v0: (maxBudget.toLocaleString(locale())) }) : tx("workspace:notSpecified"))}
                   </div>
                 </div>
                 <div className="bg-white border border-slate-200 p-3 rounded">
-                  <div className="text-[10px] font-mono text-slate-500 uppercase">Tạm Tính Đơn Hàng</div>
+                  <div className="text-[10px] font-mono text-slate-500 uppercase">{tx("workspace:orderSubtotal")}</div>
                   <div className="text-base font-bold text-slate-900 mt-1">
-                    {grandTotal.toLocaleString("vi-VN")} đ
-                  </div>
+                    {formatVND(grandTotal)}</div>
                 </div>
                 <div className="bg-white border border-slate-200 p-3 rounded">
-                  <div className="text-[10px] font-mono text-slate-500 uppercase">Chiết Khấu B2B (5%)</div>
+                  <div className="text-[10px] font-mono text-slate-500 uppercase">{tx("workspace:b2bDiscount")}{uiText(discountPercent)}%)</div>
                   <div className="text-base font-bold text-emerald-700 mt-1">
-                    - {discountAmount.toLocaleString("vi-VN")} đ
-                  </div>
+                    - {formatVND(discountAmount)}</div>
                 </div>
                 <div className="bg-white border border-slate-200 p-3 rounded">
-                  <div className="text-[10px] font-mono text-slate-500 uppercase">Tỷ Lệ Tiêu Hao</div>
+                  <div className="text-[10px] font-mono text-slate-500 uppercase">{tx("workspace:budgetUtilisation")}</div>
                   <div className={`text-base font-bold mt-1 ${isOverBudget ? "text-rose-600" : "text-slate-900"}`}>
-                    {maxBudget > 0 ? `${budgetUtilization}%` : "N/A"}
+                    {uiText(maxBudget > 0 ? `${budgetUtilization}%` : "N/A")}
                   </div>
                 </div>
               </div>
@@ -612,9 +500,7 @@ export const ProcurementWorkspace: React.FC = () => {
               {maxBudget > 0 && (
                 <div className="bg-white border border-slate-200 p-4 rounded space-y-2 flex-shrink-0">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-mono font-bold text-slate-700 uppercase">
-                      Tiến Độ Kiểm Soát Hạn Ngạch Chi Tiêu
-                    </span>
+                    <span className="font-mono font-bold text-slate-700 uppercase">{tx("workspace:spendingLimitUtilisation")}</span>
                     <span
                       className={`font-mono text-[11px] font-bold px-2 py-0.5 rounded border ${
                         isOverBudget
@@ -622,7 +508,7 @@ export const ProcurementWorkspace: React.FC = () => {
                           : "bg-emerald-50 border-emerald-300 text-emerald-700"
                       }`}
                     >
-                      {isOverBudget ? "[ VƯỢT TRẦN NGÂN SÁCH ]" : "[ TRONG HẠN MỨC CHO PHÉP ]"}
+                      {isOverBudget ? tx("workspace:overBudgetStatus") : tx("workspace:withinBudgetStatus")}
                     </span>
                   </div>
                   {/* Hairline progress bar */}
@@ -633,64 +519,60 @@ export const ProcurementWorkspace: React.FC = () => {
                     />
                   </div>
                   <div className="flex justify-between text-[11px] font-mono text-slate-500 pt-1">
-                    <span>Đã cam kết: {grandTotal.toLocaleString("vi-VN")} đ</span>
-                    <span>Dư địa: {Math.max(maxBudget - grandTotal, 0).toLocaleString("vi-VN")} đ</span>
+                    <span>{tx("workspace:committed")}{" "}{formatVND(grandTotal)}</span>
+                    <span>{tx("workspace:remaining")}{" "}{formatVND(Math.max(maxBudget - grandTotal, 0))}</span>
                   </div>
                 </div>
               )}
 
               {/* 3. BẢNG DANH MỤC THIẾT BỊ (Financial Data Table) */}
               <div className="bg-white border border-slate-200 rounded overflow-hidden shadow-sm flex-shrink-0">
-                <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Danh Mục Thiết Bị Thu Mua Đã So Khớp
-                </div>
-                <table className="w-full text-left border-collapse text-xs">
+                <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-700">{tx("workspace:matchedProcurementEquipment")}</div>
+                <div className="pw-table-scroll" role="region" aria-label={tx("workspace:quotationLineItems")} tabIndex={0}><table className="w-full text-left border-collapse text-xs">
                   <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-mono text-[11px]">
                     <tr>
-                      <th className="py-2.5 px-3 text-center w-10">STT</th>
-                      <th className="py-2.5 px-3">TÊN THIẾT BỊ & CẤU HÌNH</th>
-                      <th className="py-2.5 px-3 text-center w-12">SL</th>
-                      <th className="py-2.5 px-3 text-right w-28">ĐƠN GIÁ</th>
-                      <th className="py-2.5 px-3 text-right w-32">THÀNH TIỀN</th>
+                      <th className="py-2.5 px-3 text-center w-10">{tx("workspace:no")}</th>
+                      <th className="py-2.5 px-3">{tx("workspace:deviceSpecifications")}</th>
+                      <th className="py-2.5 px-3 text-center w-12">{tx("workspace:qty")}</th>
+                      <th className="py-2.5 px-3 text-right w-28">{tx("workspace:unitPrice2")}</th>
+                      <th className="py-2.5 px-3 text-right w-32">{tx("workspace:lineTotal")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {items.map((item, idx) => (
                       <tr key={idx} className="hover:bg-slate-50/80">
-                        <td className="py-3 px-3 text-center font-mono text-slate-400">{String(idx + 1).padStart(2, "0")}</td>
+                        <td className="py-3 px-3 text-center font-mono text-slate-400">{uiText(String(idx + 1).padStart(2, "0"))}</td>
                         <td className="py-3 px-3">
-                          <div className="font-semibold text-slate-900">{item.name}</div>
-                          <div className="text-[11px] font-mono text-slate-500 mt-0.5">{item.specsSummary}</div>
+                          <div className="font-semibold text-slate-900">{uiText(item.name)}</div>
+                          <div className="text-[11px] font-mono text-slate-500 mt-0.5">{uiText(item.specsSummary)}</div>
                         </td>
-                        <td className="py-3 px-3 text-center font-mono font-bold text-slate-900">{item.quantity}</td>
+                        <td className="py-3 px-3 text-center font-mono font-bold text-slate-900">{uiText(item.quantity)}</td>
                         <td className="py-3 px-3 text-right font-mono text-slate-700">
-                          {item.unitPrice.toLocaleString("vi-VN")} đ
-                        </td>
+                          {formatVND(item.unitPrice)}</td>
                         <td className="py-3 px-3 text-right font-mono font-bold text-slate-900">
-                          {item.subtotal.toLocaleString("vi-VN")} đ
-                        </td>
+                          {formatVND(item.subtotal)}</td>
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
 
                 {/* Chi tiết tính toán tài chính */}
                 <div className="border-t border-slate-200 p-4 bg-slate-50/70 space-y-1.5 text-xs font-mono">
                   <div className="flex justify-between text-slate-600">
-                    <span>Cộng tiền hàng (Subtotal):</span>
-                    <span>{subtotal.toLocaleString("vi-VN")} đ</span>
+                    <span>{tx("workspace:subtotal")}</span>
+                    <span>{formatVND(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-emerald-700">
-                    <span>Chiết khấu khối lượng B2B (5%):</span>
-                    <span>- {discountAmount.toLocaleString("vi-VN")} đ</span>
+                    <span>{tx("workspace:b2bVolumeDiscount")}{uiText(discountPercent)}%):</span>
+                    <span>- {formatVND(discountAmount)}</span>
                   </div>
                   <div className="flex justify-between text-slate-600">
-                    <span>Thuế Giá trị Gia tăng VAT (10%):</span>
-                    <span>+ {vatAmount.toLocaleString("vi-VN")} đ</span>
+                    <span>{tx("workspace:valueAddedTax10")}</span>
+                    <span>+ {formatVND(vatAmount)}</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t border-slate-300 text-sm font-bold text-slate-900">
-                    <span className="uppercase">TỔNG CỘNG THANH TOÁN:</span>
-                    <span className="text-base text-slate-950">{grandTotal.toLocaleString("vi-VN")} đ</span>
+                    <span className="uppercase">{tx("workspace:totalPayment")}</span>
+                    <span className="text-base text-slate-950">{formatVND(grandTotal)}</span>
                   </div>
                 </div>
               </div>
@@ -698,25 +580,22 @@ export const ProcurementWorkspace: React.FC = () => {
               {/* 4. CHỨNG THỰC KIỂM TOÁN & KHỐI PHÊ DUYỆT (Governance & Action Ribbon) */}
               <div className="bg-white border border-slate-200 p-4 rounded space-y-3 flex-shrink-0">
                 <div className="flex justify-between items-center text-xs">
-                  <div className="font-mono text-slate-600">
-                    TRẠNG THÁI HỆ THỐNG:{" "}
+                  <div className="font-mono text-slate-600">{tx("workspace:systemStatus")}{" "}
                     <span
                       className={`font-bold px-2 py-0.5 rounded text-[11px] ${
                         status === "ISSUED" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
                       }`}
                     >
-                      {status === "ISSUED" ? "[ ĐÃ PHÁT HÀNH - ISSUED ]" : "[ CHỜ PHÊ DUYỆT - MANAGER ]"}
+                      {status === "ISSUED" ? tx("workspace:issuedStatus") : tx("workspace:managerPendingStatus")}
                     </span>
                   </div>
-                  <div className="font-mono text-slate-500 text-[11px]">
-                    QUY CHẾ: EDUREF_AI MULTI-LAYER GOVERNANCE
-                  </div>
+                  <div className="font-mono text-slate-500 text-[11px]">{tx("workspace:policyEdurefAiMultiLayerGovernance")}</div>
                 </div>
 
                 {auditFingerprint && (
                   <div className="p-2 bg-slate-50 border border-slate-200 rounded text-[11px] font-mono text-slate-600 break-all">
-                    <span className="text-slate-400">SHA-256 AUDIT FINGERPRINT: </span>
-                    {auditFingerprint}
+                    <span className="text-slate-400">{tx("workspace:sha256AuditFingerprint")}{" "}</span>
+                    {uiText(auditFingerprint)}
                   </div>
                 )}
 
@@ -727,13 +606,9 @@ export const ProcurementWorkspace: React.FC = () => {
                       onClick={handleApprove}
                       disabled={!quotationNumber}
                       className="flex-1 py-2.5 px-4 bg-slate-900 text-white font-mono text-xs font-bold rounded hover:bg-slate-800 disabled:opacity-50 transition-colors uppercase tracking-wider text-center"
-                    >
-                      XÁC NHẬN PHÊ DUYỆT QUẢN LÝ (1-CLICK)
-                    </button>
+                    >{tx("workspace:confirmManagerApproval1Click")}</button>
                   ) : (
-                    <div className="flex-1 py-2.5 px-4 bg-emerald-50 border border-emerald-300 text-emerald-800 font-mono text-xs font-bold rounded text-center">
-                      BÁO GIÁ ĐÃ ĐƯỢC PHÊ DUYỆT CHÍNH THỨC
-                    </div>
+                    <div className="flex-1 py-2.5 px-4 bg-emerald-50 border border-emerald-300 text-emerald-800 font-mono text-xs font-bold rounded text-center">{tx("workspace:quotationApproved")}</div>
                   )}
                   {quotationNumber && (
                     <a
@@ -741,14 +616,13 @@ export const ProcurementWorkspace: React.FC = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="py-2.5 px-4 bg-white border border-slate-300 text-slate-800 font-mono text-xs font-bold rounded hover:bg-slate-100 transition-colors uppercase tracking-wider text-center"
-                    >
-                      MỞ BẢN IN HTML
-                    </a>
+                    >{tx("workspace:openPrintableHtml")}</a>
                   )}
                 </div>
               </div>
             </>
-          )}
+          )}</div>
+          {items.length > 0 && <div className="pw-quote-total"><span>{tx("workspace:quotationTotal")}</span><strong>{formatVND(grandTotal)}</strong></div>}
         </section>
       </main>
     </div>

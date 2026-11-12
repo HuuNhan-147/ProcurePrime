@@ -1,0 +1,61 @@
+.pp-admin { background:#f4f3ee; --pp-sidebar-width:256px; }
+.pp-admin[data-collapsed=true] { --pp-sidebar-width:80px; }
+.pp-admin-shell { width:calc(100% - var(--pp-sidebar-width)); margin-left:var(--pp-sidebar-width); min-width:0; min-height:100dvh; display:flex; flex-direction:column; }
+.pp-admin-sidebar { width:var(--pp-sidebar-width); background:#101d2b; box-shadow:none; }
+.pp-admin-sidebar .pp-wordmark { color:#f4f3ee; font-size:22px; }
+.pp-admin-sidebar > div:first-child { min-height:76px; height:auto; gap:8px; }
+.pp-admin-sidebar > div:first-child > a { flex:1; }
+.pp-admin-sidebar a { min-height:44px; }
+.pp-admin-sidebar nav a { white-space:normal; }
+.pp-admin-sidebar nav a span { overflow-wrap:anywhere; }
+.pp-admin-sidebar nav a[aria-current=page] { background:#254ad7; box-shadow:none; border-radius:6px; }
+.pp-admin-sidebar :focus-visible { outline-color:#b7c7ff; }
+.pp-admin-sidebar :is(.text-slate-400,.text-gray-400) { color:#bec9d6; }
+.pp-admin-topbar { height:auto; min-height:76px; padding:12px 24px; gap:16px; background:white; box-shadow:none; backdrop-filter:none; }
+.pp-admin-topbar > div { min-width:0; }
+.pp-admin-topbar > div:first-child { flex:1; gap:12px; }
+.pp-admin-topbar > div:first-child > div { flex-wrap:wrap; gap:4px 8px; }
+.pp-admin-topbar button { min-width:44px; }
+.pp-admin-main { padding:32px; width:100%; max-width:1680px; margin-inline:auto; }
+.pp-admin-main > div { max-width:100%; }
+.pp-admin-main .space-y-8 { margin:0; }
+.pp-admin-main .bg-white { border-color:#d5dadc; }
+.pp-admin-main .grid { min-width:0; }
+.pp-admin .pp-table-region { border:1px solid #d5dadc; }
+.pp-admin .pp-table-region th { white-space:nowrap; }
+.pp-admin .pp-table-region td { max-width:340px; white-space:normal; }
+.pp-admin .pp-table-region button { min-width:44px; }
+.pp-admin .pp-table-region a { display:inline-flex; align-items:center; min-height:44px; }
+.pp-admin .pp-admin-main .flex.justify-between { gap:12px; flex-wrap:wrap; }
+.pp-admin .pp-admin-main .flex.items-center.gap-2 { flex-wrap:wrap; }
+.pp-admin .pp-admin-profile { max-height:calc(100dvh - 100px); overflow-y:auto; }
+.pp-admin-mobile-close { display:none; }
+.pp-admin .pw-workspace { height:calc(100dvh - 140px); min-height:420px; border:1px solid #d5dadc; border-radius:8px; }
+.pp-admin .pw-header nav { display:none; }
+.pp-admin .pw-header { padding:12px 16px; }
+.pp-admin [role=dialog] .min-h-screen { min-height:calc(100dvh - 32px); }
+.pp-admin [role=dialog] .inline-block { width:min(100%,540px); max-height:calc(100dvh - 32px); overflow-y:auto; }
+.pp-admin [role=dialog] button { min-width:44px; }
+@media(max-width:1279px) { .pp-admin-main { padding:24px; } .pp-admin .lg\:grid-cols-4 { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:1023px) {
+  .pp-admin-shell { margin-left:0; width:100%; }
+  .pp-admin-sidebar { width:min(320px,calc(100% - 32px)); visibility:hidden; pointer-events:none; transform:translateX(-100%); transition:transform 180ms,visibility 180ms; }
+  .pp-admin-sidebar[data-mobile-open=true] { visibility:visible; pointer-events:auto; transform:translateX(0); }
+  .pp-admin-mobile-close { display:block; margin:8px 12px 0; border:1px solid #536171; border-radius:6px; color:white; }
+  .pp-admin-backdrop { position:fixed; inset:0; z-index:45; background:rgb(20 35 51 / .55); border:0; border-radius:0; }
+  .pp-admin-topbar { padding:10px 16px; }
+  .pp-admin-notifications { position:fixed; top:76px; right:12px; width:min(384px,calc(100vw - 24px)); max-height:calc(100dvh - 96px); overflow-y:auto; }
+  .pp-admin-profile { position:fixed; inset:auto 16px 88px; width:min(288px,calc(100vw - 64px)); margin:0; max-height:calc(100dvh - 160px) !important; }
+}
+@media(max-width:767px) {
+  .pp-admin-main { padding:24px 16px 40px; }
+  .pp-admin-topbar > div:first-child > div > span:first-child,.pp-admin-topbar > div:first-child > div > svg { display:none; }
+  .pp-admin-topbar > div:first-child > div { font-size:14px; }
+  .pp-admin .lg\:grid-cols-4 { grid-template-columns:1fr; }
+  .pp-admin-main .grid-cols-2 { grid-template-columns:1fr; }
+  .pp-admin .pw-workspace { height:calc(100dvh - 156px); min-height:420px; }
+  .pp-admin-main .p-6 { padding:20px; }
+  .pp-admin-main .flex.items-center.gap-2\.5 { flex-wrap:wrap; }
+  .pp-admin-main .flex.items-center.gap-3 { flex-wrap:wrap; }
+}
+@media(prefers-reduced-motion:reduce) { .pp-admin-sidebar { transition:none; } }

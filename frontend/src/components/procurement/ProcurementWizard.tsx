@@ -1,3 +1,4 @@
+import { tx, uiMessage, uiText, useLocale, locale, formatVND } from "../../i18n";
 // frontend/src/components/procurement/ProcurementWizard.tsx
 // ==============================================================================
 // ⚡ PROCUREMENT AUTOMATION WIZARD — Form Thu Mua B2B Tự Động Hóa Thông Minh
@@ -25,7 +26,7 @@ interface ProcurementWizardProps {
 const PRESETS = [
   {
     id: "preset_onboarding",
-    label: "Trang bị 5 nhân sự mới",
+    label: uiMessage("workspace:equip5NewTeamMembers"),
     deviceType: "Laptop văn phòng",
     quantity: 5,
     minRam: "16GB",
@@ -36,7 +37,7 @@ const PRESETS = [
   },
   {
     id: "preset_dev",
-    label: "Nâng cấp máy kỹ sư (3 máy)",
+    label: uiMessage("workspace:upgradeEngineeringDevices3Units"),
     deviceType: "Laptop kỹ thuật hiệu năng cao",
     quantity: 3,
     minRam: "32GB",
@@ -47,7 +48,7 @@ const PRESETS = [
   },
   {
     id: "preset_office",
-    label: "Setup combo phòng ban (10 máy)",
+    label: uiMessage("workspace:departmentEquipmentBundle10Units"),
     deviceType: "PC đồng bộ văn phòng",
     quantity: 10,
     minRam: "16GB",
@@ -66,10 +67,27 @@ const ACCESSORY_OPTIONS = [
   "Tai nghe chống ồn",
 ];
 
+const accessoryLabels: Record<string, string> = {
+  "Laptop văn phòng": "workspace:officeLaptop",
+  "Chuột không dây": "workspace:wirelessMouse",
+  "Bàn phím văn phòng": "workspace:officeKeyboard",
+  "Kỹ thuật / IT": "workspace:engineeringIT",
+  "Laptop kỹ thuật hiệu năng cao": "workspace:engineeringLaptop",
+  "Màn hình ngoài 24 inch": "workspace:externalMonitor24",
+  "Hub Type-C": "workspace:typeCHub",
+  "R&D Software": "workspace:softwareRD",
+  "PC đồng bộ văn phòng": "workspace:officeDesktop",
+  "Kinh doanh & Vận hành": "workspace:salesOperations",
+  "Hub chuyển đổi Type-C": "workspace:typeCAdapter",
+  "Tai nghe chống ồn": "workspace:noiseCancellingHeadset"
+};
+const accessoryLabel = (value: string) => accessoryLabels[value] ? tx(accessoryLabels[value]) : value;
+
 export const ProcurementWizard: React.FC<ProcurementWizardProps> = ({
   onSubmit,
   onCancel,
 }) => {
+  useLocale();
   const [department, setDepartment] = useState("Kỹ thuật / IT");
   const [deviceType, setDeviceType] = useState("Laptop văn phòng");
   const [quantity, setQuantity] = useState(5);
@@ -127,8 +145,7 @@ export const ProcurementWizard: React.FC<ProcurementWizardProps> = ({
       {/* Header thanh gợi ý Preset */}
       <div>
         <label className="text-gray-700 font-semibold mb-1 flex items-center gap-1">
-          <FaSlidersH className="text-blue-600" /> Chọn mẫu thu mua nhanh (Presets):
-        </label>
+          <FaSlidersH className="text-blue-600" />{" "}{tx("workspace:quickProcurementTemplates")}</label>
         <div className="grid grid-cols-1 gap-1.5 mt-1">
           {PRESETS.map((p) => (
             <button
@@ -137,10 +154,9 @@ export const ProcurementWizard: React.FC<ProcurementWizardProps> = ({
               onClick={() => handleApplyPreset(p.id)}
               className="text-left px-2.5 py-1.5 bg-blue-50/80 hover:bg-blue-100/80 border border-blue-200/80 rounded-lg text-blue-800 font-medium transition flex items-center justify-between group"
             >
-              <span>{p.label}</span>
+              <span>{uiText(p.label)}</span>
               <span className="text-[10px] text-blue-600 font-bold opacity-80 group-hover:opacity-100">
-                {(p.budget / 1000000).toLocaleString("vi-VN")}Tr ₫
-              </span>
+                {uiText((p.budget / 1000000).toLocaleString(locale()))}{tx("workspace:m")}</span>
             </button>
           ))}
         </div>
@@ -150,35 +166,33 @@ export const ProcurementWizard: React.FC<ProcurementWizardProps> = ({
         {/* Hàng 1: Phòng ban & Thiết bị chính */}
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="font-semibold text-gray-700 block mb-1">
-              Phòng ban thụ hưởng:
-            </label>
+            <label className="font-semibold text-gray-700 block mb-1">{tx("workspace:receivingDepartment")}</label>
             <select
+              aria-label={tx("workspace:receivingDepartment2")}
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
               className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-gray-800 outline-none focus:ring-1 focus:ring-blue-500"
             >
-              <option value="Kỹ thuật / IT">Kỹ thuật / IT</option>
-              <option value="Kinh doanh & Bán hàng">Kinh doanh & Bán hàng</option>
-              <option value="Hành chính Nhân sự">Hành chính Nhân sự</option>
-              <option value="Thiết kế & Marketing">Thiết kế & Marketing</option>
-              <option value="Ban Giám Đốc">Ban Giám Đốc</option>
+              <option value="Kỹ thuật / IT">{tx("workspace:engineeringIt")}</option>
+              <option value="Kinh doanh & Bán hàng">{tx("workspace:salesBusinessDevelopment")}</option>
+              <option value="Hành chính Nhân sự">{tx("workspace:hrAdministration")}</option>
+              <option value="Thiết kế & Marketing">{tx("workspace:designMarketing")}</option>
+              <option value="Ban Giám Đốc">{tx("workspace:boardOfDirectors")}</option>
             </select>
           </div>
 
           <div>
-            <label className="font-semibold text-gray-700 block mb-1">
-              Chủng loại thiết bị:
-            </label>
+            <label className="font-semibold text-gray-700 block mb-1">{tx("workspace:deviceType")}</label>
             <select
+              aria-label={tx("workspace:deviceType2")}
               value={deviceType}
               onChange={(e) => setDeviceType(e.target.value)}
               className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-gray-800 outline-none focus:ring-1 focus:ring-blue-500"
             >
-              <option value="Laptop văn phòng">Laptop văn phòng</option>
-              <option value="Laptop kỹ thuật hiệu năng cao">Laptop kỹ thuật cao</option>
-              <option value="PC đồng bộ văn phòng">PC đồng bộ văn phòng</option>
-              <option value="MacBook chuyên dụng">MacBook chuyên dụng</option>
+              <option value="Laptop văn phòng">{tx("workspace:officeLaptop")}</option>
+              <option value="Laptop kỹ thuật hiệu năng cao">{tx("workspace:highPerformanceLaptop")}</option>
+              <option value="PC đồng bộ văn phòng">{tx("workspace:officeDesktopPc")}</option>
+              <option value="MacBook chuyên dụng">{tx("workspace:specialistMacbook")}</option>
             </select>
           </div>
         </div>
@@ -186,12 +200,11 @@ export const ProcurementWizard: React.FC<ProcurementWizardProps> = ({
         {/* Hàng 2: Số lượng & RAM tối thiểu */}
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="font-semibold text-gray-700 block mb-1">
-              Số lượng thiết bị:
-            </label>
+            <label className="font-semibold text-gray-700 block mb-1">{tx("workspace:deviceQuantity")}</label>
             <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
               <button
                 type="button"
+                aria-label={tx("workspace:decreaseQuantity")}
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                 className="px-3 py-2 bg-gray-200 hover:bg-gray-300 font-bold text-gray-700 transition"
               >
@@ -201,12 +214,14 @@ export const ProcurementWizard: React.FC<ProcurementWizardProps> = ({
                 type="number"
                 min="1"
                 max="100"
-                value={quantity}
+                aria-label={tx("workspace:deviceQuantity2")}
+              value={quantity}
                 onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                 className="w-full text-center bg-transparent outline-none font-bold text-gray-800 py-1"
               />
               <button
                 type="button"
+                aria-label={tx("workspace:increaseQuantity")}
                 onClick={() => setQuantity((q) => q + 1)}
                 className="px-3 py-2 bg-gray-200 hover:bg-gray-300 font-bold text-gray-700 transition"
               >
@@ -216,14 +231,13 @@ export const ProcurementWizard: React.FC<ProcurementWizardProps> = ({
           </div>
 
           <div>
-            <label className="font-semibold text-gray-700 block mb-1">
-              RAM tối thiểu:
-            </label>
+            <label className="font-semibold text-gray-700 block mb-1">{tx("workspace:minimumRam")}</label>
             <div className="grid grid-cols-3 gap-1">
               {["8GB", "16GB", "32GB"].map((ram) => (
                 <button
                   key={ram}
                   type="button"
+                  aria-pressed={minRam === ram}
                   onClick={() => setMinRam(ram)}
                   className={`py-2 rounded-lg font-bold border transition text-center ${
                     minRam === ram
@@ -231,7 +245,7 @@ export const ProcurementWizard: React.FC<ProcurementWizardProps> = ({
                       : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
                   }`}
                 >
-                  {ram}
+                  {uiText(ram)}
                 </button>
               ))}
             </div>
@@ -240,9 +254,7 @@ export const ProcurementWizard: React.FC<ProcurementWizardProps> = ({
 
         {/* Hàng 3: Phụ kiện đính kèm (Mảng array multi-select) */}
         <div>
-          <label className="font-semibold text-gray-700 block mb-1.5">
-            Phụ kiện đi kèm ({selectedAccessories.length} đã chọn):
-          </label>
+          <label className="font-semibold text-gray-700 block mb-1.5">{tx("workspace:accessories")}{uiText(selectedAccessories.length)}{" "}{tx("workspace:selected")}</label>
           <div className="flex flex-wrap gap-1.5">
             {ACCESSORY_OPTIONS.map((acc) => {
               const active = selectedAccessories.includes(acc);
@@ -250,6 +262,7 @@ export const ProcurementWizard: React.FC<ProcurementWizardProps> = ({
                 <button
                   key={acc}
                   type="button"
+                  aria-pressed={active}
                   onClick={() => handleToggleAccessory(acc)}
                   className={`px-2.5 py-1 rounded-md text-[11px] font-medium border flex items-center gap-1 transition ${
                     active
@@ -258,7 +271,7 @@ export const ProcurementWizard: React.FC<ProcurementWizardProps> = ({
                   }`}
                 >
                   {active && <FaCheck className="text-[9px] text-emerald-600" />}
-                  {acc}
+                  {accessoryLabel(acc)}
                 </button>
               );
             })}
@@ -269,17 +282,17 @@ export const ProcurementWizard: React.FC<ProcurementWizardProps> = ({
         <div>
           <div className="flex justify-between items-center mb-1">
             <label className="font-semibold text-gray-700 flex items-center gap-1">
-              <FaCoins className="text-amber-500" /> Trần ngân sách tối đa:
-            </label>
+              <FaCoins className="text-amber-500" />{" "}{tx("workspace:maximumBudget")}</label>
             <span className="font-bold text-blue-700 text-xs">
-              {budget.toLocaleString("vi-VN")} ₫
+              {formatVND(budget)}
             </span>
           </div>
           <input
             type="number"
             step="1000000"
             min="5000000"
-            value={budget}
+            aria-label={tx("workspace:budgetLimitVnd")}
+              value={budget}
             onChange={(e) => setBudget(Number(e.target.value) || 0)}
             className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-gray-800 outline-none focus:ring-1 focus:ring-blue-500 font-bold"
           />
@@ -291,8 +304,7 @@ export const ProcurementWizard: React.FC<ProcurementWizardProps> = ({
                 onClick={() => setBudget(bVal)}
                 className="px-2 py-0.5 rounded bg-gray-100 hover:bg-gray-200 text-[10px] text-gray-600 font-medium"
               >
-                {(bVal / 1000000).toLocaleString("vi-VN")}Tr
-              </button>
+                {uiText((bVal / 1000000).toLocaleString(locale()))}{tx("workspace:m2")}</button>
             ))}
           </div>
         </div>
@@ -306,16 +318,15 @@ export const ProcurementWizard: React.FC<ProcurementWizardProps> = ({
               onChange={(e) => setRequireVat(e.target.checked)}
               className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
             />
-            <span className="font-semibold text-gray-800">
-              Yêu cầu xuất Hóa đơn VAT 10%
-            </span>
+            <span className="font-semibold text-gray-800">{tx("workspace:requireAVatInvoice10")}</span>
           </label>
           {requireVat && (
             <input
               type="text"
+              aria-label={tx("workspace:invoicedLegalEntity")}
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="Nhập tên Công ty / Pháp nhân xuất hóa đơn..."
+              placeholder={tx("workspace:enterCompanyInvoicedLegalEntityName")}
               className="w-full bg-white border border-gray-200 rounded p-1.5 text-gray-800 text-[11px] outline-none focus:ring-1 focus:ring-blue-500"
             />
           )}
@@ -328,7 +339,7 @@ export const ProcurementWizard: React.FC<ProcurementWizardProps> = ({
           type="submit"
           className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold font-mono py-2.5 px-4 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-wider"
         >
-          <span>KÍCH HOẠT AI TỐI ƯU & XUẤT BÁO GIÁ</span>
+          <span>{tx("workspace:sendRequestFromWizard")}</span>
         </button>
       </div>
     </form>

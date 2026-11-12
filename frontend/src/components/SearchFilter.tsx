@@ -1,3 +1,4 @@
+import { tx, uiMessage, uiText, useLocale } from "../i18n";
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { SlidersHorizontal, RefreshCcw, Search, Building2, Wallet, ArrowUpDown } from "lucide-react";
@@ -18,11 +19,11 @@ interface SearchFilterProps {
 
 // Các khung ngân sách dự án doanh nghiệp chuẩn
 const BUDGET_PRESETS = [
-  { label: "Tất cả hạn mức ngân sách", min: "", max: "" },
-  { label: "Dưới 20 triệu ₫ (Thiết bị cơ bản / Màn hình)", min: "", max: "20000000" },
-  { label: "20 - 50 triệu ₫ (Laptop / PC văn phòng chuẩn)", min: "20000000", max: "50000000" },
-  { label: "50 - 100 triệu ₫ (Máy trạm Workstation / Server)", min: "50000000", max: "100000000" },
-  { label: "Trên 100 triệu ₫ (Hạ tầng Enterprise / SAN)", min: "100000000", max: "" },
+  { label: uiMessage("catalog:allBudgets"), min: "", max: "" },
+  { label: uiMessage("catalog:underVnd20MillionBasicDevicesMonitors"), min: "", max: "20000000" },
+  { label: uiMessage("catalog:vnd2050MillionOfficeLaptopsPcs"), min: "20000000", max: "50000000" },
+  { label: uiMessage("catalog:vnd50100MillionWorkstationsServers"), min: "50000000", max: "100000000" },
+  { label: uiMessage("catalog:overVnd100MillionEnterpriseInfrastructureSan"), min: "100000000", max: "" },
 ];
 
 // Danh mục thương hiệu phần cứng doanh nghiệp uy tín
@@ -36,6 +37,7 @@ const ENTERPRISE_BRANDS = [
 ];
 
 const SearchFilter: React.FC<SearchFilterProps> = ({ initialValues }) => {
+  useLocale();
   const [filters, setFilters] = useState({
     keyword: initialValues.keyword || "",
     category: initialValues.category || "",
@@ -126,38 +128,34 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ initialValues }) => {
   );
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-8">
+    <div className="pp-filter bg-white rounded-lg border border-slate-200 p-5 mb-8">
       {/* Header bộ lọc B2B */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2 mb-4">
         <div className="flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
+          <span className="p-1.5 rounded-lg bg-[#edf1ff] text-[#254AD7]">
             <SlidersHorizontal className="h-4 w-4" />
           </span>
           <div>
-            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-              Bộ Lọc Thu Mua Thiết Bị B2B
-            </h2>
-            <p className="text-xs text-slate-500">
-              Tra cứu theo tiêu chuẩn cấu hình phần cứng, khung ngân sách dự án và thương hiệu
-            </p>
+            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">{tx("catalog:b2bEquipmentProcurementFilters")}</h2>
+            <p className="text-xs text-slate-500">{tx("catalog:searchByHardwareSpecificationsProjectBudgetAnd")}</p>
           </div>
         </div>
 
         {/* Quick Brand Badges */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] font-semibold text-slate-400 mr-1">Hãng tiêu biểu:</span>
+          <span className="text-[11px] font-semibold text-slate-400 mr-1">{tx("catalog:featuredBrands")}</span>
           {ENTERPRISE_BRANDS.map((brand) => (
             <button
               key={brand}
               type="button"
               onClick={() => handleQuickBrandClick(brand)}
-              className={`text-[11px] font-medium px-2 py-0.5 rounded transition ${
-                filters.keyword.toLowerCase().includes(brand.toLowerCase().split(" ")[0])
-                  ? "bg-indigo-600 text-white font-bold"
+              className={` text-[11px] font-medium px-2 py-0.5 rounded transition ${
+                filters.keyword.toLowerCase().includes(brand.toLowerCase().split("")[0])
+                  ? "bg-[#254AD7] text-white font-bold"
                   : "bg-slate-100 hover:bg-slate-200 text-slate-700"
-              }`}
+              }  `}
             >
-              {brand}
+              {uiText(brand)}
             </button>
           ))}
         </div>
@@ -169,14 +167,14 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ initialValues }) => {
           <div className="flex flex-col">
             <label className="text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
               <Search className="w-3.5 h-3.5 text-slate-400" />
-              <span>Từ khóa / Part Number / Specs</span>
+              <span>{tx("catalog:keywordPartNumberSpecifications")}</span>
             </label>
-            <input
+            <input aria-label={tx("catalog:keywordPartNumberSpecifications")}
               type="text"
               name="keyword"
               value={filters.keyword}
               onChange={handleChange}
-              placeholder="Ví dụ: Latitude 5540, Core i7, 32GB, vPro..."
+              placeholder={tx("catalog:eGLatitude5540CoreI732")}
               className="text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
             />
           </div>
@@ -185,23 +183,23 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ initialValues }) => {
           <div className="flex flex-col">
             <label className="text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
               <Building2 className="w-3.5 h-3.5 text-slate-400" />
-              <span>Nhóm giải pháp phòng ban</span>
+              <span>{tx("catalog:departmentSolutionCategory")}</span>
             </label>
-            <select
+            <select aria-label={tx("catalog:departmentSolutionCategory")}
               name="category"
               value={filters.category}
               onChange={handleChange}
               className="text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition cursor-pointer"
             >
-              <option value="">Tất cả danh mục thiết bị</option>
+              <option value="">{tx("catalog:allDeviceCategories")}</option>
               {categories.length > 0 ? (
                 categories.map((category) => (
                   <option key={category._id} value={category._id}>
-                    {category.name}
+                    {uiText(category.name)}
                   </option>
                 ))
               ) : (
-                <option disabled>Đang đồng bộ danh mục...</option>
+                <option disabled>{tx("catalog:loadingCategories")}</option>
               )}
             </select>
           </div>
@@ -210,16 +208,16 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ initialValues }) => {
           <div className="flex flex-col">
             <label className="text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
               <Wallet className="w-3.5 h-3.5 text-slate-400" />
-              <span>Hạn mức ngân sách dự kiến</span>
+              <span>{tx("catalog:estimatedBudget")}</span>
             </label>
-            <select
+            <select aria-label={tx("catalog:estimatedBudget")}
               value={currentBudgetIdx !== -1 ? currentBudgetIdx : ""}
               onChange={handleBudgetSelect}
               className="text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition cursor-pointer"
             >
               {BUDGET_PRESETS.map((preset, idx) => (
                 <option key={idx} value={idx}>
-                  {preset.label}
+                  {uiText(preset.label)}
                 </option>
               ))}
             </select>
@@ -229,18 +227,18 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ initialValues }) => {
           <div className="flex flex-col">
             <label className="text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
               <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
-              <span>Thứ tự hiển thị</span>
+              <span>{tx("catalog:sortOrder")}</span>
             </label>
-            <select
+            <select aria-label={tx("catalog:sortOrder")}
               name="sortBy"
               value={filters.sortBy}
               onChange={handleChange}
               className="text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition cursor-pointer"
             >
-              <option value="latest">Mới cập nhật trong catalog</option>
-              <option value="priceLowHigh">Đơn giá: Tối ưu ngân sách (Thấp → Cao)</option>
-              <option value="priceHighLow">Đơn giá: Cấu hình cao cấp (Cao → Thấp)</option>
-              <option value="bestSelling">Trang bị nhiều nhất theo dự án</option>
+              <option value="latest">{tx("catalog:recentlyUpdatedInCatalog")}</option>
+              <option value="priceLowHigh">{tx("catalog:unitPriceLowestFirst")}</option>
+              <option value="priceHighLow">{tx("catalog:unitPriceHighestFirst")}</option>
+              <option value="bestSelling">{tx("catalog:mostPurchasedForProjects")}</option>
             </select>
           </div>
         </div>
@@ -253,14 +251,14 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ initialValues }) => {
             className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
           >
             <RefreshCcw className="h-3.5 w-3.5" />
-            <span>Xóa bộ lọc</span>
+            <span>{tx("catalog:clearFilters")}</span>
           </button>
 
           <button
             type="submit"
-            className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm transition"
+            className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold bg-[#254AD7] hover:bg-[#254AD7] text-white rounded-lg transition"
           >
-            <span>Áp Dụng Lọc Thiết Bị</span>
+            <span>{tx("catalog:applyDeviceFilters")}</span>
           </button>
         </div>
       </form>

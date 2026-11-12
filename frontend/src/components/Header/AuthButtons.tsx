@@ -1,3 +1,4 @@
+import { tx, uiText, useLocale } from "../../i18n";
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { User, LogOut, ShieldCheck, Building } from "lucide-react";
@@ -16,14 +17,15 @@ const AuthButtons: React.FC<AuthButtonsProps> = ({
   token,
   onAutoLogout,
 }) => {
+  useLocale();
   const [showProfile, setShowProfile] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const navigate = useNavigate();
   const [updatedUser, setUpdatedUser] = useState<UserType | null>(user);
 
   const handleLogout = () => {
-    if (window.confirm("Xác nhận đăng xuất khỏi hệ thống Mua sắm Doanh nghiệp ProcurePrime?")) {
-      onAutoLogout("Bạn đã đăng xuất an toàn!");
+    if (window.confirm(tx("navigation:signOutOfTheProcureprimeEnterpriseProcurement"))) {
+      onAutoLogout(tx("navigation:youHaveSignedOutSafely"));
     }
   };
 
@@ -52,18 +54,16 @@ const AuthButtons: React.FC<AuthButtonsProps> = ({
         <button
           onClick={handleToggleProfile}
           className="text-xs text-slate-200 hover:text-white font-medium transition flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-slate-800"
-          title="Hồ sơ Pháp nhân Doanh nghiệp & Hạn mức Mua sắm"
+          title={tx("navigation:businessProfileProcurementLimits")}
         >
           <div className="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center text-white font-bold text-xs font-mono">
-            {updatedUser?.name?.charAt(0).toUpperCase()}
+            {uiText(updatedUser?.name?.charAt(0).toUpperCase())}
           </div>
           <div className="text-left hidden md:block">
             <span className="block font-semibold leading-tight text-white max-w-[120px] truncate">
-              {updatedUser?.name}
+              {uiText(updatedUser?.name)}
             </span>
-            <span className="text-[10px] text-indigo-400 font-mono block">
-              Doanh Nghiệp
-            </span>
+            <span className="text-[10px] text-indigo-400 font-mono block">{tx("navigation:business")}</span>
           </div>
         </button>
 
@@ -73,14 +73,14 @@ const AuthButtons: React.FC<AuthButtonsProps> = ({
             className="flex items-center text-xs text-amber-400 hover:text-amber-300 font-medium transition py-1 px-2 rounded bg-amber-950/40 border border-amber-500/30"
           >
             <ShieldCheck className="h-3.5 w-3.5 mr-1 text-amber-400" />
-            <span className="hidden sm:inline">Admin</span>
+            <span className="hidden sm:inline">{tx("navigation:admin")}</span>
           </Link>
         )}
 
         <button
           onClick={handleLogout}
           className="flex items-center text-xs text-slate-400 hover:text-rose-400 transition p-1.5 rounded-lg hover:bg-slate-800"
-          title="Đăng xuất khỏi phiên làm việc"
+          title={tx("navigation:signOutOfThisSession")}
         >
           <LogOut className="h-4 w-4" />
         </button>
@@ -103,7 +103,7 @@ const AuthButtons: React.FC<AuthButtonsProps> = ({
         className="flex items-center text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition px-3 py-1.5 rounded-lg shadow-sm"
       >
         <Building className="h-3.5 w-3.5 mr-1.5" />
-        <span>Đăng Nhập B2B</span>
+        <span>{tx("navigation:b2bSignIn")}</span>
       </Link>
       <LoginPrompt
         show={showLoginPrompt}

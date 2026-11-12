@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { tx, uiText, useLocale } from "../i18n";
+import React, { useState, useEffect, useId, useRef, useCallback } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getCart } from "../api/CartApi";
 import axios from "axios";
@@ -9,13 +10,62 @@ import ContactInfo from "../components/Header/ContactInfo";
 import CartButton from "../components/Header/CartButton";
 import OrdersButton from "../components/Header/OrdersButton";
 import AuthButtons from "../components/Header/AuthButtons";
-import { ShieldCheck, ArrowRight } from "lucide-react";
+import { ShieldCheck, ArrowRight, Menu, X } from "lucide-react";
+import ProcurePrimeWordmark from "./brand/ProcurePrimeWordmark";
+import PrimeButton from "./ui/PrimeButton";
+import PrimeStatus from "./ui/PrimeStatus";
+import LanguageToggle from "./ui/LanguageToggle";
 
 const Header = () => {
+  useLocale();
   const { user, logout, token } = useAuth();
   const navigate = useNavigate();
   const [cartItemCount, setCartItemCount] = useState(0);
   const [tokenExpired, setTokenExpired] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const panelId = useId();
+  const { pathname, search } = useLocation();
+
+  // Presentation only: disclosure state never owns auth, cart or navigation state.
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname, search]);
+
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1280px)");
+    const closeOnDesktop = () => {
+      setMenuOpen(false);
+      if (desktop.matches && document.activeElement === menuButtonRef.current) {
+        headerRef.current?.querySelector<HTMLAnchorElement>(".pp-main-nav a")?.focus();
+      } else if (!desktop.matches && headerRef.current?.querySelector(".pp-header__panel")?.contains(document.activeElement)) {
+        menuButtonRef.current?.focus();
+      }
+    };
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      setMenuOpen(false);
+      menuButtonRef.current?.focus();
+    };
+    const handleOutsideClick = (event: PointerEvent) => {
+      if (event.target instanceof Node && !headerRef.current?.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handleEscape);
+    document.addEventListener("pointerdown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener("pointerdown", handleOutsideClick);
+    };
+  }, [menuOpen]);
 
   // Hàm kiểm tra token hết hạn
   const checkTokenExpiration = (token: string) => {
@@ -24,7 +74,7 @@ const Header = () => {
       const currentTime = Date.now() / 1000;
 
       if (decodedToken.exp < currentTime) {
-        handleAutoLogout("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        handleAutoLogout(tx("navigation:yourSessionHasExpiredPleaseSignIn"));
         return true;
       }
       return false;
@@ -35,12 +85,12 @@ const Header = () => {
   };
 
   // Hàm xử lý đăng xuất tự động
-  const handleAutoLogout = (message: string) => {
+  const handleAutoLogout = useCallback((message: string) => {
     logout();
     setTokenExpired(true);
     alert(message);
     navigate("/login");
-  };
+  }, [logout, navigate]);
 
   // Interceptor axios để xử lý token hết hạn
   useEffect(() => {
@@ -49,7 +99,7 @@ const Header = () => {
       (error) => {
         if (error.response && error.response.status === 401) {
           handleAutoLogout(
-            "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+            tx("navigation:yourSessionHasExpiredPleaseSignIn")
           );
         }
         return Promise.reject(error);
@@ -69,7 +119,7 @@ const Header = () => {
       const token = localStorage.getItem("token");
       if (!token) {
         handleAutoLogout(
-          "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại."
+          tx("navigation:yourSessionIsInvalidPleaseSignIn")
         );
         return;
       }
@@ -89,7 +139,7 @@ const Header = () => {
       const token = localStorage.getItem("token");
       if (!token) {
         handleAutoLogout(
-          "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại."
+          tx("navigation:yourSessionIsInvalidPleaseSignIn")
         );
         return;
       }
@@ -106,7 +156,7 @@ const Header = () => {
     } catch (error) {
       console.error("Lỗi khi lấy giỏ hàng:", error);
       if (axios.isAxiosError(error) && error.response?.status === 401) {
-        handleAutoLogout("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        handleAutoLogout(tx("navigation:yourSessionHasExpiredPleaseSignIn"));
       }
     }
   };
@@ -124,65 +174,71 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-slate-900 border-b border-slate-800 shadow-sm backdrop-blur-md">
+    <header ref={headerRef} className="pp-header">
       {/* Admin Quick Bar */}
       {user?.isAdmin && (
-        <div className="bg-indigo-950/80 text-white px-4 py-1.5 text-xs flex items-center justify-between border-b border-indigo-500/20">
-          <div className="flex items-center gap-2">
-            <ShieldCheck size={13} className="text-indigo-400" />
-            <span>
-              Quyền quản trị: <strong>Admin Mode</strong>
-            </span>
-          </div>
+        <div className="pp-header__admin-bar">
+          <PrimeStatus tone="info">
+            <ShieldCheck size={16} aria-hidden="true" />{tx("navigation:adminAccess")}</PrimeStatus>
           <Link
             to="/admin"
-            className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-semibold text-[11px] transition"
+            className="pp-header__admin-link"
           >
-            <span>Bảng Quản Trị</span>
-            <ArrowRight size={12} />
+            <span>{tx("navigation:adminDashboard")}</span>
+            <ArrowRight size={16} aria-hidden="true" />
           </Link>
         </div>
       )}
 
       {/* Main Header Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
-          {/* 1. BRAND IDENTITY */}
-          <div className="flex items-center gap-6 flex-shrink-0">
+      <div className="pp-header__container">
+        <div className="pp-header__brand-row">
             <Link
               to={user?.isAdmin ? "/admin" : "/"}
-              className="flex items-center gap-2.5 group"
-              title="ProcurePrime - Nền Tảng Thu Mua & Báo Giá Doanh Nghiệp"
+              className="pp-header__brand"
+              title={tx("navigation:procureprimeEnterpriseProcurementQuotations")}
             >
-              <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-md shadow-indigo-500/20 flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
-                <div className="w-full h-full bg-slate-950 rounded-[9px] flex items-center justify-center">
-                  <ShieldCheck size={18} className="text-indigo-400" />
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xl font-black tracking-tight text-white group-hover:text-indigo-300 transition-colors">
-                  Procure<span className="text-indigo-400">Prime</span>
-                </span>
-                <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
-                  B2B
-                </span>
-              </div>
+              <ProcurePrimeWordmark />
             </Link>
-
-            {/* 2. NAVIGATION MENU (Đặt ngay cạnh logo hoặc căn giữa) */}
+          <LanguageToggle />
+          <PrimeButton
+            ref={menuButtonRef}
+            variant="secondary"
+            size="compact"
+            className="pp-header__menu-toggle"
+            aria-expanded={menuOpen}
+            aria-controls={panelId}
+            aria-label={uiText(menuOpen ? tx("navigation:closeNavigationMenu") : tx("navigation:openNavigationMenu"))}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            {menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
+            <span>{tx("navigation:menu")}</span>
+          </PrimeButton>
+        </div>
+        <div id={panelId} className="pp-header__panel" data-open={menuOpen}>
+          <div className="pp-language-mobile"><LanguageToggle /></div>
+          <div
+            className="pp-header__navigation"
+            onClick={(event) => {
+              if (event.target instanceof Element && event.target.closest("a, button")) {
+                setMenuOpen(false);
+                if (menuOpen) menuButtonRef.current?.focus();
+              }
+            }}
+          >
             <MainNav onViewProducts={handleViewProducts} isAdmin={user?.isAdmin} />
           </div>
-
-          {/* 3. UTILITIES & ACTIONS */}
-          <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
-            <ContactInfo />
-            <OrdersButton />
-            {token && <CartButton token={token} />}
-            <AuthButtons
-              user={user}
-              token={token}
-              onAutoLogout={handleAutoLogout}
-            />
+          <div className="pp-header__utilities">
+            <div className="pp-header__contact"><ContactInfo /></div>
+            <div className="pp-header__utility-slot pp-header__orders"><OrdersButton /></div>
+            {token && <div className="pp-header__utility-slot pp-header__cart"><CartButton token={token} /></div>}
+            <div className="pp-header__utility-slot pp-header__account">
+              <AuthButtons
+                user={user}
+                token={token}
+                onAutoLogout={handleAutoLogout}
+              />
+            </div>
           </div>
         </div>
       </div>

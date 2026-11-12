@@ -1,3 +1,4 @@
+import { tx, uiText, useLocale } from "../i18n";
 import React from "react";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
@@ -18,6 +19,7 @@ const AdminPagination: React.FC<AdminPaginationProps> = ({
   onItemsPerPageChange,
   itemsPerPageOptions = [8, 10, 20, 50],
 }) => {
+  useLocale();
   const totalPages = Math.max(Math.ceil(totalItems / itemsPerPage), 1);
 
   // Không hiển thị nếu không có mục nào
@@ -70,17 +72,12 @@ const AdminPagination: React.FC<AdminPaginationProps> = ({
     <div className="bg-slate-50/70 border-t border-slate-200/80 px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs select-none">
       {/* Thông tin số lượng & Chọn số dòng/trang */}
       <div className="flex flex-wrap items-center gap-3 text-slate-500">
-        <div>
-          Hiển thị{" "}
-          <span className="font-bold text-slate-800">{startIndex}</span> -{" "}
-          <span className="font-bold text-slate-800">{endIndex}</span> trên tổng số{" "}
-          <span className="font-bold text-slate-800">{totalItems}</span> mục
-        </div>
+        <div>{tx("common:counts.range", {start:startIndex, end:endIndex, count:totalItems})}</div>
 
         {onItemsPerPageChange && (
           <div className="flex items-center gap-1.5 pl-3 border-l border-slate-200">
-            <span>Hiển thị</span>
-            <select
+            <span>{tx("admin:showing")}</span>
+            <select aria-label={tx("admin:rowsPerPage")}
               value={itemsPerPage}
               onChange={(e) => {
                 onItemsPerPageChange(Number(e.target.value));
@@ -90,8 +87,7 @@ const AdminPagination: React.FC<AdminPaginationProps> = ({
             >
               {itemsPerPageOptions.map((opt) => (
                 <option key={opt} value={opt}>
-                  {opt} / trang
-                </option>
+                  {uiText(opt)}{" "}{tx("admin:page")}</option>
               ))}
             </select>
           </div>
@@ -101,21 +97,21 @@ const AdminPagination: React.FC<AdminPaginationProps> = ({
       {/* Điều hướng trang */}
       <div className="flex items-center gap-1">
         {/* Nút về trang đầu */}
-        <button
+        <button aria-label={tx("admin:firstPage")} type="button"
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
-          className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          title="Về trang đầu"
+          className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-[#254AD7] hover:border-indigo-200 hover:bg-[#edf1ff] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          title={tx("admin:firstPage")}
         >
           <ChevronsLeft size={15} />
         </button>
 
         {/* Nút Trang Trước */}
-        <button
+        <button aria-label={tx("admin:previousPage")} type="button"
           onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
           disabled={currentPage === 1}
-          className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          title="Trang trước"
+          className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-[#254AD7] hover:border-indigo-200 hover:bg-[#edf1ff] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          title={tx("admin:previousPage")}
         >
           <ChevronLeft size={15} />
         </button>
@@ -138,37 +134,37 @@ const AdminPagination: React.FC<AdminPaginationProps> = ({
             const isActive = currentPage === pageNum;
 
             return (
-              <button
+              <button type="button"
                 key={pageNum}
                 onClick={() => onPageChange(pageNum)}
-                className={`min-w-[32px] h-8 px-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center ${
+                className={` min-w-[32px] h-8 px-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center ${
                   isActive
-                    ? "bg-indigo-600 text-white shadow-sm shadow-indigo-600/30"
-                    : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 hover:text-indigo-600"
-                }`}
+                    ? "bg-[#254AD7] text-white"
+                    : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 hover:text-[#254AD7]"
+                }  `}
               >
-                {pageNum}
+                {uiText(pageNum)}
               </button>
             );
           })}
         </div>
 
         {/* Nút Trang Sau */}
-        <button
+        <button aria-label={tx("admin:nextPage")} type="button"
           onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
           disabled={currentPage === totalPages}
-          className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          title="Trang sau"
+          className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-[#254AD7] hover:border-indigo-200 hover:bg-[#edf1ff] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          title={tx("admin:nextPage")}
         >
           <ChevronRight size={15} />
         </button>
 
         {/* Nút đến trang cuối */}
-        <button
+        <button aria-label={tx("admin:lastPage")} type="button"
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages}
-          className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          title="Đến trang cuối"
+          className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-[#254AD7] hover:border-indigo-200 hover:bg-[#edf1ff] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          title={tx("admin:lastPage")}
         >
           <ChevronsRight size={15} />
         </button>

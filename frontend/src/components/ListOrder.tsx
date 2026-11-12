@@ -1,3 +1,4 @@
+import { tx, uiMessage, uiText, useLocale, locale, formatVND } from "../i18n";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { getOrders, cancelOrder, createPaymentLink } from "../api/OrderApi";
@@ -34,6 +35,7 @@ interface Order {
 }
 
 const ListOrder: React.FC = () => {
+  useLocale();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -46,7 +48,7 @@ const ListOrder: React.FC = () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
-          setError("Phiên đăng nhập hết hạn");
+          setError(uiMessage("orders:sessionExpired"));
           setLoading(false);
           return;
         }
@@ -55,7 +57,7 @@ const ListOrder: React.FC = () => {
         setOrders(response.orders || []);
       } catch (error) {
         console.error("Lỗi khi lấy thông tin đơn hàng:", error);
-        setError("Không có đơn hàng nào");
+        setError(uiMessage("orders:noOrdersFound"));
       } finally {
         setLoading(false);
       }
@@ -68,7 +70,7 @@ const ListOrder: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("Vui lòng đăng nhập để thanh toán");
+        alert(tx("orders:pleaseSignInToPay"));
         return;
       }
 
@@ -76,12 +78,12 @@ const ListOrder: React.FC = () => {
       window.location.href = paymentLink;
     } catch (error) {
       console.error("Lỗi khi tạo link thanh toán:", error);
-      alert("Có lỗi xảy ra khi tạo link thanh toán");
+      alert(tx("orders:unableToCreatePaymentLink"));
     }
   };
 
   const handleCancelOrder = async (orderId: string) => {
-    if (!window.confirm("Bạn có chắc chắn muốn hủy đơn hàng này?")) return;
+    if (!window.confirm(tx("orders:cancelThisOrder"))) return;
 
     try {
       const token = localStorage.getItem("token");
@@ -90,10 +92,10 @@ const ListOrder: React.FC = () => {
       await cancelOrder(token, orderId);
       const response = await getOrders(token);
       setOrders(response.orders || []);
-      alert("Hủy đơn hàng thành công");
+      alert(tx("orders:orderCancelledSuccessfully"));
     } catch (error) {
       console.error("Lỗi khi hủy đơn hàng:", error);
-      alert("Có lỗi xảy ra khi hủy đơn hàng");
+      alert(tx("orders:unableToCancelTheOrder"));
     }
   };
 
@@ -101,21 +103,18 @@ const ListOrder: React.FC = () => {
     if (isDelivered) {
       return (
         <span className="flex items-center gap-1 bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full border border-green-200">
-          <CheckCircle size={14} /> Đã giao hàng
-        </span>
+          <CheckCircle size={14} />{" "}{tx("orders:delivered")}</span>
       );
     }
     if (isPaid) {
       return (
-        <span className="flex items-center gap-1 bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full border border-blue-200">
-          <Truck size={14} /> Đang vận chuyển
-        </span>
+        <span className="flex items-center gap-1 bg-[#edf1ff] text-[#254AD7] text-xs font-semibold px-3 py-1 rounded-full border border-blue-200">
+          <Truck size={14} />{" "}{tx("orders:inTransit")}</span>
       );
     }
     return (
       <span className="flex items-center gap-1 bg-yellow-100 text-yellow-700 text-xs font-semibold px-3 py-1 rounded-full border border-yellow-200">
-        <Clock size={14} /> Chờ thanh toán
-      </span>
+        <Clock size={14} />{" "}{tx("orders:awaitingPayment")}</span>
     );
   };
 
@@ -128,15 +127,15 @@ const ListOrder: React.FC = () => {
   });
 
   const tabs = [
-    { id: "all", label: "Tất cả" },
-    { id: "pending", label: "Chờ thanh toán" },
-    { id: "shipping", label: "Vận chuyển" },
-    { id: "completed", label: "Hoàn thành" },
+    { id: "all", label: uiMessage("orders:all") },
+    { id: "pending", label: uiMessage("orders:awaitingPayment") },
+    { id: "shipping", label: uiMessage("orders:delivery") },
+    { id: "completed", label: uiMessage("orders:completed") },
   ];
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-50">
+      <div className="pp-screen pp-orders flex justify-center items-center h-screen bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     );
@@ -144,45 +143,42 @@ const ListOrder: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+      <div className="pp-screen pp-orders min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
         <AlertCircle className="w-16 h-16 text-red-400 mb-4" />
-        <p className="text-gray-600 text-lg mb-6">{error}</p>
+        <p className="text-gray-600 text-lg mb-6">{uiText(error)}</p>
         {!user && (
           <Link
             to="/login"
-            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-200"
-          >
-            Đăng nhập ngay
-          </Link>
+            className="px-6 py-2 bg-[#254AD7] text-white rounded-lg hover:bg-[#254AD7] transition"
+          >{tx("orders:signInNow")}</Link>
         )}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 font-sans">
+    <div className="pp-screen pp-orders min-h-screen bg-gray-50 py-8 font-sans">
       <div className="container mx-auto px-4 max-w-5xl">
         <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Package className="text-indigo-600" /> Đơn hàng của tôi
-            </h1>
-            <Link to="/products" className="text-indigo-600 hover:underline font-medium">Tiếp tục mua sắm</Link>
+            <Package className="text-[#254AD7]" />{" "}{tx("orders:myOrders")}</h1>
+            <Link to="/products" className="text-[#254AD7] hover:underline font-medium">{tx("orders:continueShopping")}</Link>
         </div>
 
         {/* Status Tabs */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-1 mb-8 overflow-x-auto">
-          <div className="flex space-x-1 min-w-max">
+        <div className="bg-white rounded-lg border border-gray-100 p-1 mb-8 overflow-x-auto">
+          <div className="pp-order-tabs flex space-x-1 min-w-max">
             {tabs.map((tab) => (
-              <button
+              <button type="button"
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-3 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                className={` px-6 py-3 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                   activeTab === tab.id
-                    ? "bg-indigo-50 text-indigo-700 shadow-sm"
+                    ? "bg-[#edf1ff] text-[#254AD7]"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                }`}
+                }  `}
               >
-                {tab.label}
+                {uiText(tab.label)}
               </button>
             ))}
           </div>
@@ -191,38 +187,35 @@ const ListOrder: React.FC = () => {
         {/* Orders List */}
         <div className="space-y-6">
           {filteredOrders.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200 shadow-sm">
+            <div className="text-center py-16 bg-white rounded-lg border border-dashed border-gray-200">
                 <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg mb-6">Chưa có đơn hàng nào trong mục này</p>
+                <p className="text-gray-500 text-lg mb-6">{tx("orders:noOrdersInThisSection")}</p>
                 <Link
                     to="/products"
-                    className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 font-medium"
-                >
-                    Mua sắm ngay
-                </Link>
+                    className="inline-flex items-center px-6 py-3 bg-[#254AD7] text-white rounded-lg hover:bg-[#254AD7] transition font-medium"
+                >{tx("orders:shopNow")}</Link>
             </div>
           ) : (
             filteredOrders.map((order) => (
               <div
                 key={order._id}
-                className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300"
+                className="bg-white rounded-lg border border-gray-100 overflow-hidden transition- duration-300"
               >
                 {/* Order Header */}
                 <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex flex-wrap gap-4 justify-between items-center">
                   <div className="flex items-center gap-4">
-                    <div className="bg-indigo-100 p-2 rounded-lg">
-                        <Package className="text-indigo-600 w-5 h-5"/>
+                    <div className="bg-[#edf1ff] p-2 rounded-lg">
+                        <Package className="text-[#254AD7] w-5 h-5"/>
                     </div>
                     <div>
                         <h2 className="font-bold text-gray-900">
-                        #{order.orderCode}
+                        #{uiText(order.orderCode)}
                         </h2>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                        Ngày đặt: {new Date(order.createdAt).toLocaleDateString("vi-VN", {hour: '2-digit', minute:'2-digit'})}
+                        <p className="text-xs text-gray-500 mt-0.5">{tx("orders:orderDate")}{" "}{uiText(new Date(order.createdAt).toLocaleDateString(locale(), {hour: '2-digit', minute:'2-digit'}))}
                         </p>
                     </div>
                   </div>
-                  <div>{getStatusBadge(order.isPaid, order.isDelivered)}</div>
+                  <div>{uiText(getStatusBadge(order.isPaid, order.isDelivered))}</div>
                 </div>
 
                 {/* Order Content */}
@@ -237,7 +230,7 @@ const ListOrder: React.FC = () => {
                         <div className="flex-shrink-0 w-16 h-16 border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
                           <img
                             src={item.image || "/placeholder-product.jpg"}
-                            alt={item.productName}
+                            alt={uiText(item.productName)}
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               (e.currentTarget as HTMLImageElement).src =
@@ -247,16 +240,14 @@ const ListOrder: React.FC = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="text-sm font-medium text-gray-900 truncate">
-                            {item.productName}
+                            {uiText(item.productName)}
                           </h4>
-                          <p className="text-xs text-gray-500 mt-1">
-                            x{item.quantity}
+                          <p className="text-xs text-gray-500 mt-1">{tx("orders:message")}{uiText(item.quantity)}
                           </p>
                         </div>
                         <div className="text-right">
                             <span className="block text-sm font-semibold text-gray-900">
-                                {(item.price * item.quantity).toLocaleString("vi-VN")}đ
-                            </span>
+                                {formatVND(item.price * item.quantity)}</span>
                             {/* <span className="block text-xs text-gray-400 line-through">200.000đ</span> */}
                         </div>
                       </div>
@@ -268,42 +259,36 @@ const ListOrder: React.FC = () => {
                   {/* Summary & Actions */}
                   <div className="flex flex-col md:flex-row justify-between items-end gap-6">
                      <div className="text-sm text-gray-600 space-y-1 w-full md:w-auto">
-                        <p><span className="font-medium text-gray-700">Người nhận:</span> {order.shippingAddress.fullname}</p>
-                        <p><span className="font-medium text-gray-700">Thanh toán:</span> {order.paymentMethod === "VNPay" ? "VNPay" : "COD"}</p>
+                        <p><span className="font-medium text-gray-700">{tx("orders:recipient")}</span> {uiText(order.shippingAddress.fullname)}</p>
+                        <p><span className="font-medium text-gray-700">{tx("orders:payment")}</span> {uiText(order.paymentMethod === "VNPay" ? "VNPay" : "COD")}</p>
                      </div>
 
                      <div className="w-full md:w-auto flex flex-col items-end gap-4">
                         <div className="flex items-center gap-2">
-                             <span className="text-gray-600">Tổng tiền:</span>
-                             <span className="text-xl font-bold text-indigo-600">{(order.totalPrice || 0).toLocaleString("vi-VN")}đ</span>
+                             <span className="text-gray-600">{tx("orders:total")}</span>
+                             <span className="text-xl font-bold text-[#254AD7]">{formatVND(order.totalPrice || 0)}</span>
                         </div>
 
                         <div className="flex gap-3 w-full md:w-auto">
                             {!order.isPaid && !order.isDelivered && (
                             <>
-                                <button
+                                <button type="button"
                                 onClick={() => handleCancelOrder(order._id)}
                                 className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition text-sm font-medium"
                                 >
-                                <XCircle size={16}/> Hủy đơn
-                                </button>
-                                <button
+                                <XCircle size={16}/>{" "}{tx("orders:cancelOrder")}</button>
+                                <button type="button"
                                 onClick={() => handlePayment(order._id)}
-                                className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-md shadow-indigo-200 text-sm font-medium"
+                                className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-[#254AD7] text-white rounded-lg hover:bg-[#254AD7] transition text-sm font-medium"
                                 >
-                                <CreditCard size={16}/> Thanh toán
-                                </button>
+                                <CreditCard size={16}/>{" "}{tx("orders:pay")}</button>
                             </>
                             )}
                             {order.isPaid && !order.isDelivered && (
-                                <button disabled className="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg text-sm font-medium cursor-not-allowed">
-                                    Đang xử lý
-                                </button>
+                                <button type="button" disabled className="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg text-sm font-medium cursor-not-allowed">{tx("orders:processing")}</button>
                             )}
                             {order.isDelivered && (
-                                 <button disabled className="px-4 py-2 bg-green-50 text-green-600 border border-green-200 rounded-lg text-sm font-medium cursor-default">
-                                    Hoàn thành
-                                </button>
+                                 <button type="button" disabled className="px-4 py-2 bg-green-50 text-green-600 border border-green-200 rounded-lg text-sm font-medium cursor-default">{tx("orders:completed")}</button>
                             )}
                         </div>
                      </div>

@@ -1,15 +1,22 @@
+import { tx, uiMessage, uiText, useLocale } from "../i18n";
 ﻿import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchCategory } from "../api/CategoryApi";
 import { ICategory } from "../types/category";
 import { useAuth } from "../context/AuthContext";
 
+import LandingRequestComposer from "./landing/LandingRequestComposer";
+import { lazy, Suspense } from "react";
+const IntelligenceFlowPreview = lazy(() => import("./landing/IntelligenceFlowPreview"));
+import { ArrowRight, ArrowUpRight, Laptop, Monitor, Video, Printer, Network } from "lucide-react";
+import { landingScene } from "./landing/landingScene";
+
 // Cấu hình danh mục B2B tiêu biểu cho Interactive Matrix
 const B2B_SOLUTIONS = [
   {
     name: "Máy Tính & Máy Trạm Doanh Nghiệp",
-    shortTitle: "Máy Tính & Máy Trạm",
-    badge: "Core Hardware",
+    shortTitle: uiMessage("marketing:computersWorkstations"),
+    badge: uiMessage("marketing:coreHardware"),
     highlightDevice: "Dell Precision 3660 & ThinkPad T14",
     specs: "i7/i9 vPro • 32GB/64GB RAM • 1TB NVMe",
     warranty: "Bảo hành 36T On-site ProSupport",
@@ -17,8 +24,8 @@ const B2B_SOLUTIONS = [
   },
   {
     name: "Màn Hình & Hiển Thị Văn Phòng",
-    shortTitle: "Màn Hình Chuẩn Màu",
-    badge: "Visual Workspace",
+    shortTitle: uiMessage("marketing:professionalDisplays"),
+    badge: uiMessage("marketing:visualWorkspace"),
     highlightDevice: "Dell UltraSharp U2724D & U3223QE",
     specs: "2K/4K IPS Black • 120Hz • Type-C 90W Hub",
     warranty: "Đổi mới tận nơi 36T",
@@ -26,7 +33,7 @@ const B2B_SOLUTIONS = [
   },
   {
     name: "Thiết Bị Hội Nghị & Ngoại Vi",
-    shortTitle: "Phòng Họp & Ngoại Vi",
+    shortTitle: uiMessage("marketing:meetingRoomsPeripherals"),
     badge: "Collaboration",
     highlightDevice: "Logitech MeetUp 4K & MX Keys S",
     specs: "Camera 4K 120° FOV • Micro AI • FIPS Bolt",
@@ -35,8 +42,8 @@ const B2B_SOLUTIONS = [
   },
   {
     name: "Máy In & Thiết Bị Số Hóa",
-    shortTitle: "Máy In & Số Hóa ADF",
-    badge: "Document Flow",
+    shortTitle: uiMessage("marketing:printersAdfScanners"),
+    badge: uiMessage("marketing:documentFlow"),
     highlightDevice: "HP LaserJet Pro 4103fdw & Canon DR-C225",
     specs: "In 40 trang/phút • Quét 2 mặt Duplex tự động",
     warranty: "Bảo hành 36T tận nơi",
@@ -44,7 +51,7 @@ const B2B_SOLUTIONS = [
   },
   {
     name: "Hạ Tầng Mạng & Lưu Trữ Doanh Nghiệp",
-    shortTitle: "Hạ Tầng NAS & Mạng",
+    shortTitle: uiMessage("marketing:nasNetworkInfrastructure"),
     badge: "Infrastructure",
     highlightDevice: "Synology DS923+ & Cisco CBS250 PoE+",
     specs: "4 Khay HDD RAID • 24 Cổng Gigabit PoE+ 195W",
@@ -53,7 +60,17 @@ const B2B_SOLUTIONS = [
   },
 ];
 
+const solutionIcons = [Laptop, Monitor, Video, Printer, Network];
+const solutionDescriptions = [
+  uiMessage("marketing:laptopsDesktopsAndWorkstationsForOfficeWork"),
+  uiMessage("marketing:monitorsAndDisplaysForEverydayWorkAnd"),
+  uiMessage("marketing:camerasConferencingDevicesAndPeripheralsForWorkplace"),
+  uiMessage("marketing:printersAndScannersForTeamDocumentsRecords"),
+  uiMessage("marketing:exploreNetworkAndStorageInfrastructureSuitedTo"),
+];
+
 const Banner: React.FC = () => {
+  useLocale();
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [activeSolutionIndex, setActiveSolutionIndex] = useState(0);
   const navigate = useNavigate();
@@ -84,159 +101,64 @@ const Banner: React.FC = () => {
     }
   };
 
+  const SolutionIcon = solutionIcons[activeSolutionIndex];
+
   return (
-    <section className="relative w-full bg-slate-950 text-white overflow-hidden border-b border-slate-800">
-      {/* Background Radial Glow & Grid Pattern */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(99,102,241,0.2),rgba(15,23,42,0))] pointer-events-none"></div>
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage: `linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)`,
-          backgroundSize: "40px 40px",
-        }}
-      ></div>
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          {/* CỘT TRÁI (60% ~ 7 cols): HERO STATEMENT & CALL-TO-ACTION */}
-          <div className="lg:col-span-7 space-y-6">
-            {/* Hackathon Pill Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-950/80 border border-indigo-500/40 text-indigo-300 text-xs font-semibold tracking-wide">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>K-TECH HACKATHON 2026 • AUTONOMOUS B2B PROCUREMENT</span>
-            </div>
-
-            {/* Main Headline */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-[1.15]">
-              Trang Bị Thiết Bị Doanh Nghiệp{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-sky-300 to-indigo-200">
-                Tự Hành Với AI Agent
-              </span>
-            </h1>
-
-            {/* Subtitle */}
-            <p className="text-sm sm:text-base text-slate-300 max-w-2xl leading-relaxed">
-              Giải phóng phòng thu mua khỏi bảng tính và báo giá thủ công. Tự động bóc tách combo thiết bị theo phòng ban, đối soát trần ngân sách và xuất bản Báo Giá Doanh Nghiệp chuẩn mực kèm chữ ký số SHA-256 chỉ trong 30 giây.
-            </p>
-
-            {/* Call to Actions */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <button
-                onClick={() => navigate("/products")}
-                className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm px-6 py-3 rounded-xl transition shadow-lg shadow-indigo-600/30 border border-indigo-400/30"
-              >
-                <span>Khám Phá Danh Mục Thiết Bị B2B</span>
-                <span className="text-xs bg-indigo-950/80 px-2 py-0.5 rounded font-mono uppercase">
-                  Chính Hãng
-                </span>
-              </button>
-
-              <button
-                onClick={() => navigate("/cart")}
-                className="bg-slate-900 hover:bg-slate-800 text-slate-200 font-semibold text-sm px-5 py-3 rounded-xl border border-slate-700 transition"
-              >
-                Tra Cứu Bảng Báo Giá (RFQ)
-              </button>
-
-              {user?.isAdmin && (
-                <button
-                  onClick={() => navigate("/admin/workspace")}
-                  className="bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 font-semibold text-xs px-4 py-3 rounded-xl border border-indigo-500/40 transition flex items-center gap-1.5"
-                >
-                  <span>Mở AI Copilot (Staff)</span>
-                </button>
-              )}
-            </div>
-
-            {/* Trust & Policy Metrics */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-800/80">
-              <div>
-                <p className="text-lg sm:text-xl font-extrabold text-white">5%</p>
-                <p className="text-xs text-slate-400 mt-0.5">Chiết khấu sỉ dự án</p>
-              </div>
-              <div>
-                <p className="text-lg sm:text-xl font-extrabold text-white">36 Tháng</p>
-                <p className="text-xs text-slate-400 mt-0.5">Bảo hành On-site tận nơi</p>
-              </div>
-              <div>
-                <p className="text-lg sm:text-xl font-extrabold text-white">100%</p>
-                <p className="text-xs text-slate-400 mt-0.5">Hóa đơn GTGT & Hợp đồng</p>
-              </div>
+    <>
+      <section className="pl-hero pl-wrap" aria-labelledby="pl-hero-title">
+        <div className="pl-hero-heading">
+          <p className="pl-eyebrow"><span className="pl-prime-mark" aria-hidden="true" />{tx("marketing:aiProcurementWithClarity")}</p>
+          <h1 id="pl-hero-title" tabIndex={-1}>{tx("marketing:oneRequest")}<span>{tx("marketing:everyChoiceClear")}</span></h1>
+        </div>
+        <div className="pl-hero-body">
+          <div className="pl-hero-entry">
+            <p className="pl-hero-description">{tx("marketing:fromEquipmentRequirementsToOptionsAndQuotations")}</p>
+            <LandingRequestComposer workspacePath={user?.isAdmin ? "/admin/workspace" : "/workspace"} />
+            <div className="pl-hero-secondary">
+              <button type="button" onClick={() => navigate("/products")} className="pl-text-link">{tx("marketing:exploreDevices")}{" "}<ArrowRight size={16} aria-hidden="true" /></button>
+              <a href="#intelligence-flow" className="pl-text-link pl-text-link-muted">{tx("marketing:seeHowItWorks")}</a>
             </div>
           </div>
-
-          {/* CỘT PHẢI (40% ~ 5 cols): INTERACTIVE HARDWARE MATRIX CARD */}
-          <div className="lg:col-span-5">
-            <div className="bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-slate-800 shadow-2xl p-5 space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Danh Mục Cung Ứng B2B
-                  </h3>
-                  <p className="text-[11px] text-slate-500">Khám phá giải pháp theo nhu cầu phòng ban</p>
-                </div>
-                <span className="text-[10px] font-mono bg-slate-800 text-indigo-400 px-2 py-0.5 rounded">
-                  5 Nhóm Thiết Bị
-                </span>
-              </div>
-
-              {/* Solution Selector Tabs */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                {B2B_SOLUTIONS.map((sol, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveSolutionIndex(idx)}
-                    className={`text-left p-2 rounded-lg text-xs font-semibold transition ${
-                      activeSolutionIndex === idx
-                        ? "bg-indigo-600 text-white shadow-sm"
-                        : "bg-slate-800/50 text-slate-300 hover:bg-slate-800 hover:text-white"
-                    }`}
-                  >
-                    <span className="block truncate">{sol.shortTitle}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Active Solution Preview Box */}
-              <div className="bg-slate-950/60 rounded-xl border border-slate-800/80 p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-500/20">
-                    {currentSolution.badge}
-                  </span>
-                  <span className="text-xs font-extrabold text-emerald-400 font-mono">
-                    {currentSolution.priceRange}
-                  </span>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-bold text-white leading-snug">
-                    {currentSolution.highlightDevice}
-                  </h4>
-                  <p className="text-xs text-slate-400 mt-1 font-mono">
-                    {currentSolution.specs}
-                  </p>
-                </div>
-
-                <div className="text-[11px] text-slate-500 flex items-center justify-between pt-2 border-t border-slate-800/60">
-                  <span>Dịch vụ: {currentSolution.warranty}</span>
-                </div>
-
-                <button
-                  onClick={handleFilterByCategory}
-                  className="w-full bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white text-xs font-semibold py-2 px-3 rounded-lg transition text-center"
-                >
-                  Xem Toàn Bộ {currentSolution.shortTitle} →
-                </button>
-              </div>
-
-              <div className="text-[11px] text-slate-500 text-center">
-                * Hỗ trợ cấu hình tùy biến linh hoạt theo ngân sách phòng ban
-              </div>
+          <figure className="pl-device-scene">
+            <div className="pl-device-frame">
+              <picture>
+                <source type="image/webp" srcSet={landingScene.srcSet} sizes={landingScene.sizes} />
+                <img src={landingScene.src} width={1600} height={900} alt={tx("marketing:conceptImageOfAnUnbrandedLaptopMonitor")} fetchPriority="high" decoding="async" />
+              </picture>
             </div>
+            <figcaption>{tx("marketing:aiGeneratedConceptImageDoesNotRepresent")}</figcaption>
+            <div className="pl-hero-trail" aria-label={tx("marketing:requirementsOptionsQuotation")}><span>{tx("marketing:requirements")}</span><ArrowRight size={16} aria-hidden="true" /><span>{tx("marketing:options")}</span><ArrowRight size={16} aria-hidden="true" /><span>{tx("marketing:quotation")}</span></div>
+          </figure>
+        </div>
+      </section>
+      <Suspense fallback={<section id="intelligence-flow" className="pl-wrap pl-flow-loading" role="status">{tx("common:screen.loading")}</section>}><IntelligenceFlowPreview /></Suspense>
+      <section className="pl-solutions pl-wrap" aria-labelledby="pl-solutions-title">
+        <div className="pl-section-heading">
+          <div><p className="pl-eyebrow">{tx("marketing:devicesForTheWorkYouDo")}</p><h2 id="pl-solutions-title">{tx("marketing:everyTeam")}<br />{tx("marketing:aDifferentNeed")}</h2></div>
+          <p>{tx("marketing:startWithTheRightDeviceCategoryThen")}</p>
+        </div>
+        <div className="pl-solutions-body">
+          <div className="pl-solution-nav" role="group" aria-label={tx("marketing:chooseADeviceCategory")}>
+            {B2B_SOLUTIONS.map((solution, index) => (
+              <button key={solution.name} type="button" aria-pressed={activeSolutionIndex === index} onClick={() => setActiveSolutionIndex(index)}>
+                <span>{uiText(solution.shortTitle)}</span><ArrowUpRight size={18} aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+          <div className="pl-solution-detail">
+            <SolutionIcon size={64} strokeWidth={1} aria-hidden="true" />
+            <p className="pl-art-caption">{tx("marketing:currentDeviceCategory")}</p>
+            <h3>{uiText(currentSolution.shortTitle)}</h3>
+            <p>{uiText(solutionDescriptions[activeSolutionIndex])}</p>
+            <button type="button" onClick={handleFilterByCategory} className="pl-text-link">{tx("marketing:browseThisDeviceCategory")}{" "}<ArrowRight size={18} aria-hidden="true" /></button>
           </div>
         </div>
-      </div>
-    </section>
+        <div className="pl-solutions-links">
+          <button type="button" onClick={() => navigate("/cart")} className="pl-text-link">{tx("marketing:openRfqCart")}{" "}<ArrowUpRight size={16} aria-hidden="true" /></button>
+          {user?.isAdmin && <button type="button" onClick={() => navigate("/admin/workspace")} className="pl-text-link">{tx("marketing:openAiCopilotStaff")}{" "}<ArrowUpRight size={16} aria-hidden="true" /></button>}
+        </div>
+      </section>
+    </>
   );
 };
 

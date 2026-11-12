@@ -1,3 +1,4 @@
+import { tx, uiText, useLocale, locale, formatVND, formatDate } from "../i18n";
 import React, { useEffect, useState } from "react";
 import {
   Users,
@@ -34,6 +35,7 @@ interface DashboardStats {
 }
 
 const Dashboard: React.FC = () => {
+  useLocale();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [monthlyRevenue, setMonthlyRevenue] = useState<any[]>([]);
   const [topProducts, setTopProducts] = useState<any[]>([]);
@@ -156,72 +158,66 @@ const Dashboard: React.FC = () => {
       {/* Header chào mừng */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/80">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Báo Cáo Tổng Quan
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Theo dõi doanh số, đơn hàng và các chỉ số kinh doanh thời gian thực.
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">{tx("adminDashboard:overview")}</h1>
+          <p className="text-slate-500 text-sm mt-1">{tx("adminDashboard:salesOrdersAndCatalogInformationFromSystem")}</p>
         </div>
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-xl shadow-xs text-xs font-semibold text-slate-600">
-            <Calendar size={14} className="text-indigo-600" />
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-600">
+            <Calendar size={14} className="text-[#254AD7]" />
             <span>
-              {new Date().toLocaleDateString("vi-VN", {
+              {uiText(new Date().toLocaleDateString(locale(), {
                 weekday: "long",
                 year: "numeric",
                 month: "short",
                 day: "numeric",
-              })}
+              }))}
             </span>
           </div>
           <Link
             to="/admin/products"
-            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm shadow-indigo-600/20 transition-colors"
-          >
-            Quản lý kho →
-          </Link>
+            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#254AD7] hover:bg-[#254AD7] text-white text-xs font-bold rounded-lg transition-colors"
+          >{tx("adminDashboard:manageInventory")}</Link>
         </div>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <KPICard
-          label="Tổng Doanh Thu"
-          value={`₫${(stats?.totalRevenue || 0).toLocaleString("vi-VN")}`}
-          trend="+18.4%"
+          label={tx("adminDashboard:totalRevenue")}
+          value={stats ? formatVND(stats.totalRevenue || 0) : "—"}
+          trend="—"
           isPositive={true}
-          description="so với tháng trước"
-          icon={<DollarSign size={22} className="text-indigo-600" />}
+          description={tx("adminDashboard:noComparativeData")}
+          icon={<DollarSign size={22} className="text-[#254AD7]" />}
           gradient="from-indigo-500/10 to-purple-500/10"
           iconBg="bg-indigo-100"
         />
         <KPICard
-          label="Đơn Hàng Đã Đặt"
-          value={stats?.totalOrders || 0}
-          trend="+12.1%"
+          label={tx("adminDashboard:ordersPlaced")}
+          value={stats ? stats.totalOrders || 0 : "—"}
+          trend="—"
           isPositive={true}
-          description="so với tháng trước"
+          description={tx("adminDashboard:noComparativeData")}
           icon={<ShoppingBag size={22} className="text-emerald-600" />}
           gradient="from-emerald-500/10 to-teal-500/10"
           iconBg="bg-emerald-100"
         />
         <KPICard
-          label="Khách Hàng Đăng Ký"
-          value={stats?.totalUsers || 0}
-          trend="+8.5%"
+          label={tx("adminDashboard:registeredCustomers")}
+          value={stats ? stats.totalUsers || 0 : "—"}
+          trend="—"
           isPositive={true}
-          description="người dùng hoạt động"
-          icon={<Users size={22} className="text-blue-600" />}
+          description={tx("adminDashboard:noComparativeData")}
+          icon={<Users size={22} className="text-[#254AD7]" />}
           gradient="from-blue-500/10 to-cyan-500/10"
           iconBg="bg-blue-100"
         />
         <KPICard
-          label="Sản Phẩm Trong Kho"
-          value={stats?.totalProducts || 0}
-          trend="Ổn định"
+          label={tx("adminDashboard:productsInStock")}
+          value={stats ? stats.totalProducts || 0 : "—"}
+          trend="—"
           isPositive={true}
-          description="đang được niêm yết"
+          description={tx("adminDashboard:noComparativeData")}
           icon={<Package size={22} className="text-amber-600" />}
           gradient="from-amber-500/10 to-orange-500/10"
           iconBg="bg-amber-100"
@@ -231,28 +227,22 @@ const Dashboard: React.FC = () => {
       {/* Main Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Biểu đồ Doanh thu (Area Chart SVG) */}
-        <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-6 lg:col-span-2 flex flex-col justify-between">
+        <div className="bg-white rounded-lg border border-slate-200/80 p-6 lg:col-span-2 flex flex-col justify-between">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div>
               <div className="flex items-center gap-2">
-                <span className="p-1.5 bg-indigo-50 rounded-lg text-indigo-600">
+                <span className="p-1.5 bg-[#edf1ff] rounded-lg text-[#254AD7]">
                   <TrendingUp size={18} />
                 </span>
-                <h3 className="font-bold text-slate-800 text-base">
-                  Doanh Thu Theo Tháng
-                </h3>
+                <h3 className="font-bold text-slate-800 text-base">{tx("adminDashboard:monthlyRevenue")}</h3>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Biểu đồ xu hướng tăng trưởng doanh thu thanh toán thực tế
-              </p>
+              <p className="text-xs text-slate-400 mt-0.5">{tx("adminDashboard:revenueTrendsBasedOnPaidOrders")}</p>
             </div>
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 self-start sm:self-auto">
-              ● Trực quan hóa tự động
-            </span>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 self-start sm:self-auto">{tx("adminDashboard:automaticVisualisation")}</span>
           </div>
 
           {/* SVG Canvas Area Chart */}
-          <div className="relative w-full overflow-hidden">
+          {monthlyRevenue.length > 1 ? (<div className="relative w-full overflow-hidden">
             <svg
               viewBox={`0 0 ${svgWidth} ${svgHeight}`}
               className="w-full h-56 select-none"
@@ -291,7 +281,7 @@ const Dashboard: React.FC = () => {
                       fill="#94a3b8"
                       textAnchor="end"
                     >
-                      {formatYAxisLabel(maxRevenue * pct)}
+                      {uiText(formatYAxisLabel(maxRevenue * pct))}
                     </text>
                   </g>
                 );
@@ -337,7 +327,7 @@ const Dashboard: React.FC = () => {
                     fontWeight="500"
                     textAnchor="middle"
                   >
-                    {pt._id?.replace("2026-", "T")}
+                    {pt._id ? formatDate(new Date(Number(pt._id.slice(0, 4)), Number(pt._id.slice(5, 7)) - 1, 1), {month:'short'}) : '—'}
                   </text>
                 </g>
               ))}
@@ -346,33 +336,31 @@ const Dashboard: React.FC = () => {
             {/* Hover Tooltip Card */}
             {activeChartPoint !== null && pointsCoordinates[activeChartPoint] && (
               <div
-                className="absolute bg-slate-900 text-white px-3 py-2 rounded-xl text-xs shadow-xl pointer-events-none transition-all duration-150 transform -translate-x-1/2 -translate-y-full"
+                className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-xs pointer-events-none transition-all duration-150 transform -translate-x-1/2 -translate-y-full"
                 style={{
                   left: `${(pointsCoordinates[activeChartPoint].x / svgWidth) * 100}%`,
                   top: `${(pointsCoordinates[activeChartPoint].y / svgHeight) * 100}%`,
                   marginTop: "-12px",
                 }}
               >
-                <p className="font-semibold text-slate-300">
-                  Tháng: {pointsCoordinates[activeChartPoint]._id}
+                <p className="font-semibold text-slate-300">{tx("adminDashboard:month")}{" "}{uiText(pointsCoordinates[activeChartPoint]._id)}
                 </p>
                 <p className="font-bold text-emerald-400 text-sm mt-0.5">
-                  ₫{pointsCoordinates[activeChartPoint].totalRevenue.toLocaleString("vi-VN")}
+                  {formatVND(pointsCoordinates[activeChartPoint].totalRevenue)}
                 </p>
               </div>
             )}
-          </div>
+          </div>) : <p className="pp-empty">{tx("adminDashboard:theChartRequiresAtLeastTwoMonths")}</p>}
+<div className="pp-table-region" role="region" aria-label={tx("adminDashboard:monthlyRevenue2")} tabIndex={0}><table><caption>{tx("adminDashboard:revenueDataReturnedByTheServer")}</caption><thead><tr><th scope="col">{tx("adminDashboard:month2")}</th><th scope="col">{tx("adminDashboard:revenueVnd")}</th></tr></thead><tbody>{monthlyRevenue.map((entry, index) => <tr key={index}><td>{uiText(entry._id)}</td><td>{uiText(Number(entry.totalRevenue).toLocaleString(locale()))}</td></tr>)}</tbody></table></div>
         </div>
 
         {/* Trạng thái đơn hàng (Donut Chart & Distribution) */}
-        <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-6 flex flex-col justify-between">
+        {stats && orderStatusStats ? (<div className="bg-white rounded-lg border border-slate-200/80 p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
-                <CheckCircle size={18} className="text-emerald-500" />
-                Tình Trạng Đơn Hàng
-              </h3>
-              <span className="text-xs text-slate-400">Tỷ lệ xử lý</span>
+                <CheckCircle size={18} className="text-emerald-500" />{tx("adminDashboard:orderStatus")}</h3>
+              <span className="text-xs text-slate-400">{tx("adminDashboard:processingRate")}</span>
             </div>
 
             {/* Donut Chart Visual */}
@@ -407,12 +395,10 @@ const Dashboard: React.FC = () => {
                   />
                 </svg>
                 <div className="absolute flex flex-col items-center justify-center text-center">
-                  <span className="text-2xl font-black text-slate-900">
-                    {stats?.totalOrders || 0}
+                  <span className="text-2xl font-semibold text-slate-900">
+                    {uiText(stats?.totalOrders || 0)}
                   </span>
-                  <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
-                    Tổng đơn
-                  </span>
+                  <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">{tx("adminDashboard:totalOrders")}</span>
                 </div>
               </div>
             </div>
@@ -420,17 +406,17 @@ const Dashboard: React.FC = () => {
             {/* Status Breakdown Legend */}
             <div className="space-y-2.5 mt-2 divide-y divide-slate-100">
               <StatusRow
-                label="Đã hoàn tất thanh toán"
+                label={tx("adminDashboard:paymentCompleted")}
                 count={orderStatusStats?.paid || 0}
                 colorBg="bg-emerald-500"
               />
               <StatusRow
-                label="Đã giao tới khách"
+                label={tx("adminDashboard:deliveredToCustomer")}
                 count={orderStatusStats?.delivered || 0}
                 colorBg="bg-indigo-500"
               />
               <StatusRow
-                label="Đang chờ xử lý / Giao"
+                label={tx("adminDashboard:awaitingProcessingDelivery")}
                 count={
                   Math.max(
                     (stats?.totalOrders || 0) -
@@ -445,44 +431,36 @@ const Dashboard: React.FC = () => {
 
           <Link
             to="/admin/orders"
-            className="mt-4 pt-3 border-t border-slate-100 text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center justify-between group"
+            className="mt-4 pt-3 border-t border-slate-100 text-xs font-semibold text-[#254AD7] hover:text-[#254AD7] flex items-center justify-between group"
           >
-            <span>Quản lý danh sách đơn hàng</span>
+            <span>{tx("adminDashboard:manageOrders")}</span>
             <ChevronRight
               size={14}
               className="group-hover:translate-x-1 transition-transform"
             />
           </Link>
-        </div>
+        </div>) : <section className="pp-empty"><h3>{tx("adminDashboard:orderStatus2")}</h3><p>{tx("adminDashboard:insufficientServerData")}</p></section>}
       </div>
 
       {/* Top Products & Recent Activities */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Top Sản Phẩm Bán Chạy (2 Cột) */}
-        <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-6 lg:col-span-2">
+        <div className="bg-white rounded-lg border border-slate-200/80 p-6 lg:col-span-2">
           <div className="flex items-center justify-between mb-5">
             <div>
               <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
-                <Flame size={19} className="text-orange-500 fill-orange-500" />
-                Sản Phẩm Bán Chạy Nhất
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Các mặt hàng dẫn đầu về doanh số và lượng đặt mua
-              </p>
+                <Flame size={19} className="text-orange-500 fill-orange-500" />{tx("adminDashboard:bestSellingProducts")}</h3>
+              <p className="text-xs text-slate-400 mt-0.5">{tx("adminDashboard:leadingProductsBySalesAndOrderVolume")}</p>
             </div>
             <Link
               to="/admin/products"
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 hover:underline"
-            >
-              Xem tất cả →
-            </Link>
+              className="text-xs font-semibold text-[#254AD7] hover:text-[#254AD7] hover:underline"
+            >{tx("adminDashboard:viewAll")}</Link>
           </div>
 
           <div className="divide-y divide-slate-100">
             {topProducts.length === 0 ? (
-              <p className="text-xs text-slate-400 py-6 text-center">
-                Chưa có dữ liệu sản phẩm bán chạy.
-              </p>
+              <p className="text-xs text-slate-400 py-6 text-center">{tx("adminDashboard:noBestSellingProductData")}</p>
             ) : (
               topProducts.slice(0, 5).map((product, index) => {
                 const maxSold = Math.max(...topProducts.map((p) => p.totalSold || 1));
@@ -491,11 +469,11 @@ const Dashboard: React.FC = () => {
                 return (
                   <div
                     key={product.productId || index}
-                    className="py-3.5 flex items-center gap-4 group hover:bg-slate-50/70 px-2 rounded-xl transition-colors"
+                    className="py-3.5 flex items-center gap-4 group hover:bg-slate-50/70 px-2 rounded-lg transition-colors"
                   >
                     {/* Rank Badge */}
                     <div
-                      className={`w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs ${
+                      className={` w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs ${
                         index === 0
                           ? "bg-amber-100 text-amber-700 border border-amber-300"
                           : index === 1
@@ -503,16 +481,16 @@ const Dashboard: React.FC = () => {
                           : index === 2
                           ? "bg-orange-100 text-orange-700"
                           : "text-slate-400"
-                      }`}
+                      }  `}
                     >
-                      {index + 1}
+                      {uiText(index + 1)}
                     </div>
 
                     {/* Image */}
                     <img
                       src={product.image || "/images/no-image.png"}
-                      alt={product.name}
-                      className="w-12 h-12 object-cover rounded-xl border border-slate-100 shadow-xs"
+                      alt={uiText(product.name)}
+                      className="w-12 h-12 object-cover rounded-lg border border-slate-100"
                       onError={(e) => {
                         (e.currentTarget as HTMLImageElement).src =
                           "https://via.placeholder.com/60?text=SP";
@@ -522,16 +500,15 @@ const Dashboard: React.FC = () => {
                     {/* Info & Progress */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
-                        <p className="font-semibold text-sm text-slate-800 truncate group-hover:text-indigo-600 transition-colors">
-                          {product.name}
+                        <p className="font-semibold text-sm text-slate-800 truncate group-hover:text-[#254AD7] transition-colors">
+                          {uiText(product.name)}
                         </p>
                         <span className="font-bold text-xs text-slate-900 shrink-0">
-                          {product.totalSold} đã bán
-                        </span>
+                          {uiText(product.totalSold)}{" "}{tx("adminDashboard:sold")}</span>
                       </div>
                       <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
                         <div
-                          className="bg-indigo-600 h-1.5 rounded-full transition-all duration-700"
+                          className="bg-[#254AD7] h-1.5 rounded-full transition-all duration-700"
                           style={{ width: `${percentage}%` }}
                         />
                       </div>
@@ -544,19 +521,15 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Khách Hàng Mới Nhất (1 Cột) */}
-        <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-6 flex flex-col justify-between">
+        <div className="bg-white rounded-lg border border-slate-200/80 p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
-                <Users size={18} className="text-blue-500" />
-                Khách Hàng Mới
-              </h3>
+                <Users size={18} className="text-[#254AD7]" />{tx("adminDashboard:newCustomers")}</h3>
               <Link
                 to="/admin/users"
-                className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
-              >
-                Chi tiết →
-              </Link>
+                className="text-xs font-semibold text-[#254AD7] hover:text-[#254AD7]"
+              >{tx("adminDashboard:details")}</Link>
             </div>
 
             <div className="divide-y divide-slate-100">
@@ -566,26 +539,26 @@ const Dashboard: React.FC = () => {
                   className="py-3 flex items-center justify-between gap-3 group"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
-                      {user.name?.[0]?.toUpperCase() || "U"}
+                    <div className="h-9 w-9 rounded-lg bg-[#254AD7] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                      {uiText(user.name?.[0]?.toUpperCase() || "U")}
                     </div>
                     <div className="truncate">
-                      <p className="text-xs font-semibold text-slate-800 truncate group-hover:text-indigo-600 transition-colors">
-                        {user.name}
+                      <p className="text-xs font-semibold text-slate-800 truncate group-hover:text-[#254AD7] transition-colors">
+                        {uiText(user.name)}
                       </p>
                       <p className="text-[11px] text-slate-400 truncate font-mono">
-                        {user.email}
+                        {uiText(user.email)}
                       </p>
                     </div>
                   </div>
                   <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                    className={` text-[10px] font-bold px-2 py-0.5 rounded-md ${
                       user.isAdmin
-                        ? "bg-purple-50 text-purple-700 border border-purple-200"
+                        ? "bg-[#edf1ff] text-[#254AD7] border border-purple-200"
                         : "bg-slate-100 text-slate-600"
-                    }`}
+                    }  `}
                   >
-                    {user.isAdmin ? "Admin" : "Khách"}
+                    {uiText(user.isAdmin ? tx("adminDashboard:admin") : tx("adminDashboard:guest"))}
                   </span>
                 </div>
               ))}
@@ -593,52 +566,43 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="pt-3 border-t border-slate-100 text-center">
-            <span className="text-[11px] text-slate-400">
-              Cập nhật đồng bộ trực tiếp từ MongoDB Atlas
-            </span>
+            <span className="text-[11px] text-slate-400">{tx("adminDashboard:syncedDirectlyFromMongodbAtlas")}</span>
           </div>
         </div>
       </div>
 
       {/* Đơn hàng mới nhất (Full width table) */}
-      <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-6">
+      <div className="bg-white rounded-lg border border-slate-200/80 p-6">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
-              <Clock size={18} className="text-indigo-600" />
-              Đơn Hàng Gần Đây
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
-              5 giao dịch phát sinh mới nhất trên hệ thống
-            </p>
+              <Clock size={18} className="text-[#254AD7]" />{tx("adminDashboard:recentOrders")}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">{tx("adminDashboard:theFiveMostRecentTransactions")}</p>
           </div>
           <Link
             to="/admin/orders"
-            className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 hover:underline flex items-center gap-1"
-          >
-            Quản lý tất cả đơn hàng <ChevronRight size={14} />
+            className="text-xs font-semibold text-[#254AD7] hover:text-[#254AD7] hover:underline flex items-center gap-1"
+          >{tx("adminDashboard:manageAllOrders")}{" "}<ChevronRight size={14} />
           </Link>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <div className="pp-table-region" role="region" aria-label={tx("adminDashboard:dataTable")} tabIndex={0}><table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50/60 text-slate-500 font-semibold uppercase tracking-wider">
-                <th className="py-3 px-4">Mã Đơn</th>
-                <th className="py-3 px-4">Khách Hàng</th>
-                <th className="py-3 px-4">Ngày Đặt</th>
-                <th className="py-3 px-4">Tổng Tiền</th>
-                <th className="py-3 px-4">Thanh Toán</th>
-                <th className="py-3 px-4">Vận Chuyển</th>
-                <th className="py-3 px-4 text-right">Thao Tác</th>
+                <th scope="col" className="py-3 px-4">{tx("adminDashboard:orderReference")}</th>
+                <th scope="col" className="py-3 px-4">{tx("adminDashboard:customer")}</th>
+                <th scope="col" className="py-3 px-4">{tx("adminDashboard:orderDate")}</th>
+                <th scope="col" className="py-3 px-4">{tx("adminDashboard:total")}</th>
+                <th scope="col" className="py-3 px-4">{tx("adminDashboard:payment")}</th>
+                <th scope="col" className="py-3 px-4">{tx("adminDashboard:delivery")}</th>
+                <th scope="col" className="py-3 px-4 text-right">{tx("adminDashboard:actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {latestOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-slate-400">
-                    Chưa có đơn hàng nào.
-                  </td>
+                  <td colSpan={7} className="py-8 text-center text-slate-400">{tx("adminDashboard:noOrdersYet")}</td>
                 </tr>
               ) : (
                 latestOrders.map((order) => {
@@ -653,55 +617,55 @@ const Dashboard: React.FC = () => {
                       key={order._id}
                       className="hover:bg-slate-50/80 transition-colors"
                     >
-                      <td className="py-3.5 px-4 font-mono font-bold text-indigo-600">
-                        {order.orderCode || order._id.slice(-6).toUpperCase()}
+                      <td className="py-3.5 px-4 font-mono font-bold text-[#254AD7]">
+                        {uiText(order.orderCode || order._id.slice(-6).toUpperCase())}
                       </td>
                       <td className="py-3.5 px-4 font-medium text-slate-800">
-                        {order.user?.name || "Khách vãng lai"}
+                        {uiText(order.user?.name || tx("adminDashboard:guest2"))}
                       </td>
                       <td className="py-3.5 px-4 text-slate-500">
-                        {new Date(order.createdAt).toLocaleDateString("vi-VN", {
+                        {uiText(new Date(order.createdAt).toLocaleDateString(locale(), {
                           hour: "2-digit",
                           minute: "2-digit",
                           day: "2-digit",
                           month: "2-digit",
-                        })}
+                        }))}
                       </td>
                       <td className="py-3.5 px-4 font-bold text-slate-900">
-                        ₫{total.toLocaleString("vi-VN")}
+                        {formatVND(total)}
                       </td>
                       <td className="py-3.5 px-4">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+                          className={` inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
                             isPaid
                               ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                               : "bg-amber-50 text-amber-700 border border-amber-200"
-                          }`}
+                          }  `}
                         >
                           <span
-                            className={`w-1.5 h-1.5 rounded-full ${
+                            className={` w-1.5 h-1.5 rounded-full ${
                               isPaid ? "bg-emerald-500" : "bg-amber-500"
-                            }`}
+                            }  `}
                           />
-                          {isPaid ? "Đã thanh toán" : "Chờ thanh toán"}
+                          {uiText(isPaid ? tx("adminDashboard:paid") : tx("adminDashboard:awaitingPayment"))}
                         </span>
                       </td>
                       <td className="py-3.5 px-4">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+                          className={` inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
                             order.isDelivered
-                              ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
+                              ? "bg-[#edf1ff] text-[#254AD7] border border-indigo-200"
                               : "bg-slate-100 text-slate-600"
-                          }`}
+                          }  `}
                         >
-                          {order.isDelivered ? "Đã giao" : "Đang xử lý"}
+                          {uiText(order.isDelivered ? tx("adminDashboard:delivered") : tx("adminDashboard:processing"))}
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-right">
                         <Link
                           to={`/admin/orders/${order._id}`}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors inline-block"
-                          title="Xem chi tiết đơn hàng"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-[#254AD7] hover:bg-[#edf1ff] transition-colors inline-block"
+                          title={tx("adminDashboard:viewOrderDetails")}
                         >
                           <ExternalLink size={15} />
                         </Link>
@@ -711,7 +675,7 @@ const Dashboard: React.FC = () => {
                 })
               )}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </div>
     </div>
@@ -740,35 +704,33 @@ const KPICard = ({
   gradient,
   iconBg,
 }: KPICardProps) => (
-  <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-5 relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
-    <div
-      className={`absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-gradient-to-br ${gradient} pointer-events-none blur-xl`}
-    />
+  <div className="bg-white rounded-lg border border-slate-200/80 p-5 relative overflow-hidden transition-all duration-200">
+
     <div className="flex items-start justify-between">
       <div>
         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-          {label}
+          {uiText(label)}
         </p>
-        <p className="text-2xl font-black text-slate-900 mt-2 tracking-tight">
-          {value}
+        <p className="text-2xl font-semibold text-slate-900 mt-2 tracking-tight">
+          {uiText(value)}
         </p>
       </div>
-      <div className={`p-2.5 rounded-xl ${iconBg} shadow-xs`}>{icon}</div>
+      <div className={` p-2.5 rounded-lg ${iconBg}  `}>{uiText(icon)}</div>
     </div>
     <div className="flex items-center gap-1.5 mt-3 text-xs">
       <span
-        className={`font-bold flex items-center ${
+        className={` font-bold flex items-center ${
           isPositive ? "text-emerald-600" : "text-rose-600"
-        }`}
+        }  `}
       >
-        {isPositive ? (
+        {trend !== "—" && (isPositive ? (
           <ArrowUpRight size={14} className="stroke-[2.5]" />
         ) : (
           <ArrowDownRight size={14} className="stroke-[2.5]" />
-        )}
-        {trend}
+        ))}
+        {uiText(trend)}
       </span>
-      <span className="text-slate-400">{description}</span>
+      <span className="text-slate-400">{uiText(description)}</span>
     </div>
   </div>
 );
@@ -785,10 +747,10 @@ const StatusRow = ({
 }) => (
   <div className="flex items-center justify-between pt-2.5 first:pt-0">
     <div className="flex items-center gap-2 text-xs text-slate-600">
-      <span className={`w-2.5 h-2.5 rounded-full ${colorBg}`} />
-      <span>{label}</span>
+      <span className={` w-2.5 h-2.5 rounded-full ${colorBg}  `} />
+      <span>{uiText(label)}</span>
     </div>
-    <span className="text-xs font-bold text-slate-900">{count} đơn</span>
+    <span className="text-xs font-bold text-slate-900">{uiText(count)}{" "}{tx("adminDashboard:orders")}</span>
   </div>
 );
 

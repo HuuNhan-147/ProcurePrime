@@ -1,3 +1,4 @@
+import { tx, uiMessage, uiText, useLocale, formatVND } from "../i18n";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { fetchProducts } from "../api/productSearchApi";
@@ -5,6 +6,7 @@ import SearchFilter from "../components/SearchFilter";
 import { IProduct } from "../types/product";
 
 const SearchProduct: React.FC = () => {
+  useLocale();
   const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +21,7 @@ const SearchProduct: React.FC = () => {
       const data: IProduct[] = await fetchProducts(params);
       setProducts(data);
     } catch (err) {
-      setError("Không thể tải sản phẩm.");
+      setError(uiMessage("adminProducts:unableToLoadProducts"));
     } finally {
       setLoading(false);
     }
@@ -45,7 +47,7 @@ const SearchProduct: React.FC = () => {
   };
 
   const handleDelete = (productId: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
+    if (window.confirm(tx("adminProducts:deleteThisProduct"))) {
       // TODO: Gọi API xóa sản phẩm ở đây
       console.log("Xóa sản phẩm với ID:", productId);
     }
@@ -65,36 +67,24 @@ const SearchProduct: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Quản lý sản phẩm</h1>
+      <h1 className="text-3xl font-bold mb-6">{tx("adminProducts:productManagement2")}</h1>
       <SearchFilter initialValues={getInitialValues()} />
 
       {loading ? (
-        <div className="text-center py-8">Đang tải sản phẩm...</div>
+        <div className="text-center py-8">{tx("adminProducts:loadingProducts")}</div>
       ) : error ? (
-        <div className="text-red-500 text-center py-8">{error}</div>
+        <div className="text-red-500 text-center py-8">{uiText(error)}</div>
       ) : products.length > 0 ? (
         <div className="overflow-x-auto mt-6">
-          <table className="min-w-full divide-y divide-gray-200 border">
+          <div className="pp-table-region" role="region" aria-label={tx("adminProducts:dataTable")} tabIndex={0}><table className="min-w-full divide-y divide-gray-200 border">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ảnh
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tên sản phẩm
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Giá
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Số lượng
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Đánh giá
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Hành động
-                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("adminProducts:image")}</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("adminProducts:productName")}</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("adminProducts:price")}</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("adminProducts:quantity")}</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("adminProducts:rating2")}</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("adminProducts:actions2")}</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -103,7 +93,7 @@ const SearchProduct: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <img
   src={product.image || "/images/no-image.png"}
-  alt={product.name}
+  alt={uiText(product.name)}
   className="w-16 h-16 object-contain rounded"
   onError={(e) => {
     (e.currentTarget as HTMLImageElement).src = "/images/no-image.png";
@@ -112,13 +102,13 @@ const SearchProduct: React.FC = () => {
 
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap max-w-xs truncate">
-                    {product.name}
+                    {uiText(product.name)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-blue-600 font-semibold">
-                    {product.price.toLocaleString()} VND
+                  <td className="px-6 py-4 whitespace-nowrap text-[#254AD7] font-semibold">
+                    {formatVND(product.price)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {product.countInStock}
+                    {uiText(product.countInStock)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex space-x-1">
@@ -136,33 +126,27 @@ const SearchProduct: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <button
+                    <button type="button"
                       onClick={() => navigate(`/admin/product/${product._id}`)}
-                      className="mr-2 px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
-                    >
-                      Sửa
-                    </button>
-                    <button
+                      className="mr-2 px-3 py-1 bg-[#254AD7] text-white text-sm rounded hover:bg-[#1D3CBA] transition-colors"
+                    >{tx("adminProducts:edit2")}</button>
+                    <button type="button"
                       onClick={() => handleDelete(product._id)}
                       className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition-colors"
-                    >
-                      Xóa
-                    </button>
+                    >{tx("adminProducts:delete")}</button>
                   </td>
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-xl">Không tìm thấy sản phẩm phù hợp</p>
-          <button
+          <p className="text-xl">{tx("adminProducts:noMatchingProducts")}</p>
+          <button type="button"
             onClick={handleResetFilters}
-            className="mt-4 text-blue-600 hover:underline"
-          >
-            Xóa bộ lọc
-          </button>
+            className="mt-4 text-[#254AD7] hover:underline"
+          >{tx("adminProducts:clearFilters")}</button>
         </div>
       )}
     </div>
