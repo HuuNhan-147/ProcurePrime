@@ -38,3 +38,27 @@ export const admin = (req, res, next) => {
     return res.status(403).json({ message: "Bạn không có quyền truy cập!" });
   }
 };
+
+// ✅ Middleware tùy chọn đăng nhập: Gắn user nếu có token hợp lệ, không chặn nếu không có token (Hỗ trợ demo/guest)
+export const optionalProtect = async (req, res, next) => {
+  let token;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    try {
+      token = req.headers.authorization.split(" ")[1];
+      const secret = process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET;
+      const decoded = jwt.verify(token, secret);
+
+      const user = await User.findById(decoded.id).select("-password").lean();
+      if (user) {
+        req.user = user;
+      }
+    } catch {
+      // Bỏ qua lỗi token không hợp lệ đối với route optional
+    }
+  }
+  next();
+};

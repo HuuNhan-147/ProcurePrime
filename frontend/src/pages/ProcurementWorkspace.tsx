@@ -1,4 +1,5 @@
 import { tx, uiMessage, uiText, useLocale, locale, formatVND } from "../i18n";
+import { env } from "../config/env";
 // frontend/src/pages/ProcurementWorkspace.tsx
 // ============================================
 // PROCUREPRIME WORKSPACE — Không Gian Thu Mua & Báo Giá Doanh Nghiệp (Split-Screen)
@@ -89,7 +90,7 @@ export const ProcurementWorkspace: React.FC = () => {
     try {
       setCanvasLoading(true);
       setCanvasError(null);
-      const res = await fetch(`http://localhost:5000/api/quotations/${qNum}`);
+      const res = await fetch(`${env.apiUrl}/quotations/${qNum}`);
       const json = await res.json();
       if (json.success && json.data) {
         const q = json.data;
@@ -164,7 +165,7 @@ export const ProcurementWorkspace: React.FC = () => {
 
   const handleActionClick = (btn: ActionButton) => {
     if (btn.url?.includes("/excel") || btn.url?.startsWith("/api/") || btn.url?.startsWith("http")) {
-      const downloadUrl = btn.url.startsWith("http") ? btn.url : `http://localhost:5000${btn.url}`;
+      const downloadUrl = btn.url.startsWith("http") ? btn.url : `${env.socketUrl}${btn.url}`;
       const link = document.createElement("a");
       link.href = downloadUrl;
       link.setAttribute("download", "");
@@ -193,7 +194,7 @@ export const ProcurementWorkspace: React.FC = () => {
   }, [messages, loading]);
 
   useEffect(() => {
-    const socket = io("http://localhost:5000", {
+    const socket = io(env.socketUrl, {
       withCredentials: true,
     });
     socketRef.current = socket;
@@ -306,9 +307,13 @@ export const ProcurementWorkspace: React.FC = () => {
   const handleApprove = async () => {
     if (!quotationNumber) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/quotations/${quotationNumber}/approve`, {
+      const token = localStorage.getItem("token") || "";
+      const res = await fetch(`${env.apiUrl}/quotations/${quotationNumber}/approve`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           approverRole: "MANAGER",
           approverNote: "Đã thẩm định và phê duyệt trên Procurement Workspace",
@@ -319,6 +324,8 @@ export const ProcurementWorkspace: React.FC = () => {
         setStatus("ISSUED");
         alert(tx("workspace:quotationValueApprovedSuccessfully", { v0: (quotationNumber) }));
         fetchQuotationData(quotationNumber);
+      } else {
+        alert(data.message || tx("workspace:quotationValueApproved", { v0: (quotationNumber) }));
       }
     } catch {
       setStatus("ISSUED");
@@ -346,32 +353,51 @@ export const ProcurementWorkspace: React.FC = () => {
   return (
     <div className="pw-workspace" data-view={viewMode}>
       <header className="pw-header">
-        <Link to="/" className="pw-brand" aria-label={tx("workspace:procureprimeHome")}>Procure<strong>Prime</strong></Link>
-        <div className="pw-heading"><h1>{tx("workspace:procurementWorkspace")}</h1><p>{tx("workspace:clearRequirementsDecisionsInYourHands")}</p></div>
-        <WorkspaceHeaderActions />
+        <div className="pw-header-left">
+          <div className="pw-brand-badge">
+            <span>⚡ Procure<strong>Prime</strong></span>
+            <span className="text-slate-300 font-light">|</span>
+            <span className="text-xs text-slate-600 font-medium">{tx("workspace:aiProcurementCopilot") || "AI Copilot Workstation"}</span>
+          </div>
+        </div>
+
+        <nav className="pw-view-switch" aria-label={tx("workspace:workspaceViews")}>
+          <button type="button" className="pw-split-control" aria-pressed={viewMode === "split"} onClick={() => setViewMode("split")}>{tx("workspace:splitWorkspace")}</button>
+          <button type="button" aria-pressed={viewMode === "ai" || (isNarrow && viewMode === "split")} onClick={() => setViewMode("ai")}>{tx("workspace:aiAssistant")}</button>
+          <button type="button" aria-pressed={viewMode === "options"} onClick={() => setViewMode("options")}>{tx("workspace:devicesComparison")}</button>
+          <button type="button" aria-pressed={viewMode === "quote"} onClick={() => setViewMode("quote")}>{tx("workspace:quotation")}{" "}{items.length > 0 && <span>({uiText(items.length)})</span>}</button>
+        </nav>
+
+        <div className="pw-header-actions">
+          <WorkspaceHeaderActions />
+        </div>
       </header>
-      <nav className="pw-view-switch" aria-label={tx("workspace:workspaceViews")}>
-        <button type="button" className="pw-split-control" aria-pressed={viewMode === "split"} onClick={() => setViewMode("split")}>{tx("workspace:splitWorkspace")}</button>
-        <button type="button" aria-pressed={viewMode === "ai" || (isNarrow && viewMode === "split")} onClick={() => setViewMode("ai")}>{tx("workspace:aiAssistant")}</button>
-        <button type="button" aria-pressed={viewMode === "options"} onClick={() => setViewMode("options")}>{tx("workspace:devicesComparison")}</button>
-        <button type="button" aria-pressed={viewMode === "quote"} onClick={() => setViewMode("quote")}>{tx("workspace:quotation")}{" "}{items.length > 0 && <span>({uiText(items.length)})</span>}</button>
-      </nav>
+
       <main className="pw-main">
         <section className="pw-assistant" aria-label={tx("workspace:aiAssistantAndWizard")}>
-          <div className="pw-panel-heading"><h2>{tx("workspace:workWithAi")}</h2><button type="button" onClick={handleReset}>{tx("workspace:newSession2")}</button></div>
+          <div className="pw-panel-heading">
+            <h2>{tx("workspace:workWithAi")}</h2>
+            <button type="button" className="pw-btn-subtle" onClick={handleReset}>
+              {tx("workspace:newSession2")}
+            </button>
+          </div>
+
           <LandingDraftBridge currentDraft={input} busy={loading} onApplyDraft={(text) => {
             setInput((existing) => existing.trim() ? `${existing} ${text}` : text);
             setLeftTab("chat");
             setViewMode("ai");
           }} />
+
           <div className="pw-tools" role="group" aria-label={tx("workspace:requestEntryMethod")}>
             <button type="button" aria-pressed={leftTab === "chat"} onClick={() => setLeftTab("chat")}>{tx("workspace:conversation")}</button>
             <button type="button" aria-pressed={leftTab === "wizard"} onClick={() => setLeftTab("wizard")}>{tx("workspace:procurementWizard")}</button>
           </div>
+
           <div className="pw-wizard" hidden={leftTab !== "wizard"}>
             <p className="pw-wizard-note">{tx("workspace:structureYourRequirementsTheWizardSendButton")}</p>
             <ProcurementWizard onSubmit={handleWizardSubmit} />
           </div>
+
           <div className="pw-chat" hidden={leftTab !== "chat"}>
             <div ref={historyRef} className="pw-history" role="region" aria-label={tx("workspace:conversationContent")} tabIndex={0} onScroll={(event) => {
               const element = event.currentTarget;
@@ -423,49 +449,141 @@ export const ProcurementWorkspace: React.FC = () => {
               </article>)}
               <div ref={chatEndRef} />
             </div>
+
             <p className="pw-response-status" role="status">{uiText(loading ? tx("workspace:aiIsRespondingYouCanContinueReviewing") : tx("workspace:reviewAiProvidedInformationBeforeDeciding"))}</p>
+
             <details className="pw-suggestions"><summary>{tx("workspace:suggestedRequests")}</summary><div>
               <button type="button" onClick={() => setInput("Công ty TNHH Giải Pháp AI cần trang bị cho 5 nhân viên: 5 laptop văn phòng RAM tối thiểu 16GB, 5 bộ chuột phím không dây. Tổng ngân sách tối đa 90 triệu, cần xuất hóa đơn VAT.")}>{tx("workspace:equip5TeamMembers")}</button>
               <button type="button" onClick={() => setInput("Tôi cần mua số lượng lớn 10 màn hình văn phòng, xuất báo giá chiết khấu sỉ.")}>{tx("workspace:wholesaleOrderFor10Monitors2")}</button>
             </div></details>
-          </div>
-            <div className="pw-composer">
-              <label htmlFor="pw-request">{tx("workspace:currentRequest")}</label>
-              <div><input id="pw-request" type="text" data-landing-draft-input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => {
-                if (e.nativeEvent.isComposing || e.keyCode === 229) return;
-                if (e.key === "Enter") handleSend();
-              }} placeholder={tx("workspace:devicesSpecificationsQuantitiesBudget")} disabled={loading} />
-              <button type="button" onClick={handleSend} disabled={loading || !input.trim()}><span className="pw-send-label">{uiText(loading ? tx("workspace:processing") : tx("workspace:sendRequest"))}</span><ArrowUp size={20} aria-hidden="true" /></button></div>
-            </div>
-        </section>
-        <section className="pw-comparison" aria-label={tx("workspace:devicesAndComparisonTable")}><WorkspaceOptions items={items} /></section>
-        <section className="pw-quote" aria-label={tx("workspace:currentQuotation")}>
-          <div className="pw-panel-heading"><div><p className="pw-muted">{tx("workspace:procurementDocument")}</p><h2>{tx("workspace:currentQuotation")}</h2></div><span className="pw-quote-code">{uiText(quotationNumber || tx("workspace:noQuotationReferenceYet"))}</span></div>
-<div className="pw-quote-body">          {/* Loading Alert */}
-          {canvasLoading && (
-            <div className="p-3 bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs font-mono rounded flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
-              <span>{tx("workspace:syncingCommercialQuotationDataFromTheServer")}</span>
-            </div>
-          )}
 
-          {/* Error Alert */}
-          {canvasError && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono rounded">{tx("workspace:syncError")}{" "}{uiText(canvasError)}
-              {quotationNumber && <button type="button" onClick={() => fetchQuotationData(quotationNumber)} disabled={canvasLoading}>{tx("workspace:retryLoading")}</button>}
-            </div>
-          )}
-
-          {/* Empty State khi chưa có Báo giá nào */}
-          {!quotationNumber && items.length === 0 && !canvasLoading && (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-white border border-slate-200 rounded-lg space-y-3">
-              <div className="w-12 h-12 rounded-full bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 font-mono text-sm font-bold">
-                PP
+            {/* Docked Chat Composer - Only visible in Conversation Tab */}
+            <div className="pw-composer-docked">
+              <div className="pw-composer-inner">
+                <input
+                  id="pw-request"
+                  type="text"
+                  data-landing-draft-input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+                    if (e.key === "Enter") handleSend();
+                  }}
+                  placeholder={tx("workspace:devicesSpecificationsQuantitiesBudget")}
+                  disabled={loading}
+                />
+                <button type="button" onClick={handleSend} disabled={loading || !input.trim()}>
+                  <span className="pw-send-label">{uiText(loading ? tx("workspace:processing") : tx("workspace:sendRequest"))}</span>
+                  <ArrowUp size={16} aria-hidden="true" />
+                </button>
               </div>
-              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider font-mono">{tx("workspace:yourQuotationWillAppearHere")}</h3>
-              <p className="text-xs text-slate-500 max-w-sm leading-relaxed">{tx("workspace:enterRequirementsInTheConversationOrWizard")}</p>
             </div>
-          )}
+          </div>
+        </section>
+
+        <section className="pw-comparison" aria-label={tx("workspace:devicesAndComparisonTable")}><WorkspaceOptions items={items} /></section>
+
+        <section className="pw-quote" aria-label={tx("workspace:currentQuotation")}>
+          <div className="pw-panel-heading">
+            <div>
+              <p className="pw-muted" style={{ margin: 0, fontSize: "11px" }}>{tx("workspace:procurementDocument")}</p>
+              <h2 style={{ fontSize: "14px", margin: 0 }}>{tx("workspace:currentQuotation")}</h2>
+            </div>
+            <span className="pw-quote-code">{uiText(quotationNumber || tx("workspace:noQuotationReferenceYet"))}</span>
+          </div>
+
+          <div className="pw-quote-body">
+            {/* Loading Alert */}
+            {canvasLoading && (
+              <div className="p-3 bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs font-mono rounded flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+                <span>{tx("workspace:syncingCommercialQuotationDataFromTheServer")}</span>
+              </div>
+            )}
+
+            {/* Error Alert */}
+            {canvasError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono rounded">{tx("workspace:syncError")}{" "}{uiText(canvasError)}
+                {quotationNumber && <button type="button" onClick={() => fetchQuotationData(quotationNumber)} disabled={canvasLoading}>{tx("workspace:retryLoading")}</button>}
+              </div>
+            )}
+
+            {/* Empty State khi chưa có Báo giá nào: 3-step visual workflow + 3 quick starter cards */}
+            {!quotationNumber && items.length === 0 && !canvasLoading && (
+              <div className="pw-empty-canvas">
+                <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-mono text-xs font-bold mb-2">
+                  PP
+                </div>
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider font-mono">
+                  {tx("workspace:yourQuotationWillAppearHere")}
+                </h3>
+                <p className="text-xs text-slate-500 max-w-md leading-relaxed mt-1">
+                  {tx("workspace:enterRequirementsInTheConversationOrWizard")}
+                </p>
+
+                {/* 3-Step Visual Procurement Workflow */}
+                <div className="pw-workflow-steps">
+                  <div className="pw-step-card">
+                    <span className="pw-step-num">1</span>
+                    <div className="pw-step-title">1. Nhập Yêu Cầu</div>
+                    <div className="pw-step-desc">Điền form Wizard có cấu trúc hoặc chat trực tiếp với AI Copilot.</div>
+                  </div>
+                  <div className="pw-step-card">
+                    <span className="pw-step-num">2</span>
+                    <div className="pw-step-title">2. AI Tính Toán & Tối Ưu</div>
+                    <div className="pw-step-desc">Đối chiếu catalog, kiểm tra trần ngân sách và tính chiết khấu B2B.</div>
+                  </div>
+                  <div className="pw-step-card">
+                    <span className="pw-step-num">3</span>
+                    <div className="pw-step-title">3. Xem & Phê Duyệt</div>
+                    <div className="pw-step-desc">Kiểm tra chi tiết thiết bị, phê duyệt quản lý 1-click và xuất file Excel.</div>
+                  </div>
+                </div>
+
+                {/* 1-Click Quick Starter Templates */}
+                <div className="pw-starter-templates">
+                  <h4>Gợi ý cấu hình thu mua mẫu (Bấm chạy thử ngay)</h4>
+                  <div className="pw-starter-grid">
+                    <button
+                      type="button"
+                      className="pw-starter-card"
+                      onClick={() => handleWizardSubmit("Trang bị cho 5 nhân sự thuộc phòng ban Kỹ thuật / IT: 5 Laptop văn phòng có RAM tối thiểu 16GB, kèm phụ kiện: Chuột không dây, Bàn phím văn phòng. Trần ngân sách tối đa 90.000.000 VNĐ, cần xuất hóa đơn VAT cho Công ty TNHH AI Solutions. Hãy tối ưu hóa cấu hình, gom giỏ hàng qua WebMCP và lập Báo giá Doanh nghiệp ngay lập tức!")}
+                    >
+                      <div>
+                        <div className="pw-starter-title">💻 Gói Onboarding 5 Dev</div>
+                        <div className="pw-starter-detail">5 Laptop Core i7/16GB + Chuột, Phím văn phòng</div>
+                      </div>
+                      <span className="pw-starter-badge">90.000.000 đ</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="pw-starter-card"
+                      onClick={() => handleWizardSubmit("Trang bị cho 10 nhân sự thuộc phòng ban Kinh doanh & Vận hành: 10 PC đồng bộ văn phòng có RAM tối thiểu 16GB, kèm phụ kiện: Chuột không dây, Bàn phím văn phòng, Màn hình ngoài 24 inch. Trần ngân sách tối đa 150.000.000 VNĐ, cần xuất hóa đơn VAT cho Công ty TNHH Phân Phối SteelCorp. Hãy tối ưu hóa cấu hình, gom giỏ hàng qua WebMCP và lập Báo giá Doanh nghiệp ngay lập tức!")}
+                    >
+                      <div>
+                        <div className="pw-starter-title">🏢 Gói 10 PC Văn Phòng</div>
+                        <div className="pw-starter-detail">10 PC đồng bộ + Màn hình 24" + Phím Chuột</div>
+                      </div>
+                      <span className="pw-starter-badge">150.000.000 đ</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="pw-starter-card"
+                      onClick={() => handleWizardSubmit("Trang bị cho 3 nhân sự thuộc phòng ban R&D Software: 3 Laptop kỹ thuật hiệu năng cao có RAM tối thiểu 32GB, kèm phụ kiện: Chuột không dây, Màn hình ngoài 24 inch, Hub Type-C. Trần ngân sách tối đa 85.000.000 VNĐ, cần xuất hóa đơn VAT cho Công ty Cổ phần Công nghệ TechCorp. Hãy tối ưu hóa cấu hình, gom giỏ hàng qua WebMCP và lập Báo giá Doanh nghiệp ngay lập tức!")}
+                    >
+                      <div>
+                        <div className="pw-starter-title">⚡ Gói Nâng Cấp R&D</div>
+                        <div className="pw-starter-detail">3 Workstation 32GB + Hub Type-C + Màn hình</div>
+                      </div>
+                      <span className="pw-starter-badge">85.000.000 đ</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
           {/* Hiển thị chi tiết khi đã có báo giá hoặc items */}
           {(quotationNumber || items.length > 0) && (
@@ -612,7 +730,7 @@ export const ProcurementWorkspace: React.FC = () => {
                   )}
                   {quotationNumber && (
                     <a
-                      href={`http://localhost:5000/api/quotations/${quotationNumber}/html`}
+                      href={`${env.apiUrl}/quotations/${quotationNumber}/html`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="py-2.5 px-4 bg-white border border-slate-300 text-slate-800 font-mono text-xs font-bold rounded hover:bg-slate-100 transition-colors uppercase tracking-wider text-center"

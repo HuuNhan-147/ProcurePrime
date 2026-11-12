@@ -79,7 +79,8 @@ export class QuotationController {
     try {
       const { quotationNumber } = req.params;
       const { approverRole, approverNote } = req.body;
-      const quotation = await QuotationService.approveQuotation(quotationNumber, approverRole, approverNote);
+      const finalRole = req.user?.isAdmin ? "ADMIN" : (req.user?.name || approverRole || "MANAGER");
+      const quotation = await QuotationService.approveQuotation(quotationNumber, finalRole, approverNote);
       return successResponse(res, quotation, "Phê duyệt báo giá thành công");
     } catch (error) {
       next(error);
