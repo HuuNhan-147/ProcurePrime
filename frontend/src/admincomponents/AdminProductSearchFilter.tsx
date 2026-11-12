@@ -1,3 +1,4 @@
+import { tx, useLocale } from "../i18n";
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import SearchFilter from "../components/SearchFilter";
@@ -16,6 +17,7 @@ interface AdminProductSearchFilterProps {
 const AdminProductSearchFilter: React.FC<AdminProductSearchFilterProps> = ({
   initialValues,
 }) => {
+  useLocale();
   const navigate = useNavigate();
 
   // Khi người dùng muốn reset bộ lọc
@@ -24,15 +26,13 @@ const AdminProductSearchFilter: React.FC<AdminProductSearchFilterProps> = ({
   };
 
   return (
-    <div className="mb-8 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-      <h2 className="text-lg font-semibold text-gray-700 mb-4">Tìm kiếm & Lọc</h2>
+    <div className="mb-8 bg-white rounded-lg p-6 border border-gray-100">
+      <h2 className="text-lg font-semibold text-gray-700 mb-4">{tx("adminProducts:searchFilters")}</h2>
       <SearchFilter initialValues={initialValues} />
-      <button
+      <button type="button"
         onClick={handleResetFilters}
         className="mt-4 bg-gray-800 hover:bg-gray-700 text-white font-medium py-2.5 px-6 rounded-lg transition-all duration-300 inline-flex items-center gap-2"
-      >
-        Xóa bộ lọc
-      </button>
+      >{tx("adminProducts:clearFilters")}</button>
     </div>
   );
 };

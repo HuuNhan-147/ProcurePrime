@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import { tx, uiMessage, uiText, useLocale, locale, formatVND } from "../i18n";
+import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { IProduct } from "../types/product";
@@ -23,10 +24,12 @@ import {
   FaBolt,
   FaComments,
 } from "react-icons/fa";
-import { QuotationModal } from "./procurement/QuotationModal";
-import { ApprovalPanel } from "./procurement/ApprovalPanel";
+import DeferredDialog from "./ui/DeferredDialog";
+import { useNamespaceReady } from "./ui/useNamespaceReady";
+const QuotationModal = lazy(() => import("./procurement/QuotationModal").then((module) => ({ default: module.QuotationModal })));
+const ApprovalPanel = lazy(() => import("./procurement/ApprovalPanel").then((module) => ({ default: module.ApprovalPanel })));
 import { BudgetProgressBar } from "./procurement/BudgetProgressBar";
-import { ProcurementWizard } from "./procurement/ProcurementWizard";
+const ProcurementWizard = lazy(() => import("./procurement/ProcurementWizard").then((module) => ({ default: module.ProcurementWizard })));
 
 // ✅ Interface cho Action Buttons
 interface ActionButton {
@@ -43,14 +46,17 @@ interface Message {
   actions?: ActionButton[];
   timestamp?: Date;
 }
+const assistantNamespaces = ["workspace", "quotation"] as const;
 
 const AIAgentChat: React.FC = () => {
+  useLocale();
   const { user, getToken } = useAuth();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(true);
+  const assistantUI = useNamespaceReady(!isMinimized, assistantNamespaces);
   const [activeTab, setActiveTab] = useState<"chat" | "wizard">("chat");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [selectedQuotation, setSelectedQuotation] = useState<string | null>(null);
@@ -76,7 +82,7 @@ const AIAgentChat: React.FC = () => {
       setMessages([
         {
           sender: "agent",
-          text: "Kính chào Quý Doanh nghiệp! Tôi là ProcurePrime 💼 — Trợ lý AI Thu mua & Báo giá Tự hành thuộc đội ngũ AgentX Prime.\n\nTôi có thể hỗ trợ quý công ty:\n• Lên cấu hình thiết bị trọn gói theo phòng ban & số lượng nhân sự\n• Tối ưu danh mục theo ngân sách trần (Max Budget)\n• Tự động gom giỏ hàng B2B số lượng lớn (Zero-latency WebMCP)\n• Tự động xuất Báo giá Doanh nghiệp (Quotation / Commercial Invoice)\n\nAnh/chị có thể nhập trực tiếp nhu cầu mua sắm thiết bị để tôi phân tích ngay nhé!",
+          text: uiMessage("workspace:welcomeToProcureprimeTheAiProcurementAnd"),
           timestamp: new Date(),
         },
       ]);
@@ -120,7 +126,7 @@ const AIAgentChat: React.FC = () => {
       setMessages((prev) => {
         const lastMsg = prev[prev.length - 1];
         if (lastMsg && lastMsg.sender === "agent") {
-          const replyText = data.reply || lastMsg.text || "Tôi chưa hiểu rõ yêu cầu của bạn.";
+          const replyText = data.reply || lastMsg.text || uiMessage("workspace:iCouldNotUnderstandYourRequest");
           const { cleanText, actions } = parseActionsFromText(replyText);
           const transformedProducts = transformAgentProducts(data.payload?.products);
 
@@ -292,6 +298,7 @@ const AIAgentChat: React.FC = () => {
   const ActionButtons: React.FC<{ actions: ActionButton[] }> = ({
     actions,
   }) => {
+  useLocale();
     if (!actions || actions.length === 0) return null;
 
     return (
@@ -317,7 +324,7 @@ const AIAgentChat: React.FC = () => {
               {button.action === "orders" && <FaBox />}
               {button.action === "profile" && <FaUser />}
               {button.action === "navigate" && <FaArrowRight />}
-              <span>{button.label}</span>
+              <span>{uiText(button.label)}</span>
             </button>
           );
         })}
@@ -336,7 +343,7 @@ const AIAgentChat: React.FC = () => {
     setMessages([
       {
         sender: "agent",
-        text: "Xin chào! Tôi là ProcurePrime Copilot 🤖 — trợ lý thu mua và quản trị ngân sách doanh nghiệp. Hãy cho tôi biết nhu cầu trang thiết bị của công ty bạn nhé!",
+        text: uiMessage("workspace:helloIAmProcureprimeCopilotYourEnterprise"),
         timestamp: new Date(),
       },
     ]);
@@ -379,7 +386,7 @@ const AIAgentChat: React.FC = () => {
             >
               <span className="text-blue-500 mt-1 flex-shrink-0">•</span>
               <span className="text-gray-700 text-sm flex-1">
-                {processInlineFormatting(item.trim())}
+                {uiText(processInlineFormatting(item.trim()))}
               </span>
             </div>
           ))}
@@ -393,7 +400,7 @@ const AIAgentChat: React.FC = () => {
         <div key={`line-${lineIndex}`} className="space-y-2">
           {segments.map((segment, segmentIndex) => (
             <div key={`segment-${lineIndex}-${segmentIndex}`}>
-              {processInlineFormatting(segment)}
+              {uiText(processInlineFormatting(segment))}
             </div>
           ))}
         </div>
@@ -406,7 +413,7 @@ const AIAgentChat: React.FC = () => {
         <div key={`line-${lineIndex}`} className="flex items-start gap-3 my-1">
           <span className="text-blue-500 mt-1 flex-shrink-0">•</span>
           <span className="text-gray-700 text-sm flex-1">
-            {processInlineFormatting(content)}
+            {uiText(processInlineFormatting(content))}
           </span>
         </div>
       );
@@ -414,7 +421,7 @@ const AIAgentChat: React.FC = () => {
 
     return (
       <div key={`line-${lineIndex}`} className="my-1">
-        {processInlineFormatting(line)}
+        {uiText(processInlineFormatting(line))}
       </div>
     );
   };
@@ -428,20 +435,20 @@ const AIAgentChat: React.FC = () => {
         const text = part.slice(8, -9);
         return (
           <strong key={index} className="font-semibold text-gray-900">
-            {text}
+            {uiText(text)}
           </strong>
         );
       } else if (part.startsWith("**") && part.endsWith("**")) {
         const text = part.slice(2, -2);
         return (
           <strong key={index} className="font-semibold text-gray-900">
-            {text}
+            {uiText(text)}
           </strong>
         );
       } else {
         return (
           <span key={index} className="text-gray-700">
-            {part}
+            {uiText(part)}
           </span>
         );
       }
@@ -453,6 +460,7 @@ const AIAgentChat: React.FC = () => {
     product: IProduct;
     onViewDetail: (product: IProduct) => void;
   }> = ({ product, onViewDetail }) => {
+  useLocale();
     const isValidProduct = product && product._id && product.name;
 
     if (!isValidProduct) {
@@ -461,13 +469,13 @@ const AIAgentChat: React.FC = () => {
     }
 
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-md transition-all duration-200 mb-3 last:mb-0">
+      <div className="pp-agent-product bg-white rounded-lg border border-gray-200 p-3 hover:shadow-md transition-all duration-200 mb-3 last:mb-0">
         <div className="flex gap-3">
           <div className="flex-shrink-0">
             <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
               <img
                 src={product.image}
-                alt={product.name}
+                alt={uiText(product.name)}
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                 loading="lazy"
                 onError={(e) => {
@@ -481,12 +489,12 @@ const AIAgentChat: React.FC = () => {
           <div className="flex-1 min-w-0">
             {product.category && product.category !== "uncategorized" && (
               <p className="text-xs font-medium text-blue-600 mb-1 capitalize">
-                {product.category}
+                {uiText(product.category)}
               </p>
             )}
 
             <h4 className="font-semibold text-gray-800 text-sm leading-tight mb-1 line-clamp-2">
-              {product.name}
+              {uiText(product.name)}
             </h4>
 
             {product.rating > 0 && (
@@ -504,21 +512,21 @@ const AIAgentChat: React.FC = () => {
                   ))}
                 </div>
                 <span className="text-xs text-gray-500">
-                  ({product.rating})
+                  ({uiText(product.rating)})
                 </span>
               </div>
             )}
 
             <div className="flex items-center justify-between mt-2">
               <p className="text-red-600 font-bold text-sm">
-                {product.price.toLocaleString("vi-VN")}₫
+                {formatVND(product.price)}
               </p>
 
               <div className="flex gap-1">
                 <button
                   onClick={() => onViewDetail(product)}
                   className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs font-medium transition-colors"
-                  title="Xem chi tiết"
+                  title={tx("workspace:viewDetails")}
                 >
                   <FaEye className="text-xs" />
                 </button>
@@ -534,6 +542,7 @@ const AIAgentChat: React.FC = () => {
   const AgentMessageWithProducts: React.FC<{ message: Message }> = ({
     message,
   }) => {
+  useLocale();
     // Nếu tin nhắn đang rỗng (chờ stream chữ), hiển thị animation Đang soạn tin ngay tại đây
     if (!message.text && (!message.products || message.products.length === 0)) {
       return (
@@ -550,9 +559,7 @@ const AIAgentChat: React.FC = () => {
                 style={{ animationDelay: "0.3s" }}
               ></div>
             </div>
-            <span className="text-gray-500 text-xs italic">
-              ProcurePrime đang phân tích & định giá...
-            </span>
+            <span className="text-gray-500 text-xs italic">{tx("workspace:procureprimeIsAnalysingPricing")}</span>
           </div>
         </div>
       );
@@ -575,7 +582,7 @@ const AIAgentChat: React.FC = () => {
         <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-none shadow-sm overflow-hidden w-full max-w-[340px]">
           <div className="px-4 py-3">
             <div className="text-gray-800 leading-relaxed text-sm space-y-2">
-              {formatAgentText(message.text)}
+              {uiText(formatAgentText(uiText(message.text) as string))}
             </div>
 
             {hasValidProducts && validProducts.length > 0 && (
@@ -599,29 +606,24 @@ const AIAgentChat: React.FC = () => {
                 <div className="mt-3 p-3 bg-indigo-50/80 border border-indigo-200 rounded-xl space-y-2 text-xs">
                   <div className="flex items-center justify-between font-bold text-indigo-950">
                     <span className="flex items-center gap-1.5">
-                      <FaFileInvoiceDollar className="text-indigo-600 text-sm" /> Báo Giá Thương Mại
-                    </span>
+                      <FaFileInvoiceDollar className="text-indigo-600 text-sm" />{" "}{tx("workspace:commercialQuotation")}</span>
                     <span className="font-mono text-[11px] bg-white px-2 py-0.5 rounded border border-indigo-300">
-                      {qNum}
+                      {uiText(qNum)}
                     </span>
                   </div>
-                  <p className="text-slate-600 leading-normal">
-                    Đã áp chiết khấu sỉ B2B 5%, thuế VAT 10% và gắn dấu băm kiểm toán SHA-256.
-                  </p>
+                  <p className="text-slate-600 leading-normal">{tx("workspace:b2bWholesaleDiscountOf5VatOf")}</p>
                   <div className="flex gap-1.5 pt-1">
                     <button
                       onClick={() => handleOpenQuotation(qNum)}
                       className="flex-1 py-1.5 px-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-1"
                     >
-                      <FaEye className="text-xs" /> Xem Báo Giá
-                    </button>
+                      <FaEye className="text-xs" />{" "}{tx("workspace:viewQuotation")}</button>
                     <button
                       onClick={() => handleOpenApproval(qNum)}
                       className="py-1.5 px-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-1"
-                      title="Phê duyệt thẩm quyền Manager/CFO"
+                      title={tx("workspace:managerCfoApprovalAuthority")}
                     >
-                      <FaUserCheck className="text-xs" /> Phê Duyệt
-                    </button>
+                      <FaUserCheck className="text-xs" />{" "}{tx("workspace:approve")}</button>
                   </div>
                 </div>
               );
@@ -633,10 +635,10 @@ const AIAgentChat: React.FC = () => {
           {message.timestamp && (
             <div className="px-4 py-2 bg-gray-50 border-t border-gray-100">
               <p className="text-xs text-gray-400">
-                {message.timestamp.toLocaleTimeString("vi-VN", {
+                {uiText(message.timestamp.toLocaleTimeString(locale(), {
                   hour: "2-digit",
                   minute: "2-digit",
-                })}
+                }))}
               </p>
             </div>
           )}
@@ -682,7 +684,7 @@ const AIAgentChat: React.FC = () => {
         ...prev.slice(0, -1),
         {
           sender: "agent",
-          text: "⚠️ Xin lỗi, tôi đang gặp sự cố kết nối. Vui lòng thử lại sau.",
+          text: uiMessage("workspace:aConnectionIssueOccurredPleaseTryAgain"),
           timestamp: new Date(),
         },
       ]);
@@ -705,7 +707,7 @@ const AIAgentChat: React.FC = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) {
       e.preventDefault();
       handleSend();
     }
@@ -715,26 +717,35 @@ const AIAgentChat: React.FC = () => {
   if (isMinimized) {
     return (
       <button
+        type="button"
         onClick={handleOpenChat}
-        className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-blue-700 via-indigo-600 to-purple-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:shadow-2xl transition-all duration-300 z-50 hover:scale-110 group"
-        title="Mở Trợ lý Thu mua B2B ProcurePrime"
+        className="pp-agent-launcher fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-blue-700 via-indigo-600 to-purple-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:shadow-2xl transition-all duration-300 z-50 hover:scale-110 group"
+        title={tx("common:assistant.open")}
       >
         <FaRobot className="text-2xl" />
         <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-ping"></span>
         <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></span>
 
-        <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs py-1.5 px-3 rounded-lg whitespace-nowrap shadow-xl border border-gray-700">
-          💼 Trợ lý Thu mua B2B • ProcurePrime
-        </div>
+        <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs py-1.5 px-3 rounded-lg whitespace-nowrap shadow-xl border border-gray-700">{tx("common:assistant.name")}</div>
       </button>
     );
   }
 
   // ✅ NẾU ĐANG MỞ -> HIỂN THỊ KHUNG CHAT ĐẦY ĐỦ
+  if (!assistantUI.ready) return <div className="pp-agent-panel bg-white rounded-xl border border-gray-200 shadow-xl flex flex-col z-50" role="region" aria-label={tx("common:assistant.name")}>
+    <div className="p-4 flex justify-between items-center"><strong>ProcurePrime</strong><button type="button" className="pp-popup-close" aria-label={tx("common:assistant.close")} onClick={handleMinimizeChat}><FaTimes aria-hidden="true" /></button></div>
+    <div className="p-4"><p role={assistantUI.failed ? "alert" : "status"}>{tx(assistantUI.failed ? "common:screen.unavailable" : "common:screen.loading")}</p>{assistantUI.failed && <button type="button" className="pp-button" onClick={assistantUI.retry}>{tx("common:screen.retryInterface")}</button>}</div>
+  </div>;
   return (
-    <div className="fixed bottom-6 right-6 w-[420px] max-w-[95vw] h-[640px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 z-50 animate-fade-in">
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-900 to-blue-900 text-white px-5 py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+    <div role="region" aria-label={tx("workspace:conversationWithTheProcurementAssistant")} onKeyDown={(event) => {
+      if (event.key === "Escape" && !event.nativeEvent.isComposing && !(event.target as HTMLElement).closest('[role="dialog"]')) {
+        event.stopPropagation();
+        handleMinimizeChat();
+        requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(".pp-agent-launcher")?.focus());
+      }
+    }} className="pp-agent-panel fixed bottom-6 right-6 w-[420px] max-w-[95vw] h-[640px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 z-50 animate-fade-in">
+      <div className="pp-agent-heading bg-gradient-to-r from-slate-900 via-indigo-900 to-blue-900 text-white px-5 py-3.5 flex items-center justify-between">
+        <div className="pp-agent-identity flex items-center gap-3">
           <div className="relative">
             <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center border border-white/20">
               <FaRobot className="text-xl text-blue-300" />
@@ -743,34 +754,32 @@ const AIAgentChat: React.FC = () => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-base tracking-wide">ProcurePrime</h3>
-              <span className="text-[9px] bg-blue-500/30 text-blue-200 border border-blue-400/30 px-1.5 py-0.5 rounded font-semibold uppercase">
-                B2B Agent
-              </span>
+              <h3 className="font-bold text-base tracking-wide">{tx("workspace:procureprime")}</h3>
+              <span className="text-[9px] bg-blue-500/30 text-blue-200 border border-blue-400/30 px-1.5 py-0.5 rounded font-semibold uppercase">{tx("workspace:b2bAgent")}</span>
             </div>
-            <p className="text-blue-200 text-xs">AgentX Prime • Thu mua Doanh nghiệp Tự hành</p>
+            <p className="text-blue-200 text-xs">{tx("workspace:agentxPrimeAutonomousEnterpriseProcurement")}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="pp-agent-actions flex items-center gap-2">
           <button
             onClick={handleNewChat}
             className="hover:bg-white/20 p-2 rounded-full transition"
-            title="Phiên làm việc mới"
+            title={tx("workspace:newSession")}
           >
             <FaRedo className="text-sm" />
           </button>
           <button
             onClick={handleMinimizeChat}
             className="hover:bg-white/20 p-2 rounded-full transition"
-            title="Thu nhỏ"
+            title={tx("workspace:minimise")}
           >
             <FaMinus className="text-sm" />
           </button>
           <button
             onClick={handleMinimizeChat}
             className="hover:bg-white/20 p-2 rounded-full transition"
-            title="Đóng"
+            title={tx("workspace:close")}
           >
             <FaTimes />
           </button>
@@ -778,7 +787,7 @@ const AIAgentChat: React.FC = () => {
       </div>
 
       {/* Tab Navigation: Trò Chuyện vs Form Thu Mua Nhanh (Smart Wizard) */}
-      <div className="flex bg-slate-100 p-1 border-b border-gray-200 text-xs">
+      <div className="pp-agent-tabs flex bg-slate-100 p-1 border-b border-gray-200 text-xs">
         <button
           type="button"
           onClick={() => setActiveTab("chat")}
@@ -789,7 +798,7 @@ const AIAgentChat: React.FC = () => {
           }`}
         >
           <FaComments className="text-xs text-blue-600" />
-          <span>Trò Chuyện AI</span>
+          <span>{tx("workspace:aiConversation")}</span>
         </button>
         <button
           type="button"
@@ -801,18 +810,18 @@ const AIAgentChat: React.FC = () => {
           }`}
         >
           <FaBolt className={activeTab === "wizard" ? "text-amber-300 animate-pulse" : "text-amber-500"} />
-          <span>⚡ Form Thu Mua Nhanh (Smart Wizard)</span>
+          <span>{tx("workspace:quickProcurementFormSmartWizard")}</span>
         </button>
       </div>
 
       {/* Nội dung chính: Form Wizard hoặc Khung Chat */}
       {activeTab === "wizard" ? (
-        <div className="flex-1 overflow-y-auto bg-white">
-          <ProcurementWizard onSubmit={handleWizardSubmit} />
+        <div className="pp-agent-wizard flex-1 overflow-y-auto bg-white">
+          <Suspense fallback={<p className="p-4" role="status">{tx("common:screen.loading")}</p>}><ProcurementWizard onSubmit={handleWizardSubmit} /></Suspense>
         </div>
       ) : (
         <>
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50 to-blue-50/30">
+          <div role="region" aria-label={tx("workspace:conversationWithTheProcurementAssistant")} tabIndex={0} className="pp-agent-history flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50 to-blue-50/30">
         {messages.map((msg, idx) => (
           <div
             key={idx}
@@ -821,7 +830,7 @@ const AIAgentChat: React.FC = () => {
             }`}
           >
             <div
-              className={`flex items-start gap-2.5 ${
+              className={`pp-agent-message-row flex items-start gap-2.5 ${
                 msg.sender === "user" ? "flex-row-reverse" : "flex-row"
               }`}
             >
@@ -836,11 +845,11 @@ const AIAgentChat: React.FC = () => {
                 </div>
               )}
 
-              <div className="flex flex-col gap-1.5 max-w-[340px]">
+              <div className="pp-agent-message-body flex flex-col gap-1.5 max-w-[340px]">
                 {msg.sender === "user" ? (
                   <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl rounded-br-none px-4 py-2.5 shadow-sm">
                     <div className="text-white leading-relaxed text-sm">
-                      {msg.text}
+                      {uiText(msg.text)}
                     </div>
                   </div>
                 ) : (
@@ -855,7 +864,7 @@ const AIAgentChat: React.FC = () => {
       </div>
 
       {/* Quick Prompts B2B */}
-      <div className="px-3 pt-2 pb-1 bg-white border-t border-gray-100 flex gap-1.5 overflow-x-auto scrollbar-none">
+      <div className="pp-agent-prompts px-3 pt-2 pb-1 bg-white border-t border-gray-100 flex gap-1.5 overflow-x-auto scrollbar-none">
         <button
           onClick={() =>
             setInput(
@@ -863,9 +872,7 @@ const AIAgentChat: React.FC = () => {
             )
           }
           className="text-[11px] whitespace-nowrap bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full transition flex items-center gap-1 font-medium"
-        >
-          💼 5 Laptop + 5 Chuột (Ngân sách 90tr)
-        </button>
+        >{tx("workspace:5Laptops5Mice90mVndBudget")}</button>
         <button
           onClick={() =>
             setInput(
@@ -873,9 +880,7 @@ const AIAgentChat: React.FC = () => {
             )
           }
           className="text-[11px] whitespace-nowrap bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full transition flex items-center gap-1 font-medium"
-        >
-          🏢 Mua sỉ 10 màn hình có chiết khấu
-        </button>
+        >{tx("workspace:wholesaleOrderFor10Monitors")}</button>
         <button
           onClick={() =>
             setInput(
@@ -883,26 +888,26 @@ const AIAgentChat: React.FC = () => {
             )
           }
           className="text-[11px] whitespace-nowrap bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-2.5 py-1 rounded-full transition flex items-center gap-1 font-medium"
-        >
-          📄 Xuất báo giá B2B & VAT
-        </button>
+        >{tx("workspace:b2bQuotationVat")}</button>
       </div>
 
-      <div className="border-t border-gray-200 bg-white p-3">
+      <div className="pp-agent-composer border-t border-gray-200 bg-white p-3">
         <div className="flex items-center gap-2">
-          <div className="flex-1 bg-gray-100 rounded-xl px-3.5 py-2 focus-within:ring-2 focus-within:ring-blue-500 transition">
+          <div className="pp-agent-input-wrap flex-1 bg-gray-100 rounded-xl px-3.5 py-2 focus-within:ring-2 focus-within:ring-blue-500 transition">
             <input
+              aria-label={tx("workspace:currentRequest")}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Nhập nhu cầu thu mua doanh nghiệp, ngân sách..."
+              placeholder={tx("workspace:enterProcurementRequirementsAndBudget")}
               className="w-full bg-transparent outline-none text-gray-800 placeholder-gray-400 text-sm"
               disabled={loading}
             />
           </div>
 
           <button
+            aria-label={tx("workspace:sendRequest")}
             onClick={handleSend}
             disabled={loading || !input.trim()}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-2.5 rounded-xl hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 flex items-center justify-center"
@@ -911,27 +916,25 @@ const AIAgentChat: React.FC = () => {
           </button>
         </div>
 
-        <p className="text-center text-[11px] text-gray-400 mt-1.5">
-          ProcurePrime • Tối ưu Thu mua Doanh nghiệp với AI Tự hành & WebMCP 🚀
-        </p>
+        <p className="text-center text-[11px] text-gray-400 mt-1.5">{tx("workspace:procureprimeEnterpriseProcurementWithAiWebmcp")}</p>
       </div>
       </>
       )}
 
-      <QuotationModal
+      <DeferredDialog open={isQuotationModalOpen} onClose={() => setIsQuotationModalOpen(false)}><QuotationModal
         isOpen={isQuotationModalOpen}
         onClose={() => setIsQuotationModalOpen(false)}
         quotationNumber={selectedQuotation}
-      />
+      /></DeferredDialog>
 
-      <ApprovalPanel
+      <DeferredDialog open={isApprovalOpen} onClose={() => setIsApprovalOpen(false)}><ApprovalPanel
         isOpen={isApprovalOpen}
         onClose={() => setIsApprovalOpen(false)}
         quotationNumber={approvalQuotation}
         onApprovalSuccess={(qNum) => {
           setSelectedQuotation(qNum);
         }}
-      />
+      /></DeferredDialog>
     </div>
   );
 };

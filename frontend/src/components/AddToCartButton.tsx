@@ -1,3 +1,4 @@
+import { tx, uiMessage, useLocale, localizedNode, localizedMessage } from "../i18n";
 import React, { useState } from "react";
 import { IProduct } from "../types/product";
 import { toast } from "react-toastify";
@@ -17,6 +18,7 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
   onAddToCart,
   className = "",
 }) => {
+  useLocale();
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const { getToken } = useAuth();
@@ -26,7 +28,7 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
   const handleAddToCart = async () => {
     const token = getToken();
     if (!token) {
-      toast.warning("Vui lòng đăng nhập tài khoản Doanh nghiệp để lưu yêu cầu báo giá!", {
+      toast.warning(localizedNode("cart:signInWithABusinessAccountTo"), {
         position: "top-right",
         autoClose: 2000,
       });
@@ -45,7 +47,7 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
       setIsSuccess(true);
       setTimeout(() => setIsSuccess(false), 2000);
 
-      toast.success("Đã thêm vào Danh mục Yêu cầu Báo Giá (RFQ)!", {
+      toast.success(localizedNode("cart:addedToYourRequestForQuotationRfq"), {
         position: "top-right",
         autoClose: 2000,
       });
@@ -54,8 +56,8 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
     } catch (error: any) {
       console.error("Lỗi khi thêm vào RFQ:", error);
       const errorMessage =
-        error.response?.data?.message || "Không thể thêm vào danh mục báo giá!";
-      toast.error(errorMessage, {
+        error.response?.data?.message || uiMessage("cart:unableToAddTheRfqItem");
+      toast.error(localizedMessage(errorMessage), {
         position: "top-right",
         autoClose: 2000,
       });
@@ -75,7 +77,7 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
           ? "bg-emerald-600 text-white border-emerald-600"
           : "bg-white hover:bg-slate-50 text-slate-800 border-slate-300"
       } border text-xs font-semibold py-2 px-2.5 rounded-lg transition-all duration-200 flex items-center justify-center gap-1.5`}
-      title="Đưa thiết bị vào bảng tổng hợp Yêu cầu Báo Giá (RFQ)"
+      title={tx("cart:addThisDeviceToYourRequestFor")}
     >
       {isLoading ? (
         <>
@@ -99,20 +101,20 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             ></path>
           </svg>
-          <span>Đang lưu...</span>
+          <span>{tx("cart:saving")}</span>
         </>
       ) : isSuccess ? (
         <>
           <Check className="h-3.5 w-3.5 text-white" />
-          <span>Đã Lưu RFQ</span>
+          <span>{tx("cart:rfqSaved")}</span>
         </>
       ) : product.countInStock > 0 ? (
         <>
           <FileSpreadsheet className="h-3.5 w-3.5 text-indigo-600" />
-          <span>+ Đưa Vào RFQ</span>
+          <span>{tx("cart:addToRfq")}</span>
         </>
       ) : (
-        <span>Hết hàng dự án</span>
+        <span>{tx("cart:outOfStock")}</span>
       )}
     </button>
   );

@@ -1,3 +1,4 @@
+import { tx, uiText, useLocale, formatVND, formatDate } from "../i18n";
 import React from "react";
 import { FiPackage, FiCreditCard, FiTruck } from "react-icons/fi";
 import { format } from "date-fns";
@@ -19,32 +20,31 @@ const getStatusColor = (status: string) => {
 };
 
 const OrderMainInfo = ({ order }: { order: any }) => {
+  useLocale();
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 lg:col-span-2">
+    <div className="bg-white rounded-lg p-6 lg:col-span-2">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Trạng thái đơn hàng */}
         <div className="bg-gray-50 p-4 rounded-lg">
           <div className="flex items-center mb-3">
-            <FiPackage className="text-blue-500 mr-2" />
-            <h2 className="text-lg font-semibold">Trạng Thái Đơn Hàng</h2>
+            <FiPackage className="text-[#254AD7] mr-2" />
+            <h2 className="text-lg font-semibold">{tx("adminOrders:orderStatus")}</h2>
           </div>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-gray-600">Ngày đặt:</span>
+              <span className="text-gray-600">{tx("adminOrders:orderDate2")}</span>
               <span>
-                {format(new Date(order.createdAt), "HH:mm dd/MM/yyyy", {
-                  locale: vi,
-                })}
+                {uiText(formatDate(new Date(order.createdAt), {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric'}))}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Trạng thái:</span>
+              <span className="text-gray-600">{tx("adminOrders:status")}</span>
               <span
-                className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                className={` px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
                   order.status
-                )}`}
+                )}  `}
               >
-                {order.status}
+                {({pending:tx('orders:statusPending'),processing:tx('orders:statusProcessing'),completed:tx('orders:statusCompleted'),cancelled:tx('orders:statusCancelled'),shipped:tx('orders:statusShipped')} as Record<string,string>)[order.status] || order.status}
               </span>
             </div>
           </div>
@@ -54,15 +54,15 @@ const OrderMainInfo = ({ order }: { order: any }) => {
         <div className="bg-gray-50 p-4 rounded-lg">
           <div className="flex items-center mb-3">
             <FiCreditCard className="text-green-500 mr-2" />
-            <h2 className="text-lg font-semibold">Thanh Toán</h2>
+            <h2 className="text-lg font-semibold">{tx("adminOrders:payment")}</h2>
           </div>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-gray-600">Phương thức:</span>
-              <span>{order.paymentMethod}</span>
+              <span className="text-gray-600">{tx("adminOrders:method")}</span>
+              <span>{({BankTransfer:tx('orders:bankTransfer'),COD:tx('orders:cashOnDelivery')} as Record<string,string>)[order.paymentMethod] || order.paymentMethod}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Tình trạng:</span>
+              <span className="text-gray-600">{tx("adminOrders:availability")}</span>
               <span
                 className={
                   order.isPaid
@@ -70,7 +70,7 @@ const OrderMainInfo = ({ order }: { order: any }) => {
                     : "text-yellow-600 font-medium"
                 }
               >
-                {order.isPaid ? "Đã thanh toán" : "Chưa thanh toán"}
+                {uiText(order.isPaid ? tx("adminOrders:paid") : tx("adminOrders:unpaid"))}
               </span>
             </div>
           </div>
@@ -79,12 +79,12 @@ const OrderMainInfo = ({ order }: { order: any }) => {
         {/* Vận chuyển */}
         <div className="bg-gray-50 p-4 rounded-lg">
           <div className="flex items-center mb-3">
-            <FiTruck className="text-purple-500 mr-2" />
-            <h2 className="text-lg font-semibold">Vận Chuyển</h2>
+            <FiTruck className="text-[#254AD7] mr-2" />
+            <h2 className="text-lg font-semibold">{tx("adminOrders:delivery")}</h2>
           </div>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-gray-600">Tình trạng:</span>
+              <span className="text-gray-600">{tx("adminOrders:availability")}</span>
               <span
                 className={
                   order.isDelivered
@@ -92,16 +92,14 @@ const OrderMainInfo = ({ order }: { order: any }) => {
                     : "text-yellow-600 font-medium"
                 }
               >
-                {order.isDelivered ? "Đã giao hàng" : "Đang xử lý"}
+                {uiText(order.isDelivered ? tx("adminOrders:delivered") : tx("adminOrders:processing"))}
               </span>
             </div>
             {order.deliveredAt && (
               <div className="flex justify-between">
-                <span className="text-gray-600">Ngày giao:</span>
+                <span className="text-gray-600">{tx("adminOrders:deliveryDate")}</span>
                 <span>
-                  {format(new Date(order.deliveredAt), "HH:mm dd/MM/yyyy", {
-                    locale: vi,
-                  })}
+                  {uiText(formatDate(new Date(order.deliveredAt), {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric'}))}
                 </span>
               </div>
             )}
@@ -111,23 +109,15 @@ const OrderMainInfo = ({ order }: { order: any }) => {
 
       {/* Danh sách sản phẩm */}
       <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-4">Sản Phẩm</h2>
+        <h2 className="text-xl font-semibold mb-4">{tx("adminOrders:product")}</h2>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          <div className="pp-table-region" role="region" aria-label={tx("adminOrders:dataTable")} tabIndex={0}><table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sản phẩm
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Đơn giá
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Số lượng
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Thành tiền
-                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("adminOrders:products")}</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("adminOrders:unitPrice")}</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("adminOrders:quantity")}</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{tx("adminOrders:lineTotal")}</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -138,7 +128,7 @@ const OrderMainInfo = ({ order }: { order: any }) => {
                       <img
   className="h-10 w-10 rounded"
   src={item.image || "/images/no-image.png"}
-  alt={item.name}
+  alt={uiText(item.name)}
   onError={(e) => {
     (e.currentTarget as HTMLImageElement).src = "/images/no-image.png";
   }}
@@ -146,27 +136,25 @@ const OrderMainInfo = ({ order }: { order: any }) => {
 
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">
-                          {item.name}
+                          {uiText(item.name)}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {item.product}
+                          {uiText(item.product)}
                         </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {item.price.toLocaleString()}đ
-                  </td>
+                    {formatVND(item.price)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {item.quantity}
+                    {uiText(item.quantity)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {(item.price * item.quantity).toLocaleString()}đ
-                  </td>
+                    {formatVND(item.price * item.quantity)}</td>
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </div>
 
@@ -185,22 +173,21 @@ const OrderMainInfo = ({ order }: { order: any }) => {
           return (
             <>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-600">Tạm tính:</span>
-                <span>{subTotal.toLocaleString()}đ</span>
+                <span className="text-gray-600">{tx("adminOrders:subtotal")}</span>
+                <span>{formatVND(subTotal)}</span>
               </div>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-600">Thuế (10% VAT):</span>
-                <span>{tax.toLocaleString()}đ</span>
+                <span className="text-gray-600">{tx("adminOrders:tax10Vat")}</span>
+                <span>{formatVND(tax)}</span>
               </div>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-600">Phí vận chuyển:</span>
-                <span>{shippingFee.toLocaleString()}đ</span>
+                <span className="text-gray-600">{tx("adminOrders:deliveryFee")}</span>
+                <span>{formatVND(shippingFee)}</span>
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                <span className="font-semibold">Tổng cộng:</span>
-                <span className="text-xl font-bold text-blue-600">
-                  {finalTotal.toLocaleString()}đ
-                </span>
+                <span className="font-semibold">{tx("adminOrders:total")}</span>
+                <span className="text-xl font-bold text-[#254AD7]">
+                  {formatVND(finalTotal)}</span>
               </div>
             </>
           );

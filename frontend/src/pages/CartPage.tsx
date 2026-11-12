@@ -1,3 +1,4 @@
+import { tx, uiMessage, uiText, useLocale } from "../i18n";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { ShoppingCart, ArrowLeft, FileText } from "lucide-react";
@@ -9,6 +10,7 @@ import { QuotationModal } from "../components/procurement/QuotationModal";
 import { BudgetProgressBar } from "../components/procurement/BudgetProgressBar";
 
 const CartPage = () => {
+  useLocale();
   const {
     cartItems,
     itemsPrice,
@@ -58,10 +60,10 @@ const CartPage = () => {
         setQuotationNumber(data.data.quotationNumber);
         setIsQuotationModalOpen(true);
       } else {
-        alert(data.message || "Không thể tạo báo giá");
+        alert(data.message || tx("cart:unableToCreateQuotation"));
       }
     } catch (err: any) {
-      alert("Lỗi kết nối máy chủ: " + err.message);
+      alert(tx("cart:serverConnectionError") + err.message);
     } finally {
       setExportingQuote(false);
     }
@@ -69,7 +71,7 @@ const CartPage = () => {
 
   const loadCart = async () => {
     if (!token) {
-      setError("Vui lòng đăng nhập để xem giỏ hàng!");
+      setError(uiMessage("cart:pleaseSignInToViewYourCart"));
       setLoading(false);
       return;
     }
@@ -84,7 +86,7 @@ const CartPage = () => {
       }
     } catch (err: any) {
       console.error(err);
-      setError("Không thể lấy thông tin giỏ hàng.");
+      setError(uiMessage("cart:unableToLoadYourCart"));
     } finally {
       setLoading(false);
     }
@@ -100,7 +102,7 @@ const CartPage = () => {
       await removeFromCart(productId);
     } catch (err) {
       console.error("Lỗi khi xóa sản phẩm:", err);
-      setError("Không thể xóa sản phẩm.");
+      setError(uiMessage("cart:unableToRemoveProduct"));
     }
   };
 
@@ -113,7 +115,7 @@ const CartPage = () => {
       await updateQuantity(productId, newQuantity);
     } catch (err) {
       console.error("Lỗi khi cập nhật số lượng:", err);
-      setError("Không thể cập nhật số lượng sản phẩm.");
+      setError(uiMessage("cart:unableToUpdateQuantity"));
     }
   };
 
@@ -151,7 +153,7 @@ const CartPage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="pp-screen pp-cart flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
@@ -161,48 +163,40 @@ const CartPage = () => {
 
   if (error || isCartEmpty) {
     return (
-      <div className="text-center py-12">
+      <div className="pp-screen pp-cart text-center py-12">
         <ShoppingCart className="mx-auto h-16 w-16 text-gray-400 mb-4" />
         <h2 className="text-xl font-medium text-gray-900 mb-2">
-          {error || "Giỏ hàng của bạn đang trống"}
+          {uiText(error || tx("cart:yourCartIsEmpty"))}
         </h2>
-        <p className="text-gray-600 mb-6">
-          Hãy khám phá cửa hàng và thêm sản phẩm vào giỏ hàng!
-        </p>
+        <p className="text-gray-600 mb-6">{tx("cart:exploreTheStoreAndAddProductsTo")}</p>
         <Link
           to="/products"
-          className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
+          className="inline-flex items-center px-6 py-3 bg-[#254AD7] text-white font-medium rounded-lg hover:bg-[#254AD7] transition"
         >
-          <ArrowLeft className="mr-2 h-5 w-5" />
-          Tiếp tục mua sắm
-        </Link>
+          <ArrowLeft className="mr-2 h-5 w-5" />{tx("cart:continueShopping")}</Link>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="pp-screen pp-cart container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Giỏ hàng của bạn
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{tx("cart:yourCart")}</h1>
         <div className="flex items-center text-gray-600">
-          <Link to="/" className="hover:text-blue-600">
-            Trang chủ
-          </Link>
+          <Link to="/" className="hover:text-[#254AD7]">{tx("cart:home")}</Link>
           <span className="mx-2">/</span>
-          <span className="text-blue-600">Giỏ hàng</span>
+          <span className="text-[#254AD7]">{tx("cart:cart")}</span>
         </div>
       </div>
 
       <div className="lg:flex gap-8">
         <div className="lg:w-2/3">
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white rounded-lg overflow-hidden">
             <div className="hidden md:grid grid-cols-12 bg-gray-100 p-4 text-gray-600 font-medium">
-              <div className="col-span-5">Sản phẩm</div>
-              <div className="col-span-2 text-center">Đơn giá</div>
-              <div className="col-span-3 text-center">Số lượng</div>
-              <div className="col-span-2 text-center">Thành tiền</div>
+              <div className="col-span-5">{tx("cart:products")}</div>
+              <div className="col-span-2 text-center">{tx("cart:unitPrice")}</div>
+              <div className="col-span-3 text-center">{tx("cart:quantity")}</div>
+              <div className="col-span-2 text-center">{tx("cart:lineTotal")}</div>
             </div>
 
             {cartItems.map((item) => (
@@ -228,13 +222,13 @@ const CartPage = () => {
             onBuyNow={handleBuyNow}
           />
 
-          <button
+          <button type="button"
             onClick={handleExportQuotation}
             disabled={exportingQuote || cartItems.length === 0}
-            className="w-full bg-gradient-to-r from-indigo-700 via-indigo-800 to-blue-800 hover:from-indigo-800 hover:to-blue-900 text-white py-3 px-4 rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-md disabled:opacity-50 text-sm"
+            className="w-full bg-[#254AD7] hover: hover: text-white py-3 px-4 rounded-lg font-bold transition flex items-center justify-center gap-2 disabled:opacity-50 text-sm"
           >
             <FileText className="w-4 h-4" />
-            {exportingQuote ? "Đang Khởi Tạo Báo Giá..." : "📄 Xuất Báo Giá Thương Mại B2B"}
+            {uiText(exportingQuote ? tx("cart:creatingQuotation") : tx("cart:exportB2bCommercialQuotation"))}
           </button>
         </div>
       </div>

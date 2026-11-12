@@ -1,3 +1,51 @@
 AGENTS.md
-CODEX_FIRST_PROMPT_READ_ONLY.md
 PROCUREPRIME_CODEX_UIUX_MASTER_BRIEF.md
+
+.agent/skills/
+.agents/
+.codex/
+CODEX_FIRST_PROMPT_READ_ONLY.md
+
+# Local environment and credentials; keep sanitized templates versioned.
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service-account*.json
+
+# Installed dependencies and generated build/cache files.
+node_modules/
+dist/
+build/
+coverage/
+.vite/
+.cache/
+*.log
+*.tsbuildinfo
+
+# Local design/QA/run artifacts and browser data.
+/ProcurePrime-*-QA*/
+/ProcurePrime-*-Work*/
+/ProcurePrime-*-Preview*/
+/ProcurePrime-Local-Run/
+/ProcurePrime-*-QA*.zip*
+/ProcurePrime-*-Work*.zip*
+/ProcurePrime-*-Preview*.zip*
+/playwright-report/
+/test-results/
+*.har
+**/browser-temp/
+**/browser-profiles/
+**/ChromeProfile*/
+**/User Data/
+**/Cookies
+**/History
+**/Login Data
+**/Local Storage/
+**/Session Storage/
+**/Code Cache/

@@ -1,0 +1,29 @@
+{
+  "notifications": { "name": "Thông báo", "dismiss": "Đóng thông báo" },
+  "assistant": { "open": "Mở trợ lý mua sắm ProcurePrime", "name": "Trợ lý mua sắm ProcurePrime", "close": "Đóng trợ lý" },
+  "screen": {
+    "retryInterface": "Tải lại phần giao diện",
+    "loading": "Đang tải giao diện…",
+    "unavailable": "Chưa thể tải màn hình này.",
+    "explanation": "Kiểm tra kết nối rồi thử tải lại. Nội dung chưa lưu trên trang có thể bị mất nếu bạn tải lại.",
+    "home": "Về trang chủ",
+    "reload": "Tải lại trang"
+  },
+  "counts": {
+    "orders_one": "Tổng cộng: {{count, number}} đơn hàng",
+    "orders_other": "Tổng cộng: {{count, number}} đơn hàng",
+    "users_one": "Tổng cộng: {{count, number}} người dùng",
+    "users_other": "Tổng cộng: {{count, number}} người dùng",
+    "range_one": "Hiển thị {{start, number}}–{{end, number}} trên tổng số {{count, number}} mục",
+    "range_other": "Hiển thị {{start, number}}–{{end, number}} trên tổng số {{count, number}} mục",
+    "comparison_one": "Đối chiếu {{count, number}} dòng thiết bị — chỉ xem",
+    "comparison_other": "Đối chiếu {{count, number}} dòng thiết bị — chỉ xem"
+  },
+  "language": {
+    "choose": "Ngôn ngữ giao diện"
+  },
+  "errors": {
+    "original": "Thông báo gốc",
+    "signInFailed": "Không thể đăng nhập."
+  }
+}

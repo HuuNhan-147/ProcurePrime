@@ -1,3 +1,4 @@
+import { tx, uiMessage, uiText, useLocale, formatVND } from "../i18n";
 import React, { useState, useEffect } from "react";
 import { IProduct } from "../types/product";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +11,7 @@ interface ProductCardProps {
 }
 
 const AdminProduct: React.FC<ProductCardProps> = ({ product, onDelete }) => {
+  useLocale();
   const [loading, setLoading] = useState<boolean>(true);
   const [shippingPrice, setShippingPrice] = useState<number>(0);
   const { getToken } = useAuth();
@@ -20,7 +22,7 @@ const AdminProduct: React.FC<ProductCardProps> = ({ product, onDelete }) => {
   ) => {
     const target = e.target as HTMLImageElement;
     target.src = "/images/no-image.png";
-    target.alt = "Ảnh sản phẩm không khả dụng";
+    target.alt = uiMessage("adminProducts:productImageUnavailable");
     setLoading(false);
   };
 
@@ -39,16 +41,16 @@ const AdminProduct: React.FC<ProductCardProps> = ({ product, onDelete }) => {
       return;
     }
 
-    const confirmed = window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?");
+    const confirmed = window.confirm(tx("adminProducts:deleteThisProduct"));
     if (!confirmed) return;
 
     try {
       await deleteProduct(product._id, token);
       onDelete(product._id);
-      alert("Sản phẩm đã được xóa thành công!");
+      alert(tx("adminProducts:productDeletedSuccessfully"));
     } catch (error) {
       console.error("Không thể xóa sản phẩm", error);
-      alert("Không thể xóa sản phẩm. Vui lòng thử lại!");
+      alert(tx("adminProducts:unableToDeleteTheProductPleaseTry"));
     }
   };
 
@@ -78,58 +80,50 @@ const AdminProduct: React.FC<ProductCardProps> = ({ product, onDelete }) => {
       <div className="relative">
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-            <span className="text-gray-500">Đang tải ảnh...</span>
+            <span className="text-gray-500">{tx("adminProducts:loadingImage")}</span>
           </div>
         )}
         <img
           src={product.image} 
-          alt={product.name}
+          alt={uiText(product.name)}
           onError={handleImageError}
           onLoad={handleImageLoad}
           loading="lazy"
           className="w-full aspect-square object-contain p-2 bg-white"
         />
         {product.rating === 5 && (
-          <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-            HOT
-          </span>
+          <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">{tx("adminProducts:featured")}</span>
         )}
       </div>
 
       {/* Product Info Section */}
       <div className="p-4">
         <h3 className="text-lg font-semibold text-gray-800 mb-1 truncate">
-          {product.name}
+          {uiText(product.name)}
         </h3>
         <p className="text-gray-600 text-sm mb-2 line-clamp-2 h-10">
-          {product.description}
+          {uiText(product.description)}
         </p>
 
         <div className="flex justify-between items-center mb-2">
           <span className="text-lg font-bold text-blue-600">
-            {product.price.toLocaleString()} VND
+            {formatVND(product.price)}
           </span>
-          <div className="flex">{renderStars()}</div>
+          <div className="flex">{uiText(renderStars())}</div>
         </div>
 
         <div className="flex justify-between items-center mt-4">
-          <span className="text-sm text-gray-500">
-            Còn {product.countInStock} sản phẩm
-          </span>
+          <span className="text-sm text-gray-500">{tx("adminProducts:available")}{" "}{uiText(product.countInStock)}{" "}{tx("adminProducts:products")}</span>
           <div className="flex space-x-2">
             <button
               onClick={handleEdit}
               className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
-            >
-              Chi tiết
-            </button>
+            >{tx("adminProducts:details")}</button>
             <button
               onClick={handleDelete}
               className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition-colors disabled:opacity-50"
               disabled={product.countInStock <= 0}
-            >
-              Xóa
-            </button>
+            >{tx("adminProducts:delete")}</button>
           </div>
         </div>
       </div>

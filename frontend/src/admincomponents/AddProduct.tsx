@@ -1,3 +1,4 @@
+import { tx, uiMessage, uiText, useLocale } from "../i18n";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -5,6 +6,7 @@ import { addProduct } from "../api/productApi";
 import { fetchCategory } from "../api/CategoryApi";
 
 const AddProduct: React.FC = () => {
+  useLocale();
   const [name, setName] = useState("");
   const [price, setPrice] = useState<number | string>("");
   const [description, setDescription] = useState("");
@@ -36,7 +38,7 @@ const AddProduct: React.FC = () => {
         setCategories(data);
       } catch (error) {
         console.error("Lỗi khi lấy danh mục:", error);
-        alert("❌ Không thể tải danh mục!");
+        alert(tx("adminProducts:unableToLoadCategories"));
       } finally {
         setLoadingCategories(false);
       }
@@ -54,7 +56,7 @@ const AddProduct: React.FC = () => {
       // ✅ Validate file type (Cloudinary chấp nhận)
       const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
       if (!validTypes.includes(file.type)) {
-        alert("❌ Chỉ chấp nhận file ảnh (JPG, PNG, WEBP)!");
+        alert(tx("adminProducts:onlyImageFilesJpgPngWebpAre"));
         e.target.value = "";
         return;
       }
@@ -62,7 +64,7 @@ const AddProduct: React.FC = () => {
       // ✅ Validate file size (max 5MB)
       const maxSize = 5 * 1024 * 1024; // 5MB
       if (file.size > maxSize) {
-        alert("❌ File ảnh không được vượt quá 5MB!");
+        alert(tx("adminProducts:theImageMustNotExceed5Mb"));
         e.target.value = "";
         return;
       }
@@ -81,33 +83,33 @@ const AddProduct: React.FC = () => {
 
     const token = getToken();
     if (!token) {
-      alert("❌ Bạn cần đăng nhập!");
+      alert(tx("adminProducts:pleaseSignIn"));
       return;
     }
 
     // ✅ Validate required fields
     if (!name.trim()) {
-      alert("❌ Vui lòng nhập tên sản phẩm!");
+      alert(tx("adminProducts:enterAProductName"));
       return;
     }
 
     if (!price || Number(price) <= 0) {
-      alert("❌ Vui lòng nhập giá sản phẩm hợp lệ!");
+      alert(tx("adminProducts:enterAValidProductPrice"));
       return;
     }
 
     if (!category) {
-      alert("❌ Vui lòng chọn danh mục!");
+      alert(tx("adminProducts:selectACategory"));
       return;
     }
 
     if (!countInStock || Number(countInStock) < 0) {
-      alert("❌ Vui lòng nhập số lượng tồn kho hợp lệ!");
+      alert(tx("adminProducts:enterAValidStockQuantity"));
       return;
     }
 
     if (!image) {
-      alert("❌ Vui lòng chọn ảnh sản phẩm!");
+      alert(tx("adminProducts:selectAProductImage"));
       return;
     }
 
@@ -139,7 +141,7 @@ const AddProduct: React.FC = () => {
       const result = await addProduct(formData, token);
 
       console.log("✅ Phản hồi từ server:", result);
-      alert("🎉 Thêm sản phẩm thành công!");
+      alert(tx("adminProducts:productAddedSuccessfully"));
 
       // ✅ Reset form
       setName("");
@@ -162,9 +164,9 @@ const AddProduct: React.FC = () => {
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
-        "Không thể thêm sản phẩm!";
+        uiMessage("adminProducts:unableToAddTheProduct");
 
-      alert(`❌ ${errorMessage}`);
+      alert(tx("adminProducts:value", { v0: (errorMessage) }));
     } finally {
       setIsSubmitting(false);
     }
@@ -172,10 +174,8 @@ const AddProduct: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10">
-      <div className="bg-white rounded-2xl shadow-xl p-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
-          ➕ Thêm Sản Phẩm Mới
-        </h1>
+      <div className="bg-white rounded-lg p-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">{tx("adminProducts:addProduct")}</h1>
 
         <form
           onSubmit={handleSubmit}
@@ -183,15 +183,14 @@ const AddProduct: React.FC = () => {
         >
           {/* Tên sản phẩm */}
           <div>
-            <label className="block text-sm font-semibold mb-2 text-gray-700">
-              Tên sản phẩm <span className="text-red-500">*</span>
+            <label className="block text-sm font-semibold mb-2 text-gray-700">{tx("adminProducts:productName")}{" "}<span className="text-red-500">*</span>
             </label>
-            <input
+            <input aria-label={tx("adminProducts:productName")}
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Nhập tên sản phẩm"
+              placeholder={tx("adminProducts:enterProductName")}
               required
               disabled={isSubmitting}
             />
@@ -199,15 +198,14 @@ const AddProduct: React.FC = () => {
 
           {/* Giá */}
           <div>
-            <label className="block text-sm font-semibold mb-2 text-gray-700">
-              Giá sản phẩm (VNĐ) <span className="text-red-500">*</span>
+            <label className="block text-sm font-semibold mb-2 text-gray-700">{tx("adminProducts:productPriceVnd")}{" "}<span className="text-red-500">*</span>
             </label>
-            <input
+            <input aria-label={tx("adminProducts:productPriceVnd")}
               type="number"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Nhập giá"
+              placeholder={tx("adminProducts:enterPrice")}
               min="0"
               required
               disabled={isSubmitting}
@@ -216,15 +214,13 @@ const AddProduct: React.FC = () => {
 
           {/* Mô tả */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-semibold mb-2 text-gray-700">
-              Mô tả sản phẩm
-            </label>
-            <textarea
+            <label className="block text-sm font-semibold mb-2 text-gray-700">{tx("adminProducts:productDescription")}</label>
+            <textarea aria-label={tx("adminProducts:productDescription")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Nhập mô tả chi tiết sản phẩm"
+              placeholder={tx("adminProducts:enterADetailedProductDescription")}
               disabled={isSubmitting}
             />
           </div>
@@ -232,9 +228,7 @@ const AddProduct: React.FC = () => {
           {/* Thông số kỹ thuật */}
           <div className="md:col-span-2">
             <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Thông số kỹ thuật
-              </label>
+              <label className="block text-sm font-semibold text-gray-700">{tx("adminProducts:specifications")}</label>
               <button
                 type="button"
                 onClick={() =>
@@ -243,19 +237,17 @@ const AddProduct: React.FC = () => {
                     { key: "", value: "", unit: "", group: "" },
                   ])
                 }
-                className="text-sm bg-blue-50 text-blue-600 px-3 py-1 rounded-md hover:bg-blue-100 transition"
-              >
-                + Thêm thông số
-              </button>
+                className="text-sm bg-[#edf1ff] text-[#254AD7] px-3 py-1 rounded-md hover:bg-[#edf1ff] transition"
+              >{tx("adminProducts:addSpecification")}</button>
             </div>
             
             <div className="space-y-3">
               {specifications.map((spec, index) => (
                 <div key={index} className="flex gap-2 items-start bg-gray-50 p-3 rounded-lg border border-gray-200">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2 flex-1">
-                    <input
+                    <input aria-label={tx("adminProducts:specificationNameEGRam")}
                       type="text"
-                      placeholder="Tên thông số (VD: RAM)"
+                      placeholder={tx("adminProducts:specificationNameEGRam")}
                       value={spec.key}
                       onChange={(e) => {
                         const newSpecs = [...specifications];
@@ -264,9 +256,9 @@ const AddProduct: React.FC = () => {
                       }}
                       className="w-full px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-blue-500"
                     />
-                     <input
+                     <input aria-label={tx("adminProducts:valueEG8Gb")}
                       type="text"
-                      placeholder="Giá trị (VD: 8GB)"
+                      placeholder={tx("adminProducts:valueEG8Gb")}
                       value={spec.value}
                       onChange={(e) => {
                         const newSpecs = [...specifications];
@@ -275,9 +267,9 @@ const AddProduct: React.FC = () => {
                       }}
                       className="w-full px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-blue-500"
                     />
-                     <input
+                     <input aria-label={tx("adminProducts:unitEGGb")}
                       type="text"
-                      placeholder="Đơn vị (VD: GB)"
+                      placeholder={tx("adminProducts:unitEGGb")}
                       value={spec.unit}
                       onChange={(e) => {
                         const newSpecs = [...specifications];
@@ -286,9 +278,9 @@ const AddProduct: React.FC = () => {
                       }}
                       className="w-full px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-blue-500"
                     />
-                     <input
+                     <input aria-label={tx("adminProducts:groupEGConfiguration")}
                       type="text"
-                      placeholder="Nhóm (VD: Cấu hình)"
+                      placeholder={tx("adminProducts:groupEGConfiguration")}
                       value={spec.group}
                       onChange={(e) => {
                         const newSpecs = [...specifications];
@@ -311,34 +303,31 @@ const AddProduct: React.FC = () => {
                 </div>
               ))}
               {specifications.length === 0 && (
-                <p className="text-sm text-gray-500 text-center py-2 border-2 border-dashed border-gray-200 rounded-lg">
-                  Chưa có thông số kỹ thuật nào
-                </p>
+                <p className="text-sm text-gray-500 text-center py-2 border-2 border-dashed border-gray-200 rounded-lg">{tx("adminProducts:noSpecificationsAdded")}</p>
               )}
             </div>
           </div>
 
           {/* Danh mục */}
           <div>
-            <label className="block text-sm font-semibold mb-2 text-gray-700">
-              Danh mục <span className="text-red-500">*</span>
+            <label className="block text-sm font-semibold mb-2 text-gray-700">{tx("adminProducts:category")}{" "}<span className="text-red-500">*</span>
             </label>
             {loadingCategories ? (
               <div className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50">
-                <p className="text-gray-500">Đang tải danh mục...</p>
+                <p className="text-gray-500">{tx("adminProducts:loadingCategories")}</p>
               </div>
             ) : (
-              <select
+              <select aria-label={tx("adminProducts:category")}
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
                 disabled={isSubmitting}
               >
-                <option value="">-- Chọn danh mục --</option>
+                <option value="">{tx("adminProducts:selectACategory2")}</option>
                 {categories.map((cat) => (
                   <option key={cat._id} value={cat._id}>
-                    {cat.name}
+                    {uiText(cat.name)}
                   </option>
                 ))}
               </select>
@@ -347,10 +336,8 @@ const AddProduct: React.FC = () => {
 
           {/* Rating */}
           <div>
-            <label className="block text-sm font-semibold mb-2 text-gray-700">
-              Đánh giá (1-5 sao)
-            </label>
-            <input
+            <label className="block text-sm font-semibold mb-2 text-gray-700">{tx("adminProducts:rating15Stars")}</label>
+            <input aria-label={tx("adminProducts:rating15Stars")}
               type="number"
               min={1}
               max={5}
@@ -365,15 +352,14 @@ const AddProduct: React.FC = () => {
 
           {/* Stock */}
           <div>
-            <label className="block text-sm font-semibold mb-2 text-gray-700">
-              Số lượng tồn kho <span className="text-red-500">*</span>
+            <label className="block text-sm font-semibold mb-2 text-gray-700">{tx("adminProducts:stockQuantity")}{" "}<span className="text-red-500">*</span>
             </label>
-            <input
+            <input aria-label={tx("adminProducts:stockQuantity")}
               type="number"
               value={countInStock}
               onChange={(e) => setCountInStock(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Nhập số lượng"
+              placeholder={tx("adminProducts:enterQuantity")}
               min="0"
               required
               disabled={isSubmitting}
@@ -382,8 +368,7 @@ const AddProduct: React.FC = () => {
 
           {/* Image upload - ✅ Cloudinary sẽ xử lý */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-semibold mb-2 text-gray-700">
-              Ảnh sản phẩm <span className="text-red-500">*</span>
+            <label className="block text-sm font-semibold mb-2 text-gray-700">{tx("adminProducts:productImage")}{" "}<span className="text-red-500">*</span>
             </label>
 
             <div className="space-y-4">
@@ -414,11 +399,11 @@ const AddProduct: React.FC = () => {
                     </svg>
                     <span className="text-gray-600">
                       {image ? (
-                        <span className="text-blue-600 font-medium">
-                          {image.name}
+                        <span className="text-[#254AD7] font-medium">
+                          {uiText(image.name)}
                         </span>
                       ) : (
-                        "📁 Chọn ảnh sản phẩm (JPG, PNG, WEBP - Max 5MB)"
+                        tx("adminProducts:chooseImageJpgPngWebpMax5")
                       )}
                     </span>
                   </div>
@@ -429,25 +414,19 @@ const AddProduct: React.FC = () => {
               {preview && (
                 <div className="flex items-start gap-4">
                   <div>
-                    <p className="text-sm text-gray-600 mb-2 font-medium">
-                      Xem trước:
-                    </p>
+                    <p className="text-sm text-gray-600 mb-2 font-medium">{tx("adminProducts:preview")}</p>
                     <img
                       src={preview}
-                      alt="Preview"
-                      className="w-48 h-48 object-cover rounded-lg border-2 border-blue-300 shadow-md"
+                      alt={tx("adminProducts:preview2")}
+                      className="w-48 h-48 object-cover rounded-lg border-2 border-blue-300"
                     />
                   </div>
                   <div className="text-sm text-gray-500 mt-8">
-                    <p>📦 Tên file: {image?.name}</p>
-                    <p>
-                      📊 Kích thước:{" "}
-                      {image ? (image.size / 1024).toFixed(2) : 0} KB
+                    <p>{tx("adminProducts:fileName")}{" "}{uiText(image?.name)}</p>
+                    <p>{tx("adminProducts:fileSize")}{" "}
+                      {uiText(image ? (image.size / 1024).toFixed(2) : 0)} KB
                     </p>
-                    <p className="text-xs mt-2 text-blue-600">
-                      ✅ Ảnh này sẽ được tải lên Cloudinary khi bạn nhấn "Thêm
-                      sản phẩm"
-                    </p>
+                    <p className="text-xs mt-2 text-[#254AD7]">{tx("adminProducts:thisImageWillBeUploadedToCloudinary")}</p>
                   </div>
                 </div>
               )}
@@ -461,12 +440,10 @@ const AddProduct: React.FC = () => {
               onClick={() => navigate("/admin/products")}
               className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
               disabled={isSubmitting}
-            >
-              Hủy
-            </button>
+            >{tx("adminProducts:cancel")}</button>
             <button
               type="submit"
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
+              className="px-6 py-3 bg-[#254AD7] text-white rounded-lg hover:bg-[#254AD7] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
@@ -486,11 +463,9 @@ const AddProduct: React.FC = () => {
                       fill="currentColor"
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     />
-                  </svg>
-                  Đang tải lên Cloudinary...
-                </>
+                  </svg>{tx("adminProducts:uploadingToCloudinary")}</>
               ) : (
-                "➕ Thêm sản phẩm"
+                tx("adminProducts:addProduct2")
               )}
             </button>
           </div>

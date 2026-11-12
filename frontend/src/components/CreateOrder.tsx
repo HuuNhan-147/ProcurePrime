@@ -1,3 +1,4 @@
+import { tx, uiMessage, uiText, useLocale, formatVND } from "../i18n";
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { IProduct } from "../types/product";
@@ -22,6 +23,7 @@ interface IOrderData {
 }
 
 const CreateOrderPage: React.FC = () => {
+  useLocale();
   const location = useLocation();
   const navigate = useNavigate();
   const { getToken } = useAuth();
@@ -110,13 +112,13 @@ const CreateOrderPage: React.FC = () => {
 
     const token = getToken();
     if (!token) {
-      setError("Vui lòng đăng nhập để tiếp tục");
+      setError(uiMessage("checkout:pleaseSignInToContinue"));
       setLoading(false);
       return;
     }
 
     if (products.length === 0 && !product) {
-      setError("Không có sản phẩm nào trong yêu cầu mua sắm!");
+      setError(uiMessage("checkout:thereAreNoProductsInThisPurchase"));
       setLoading(false);
       return;
     }
@@ -142,7 +144,7 @@ const CreateOrderPage: React.FC = () => {
       setOrderSuccess(true);
     } catch (err: any) {
       console.error("Lỗi khi lập đơn mua sắm B2B:", err);
-      setError(err.message || "Đã xảy ra lỗi khi tạo đơn hàng");
+      setError(err.message || uiMessage("checkout:anErrorOccurredWhileCreatingTheOrder"));
     } finally {
       setLoading(false);
     }
@@ -150,37 +152,28 @@ const CreateOrderPage: React.FC = () => {
 
   if (orderSuccess) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12">
-        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center border border-slate-200">
+      <div className="pp-screen pp-checkout min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12">
+        <div className="bg-white p-8 rounded-lg max-w-md w-full text-center border border-slate-200">
           <div className="flex justify-center mb-5">
             <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-full">
               <CheckCircle2 className="h-10 w-10 text-emerald-600" />
             </div>
           </div>
-          <h1 className="text-xl font-bold text-slate-900 mb-2">
-            Lập Đơn Mua Sắm B2B Thành Công!
-          </h1>
+          <h1 className="text-xl font-bold text-slate-900 mb-2">{tx("checkout:b2bPurchaseOrderCreatedSuccessfully")}</h1>
           {createdOrderCode && (
-            <p className="text-xs font-mono bg-slate-100 text-slate-700 py-1.5 px-3 rounded-md mb-3 inline-block">
-              Mã đơn: {createdOrderCode}
+            <p className="text-xs font-mono bg-slate-100 text-slate-700 py-1.5 px-3 rounded-md mb-3 inline-block">{tx("checkout:orderReference")}{" "}{uiText(createdOrderCode)}
             </p>
           )}
-          <p className="text-xs text-slate-600 mb-6 leading-relaxed">
-            Hồ sơ mua sắm đã được chuyển đến bộ phận dự án. Hóa đơn GTGT điện tử và hợp đồng kinh tế sẽ được gửi theo thông tin doanh nghiệp đăng ký.
-          </p>
+          <p className="text-xs text-slate-600 mb-6 leading-relaxed">{tx("checkout:yourProcurementDetailsHaveBeenSentTo")}</p>
           <div className="flex flex-col space-y-2.5">
-            <button
+            <button type="button"
               onClick={() => navigate("/orders")}
-              className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-semibold text-sm"
-            >
-              Xem Danh Sách Đơn Hàng Mua Sắm
-            </button>
-            <button
+              className="px-5 py-2.5 bg-[#254AD7] text-white rounded-lg hover:bg-[#254AD7] transition font-semibold text-sm"
+            >{tx("checkout:viewPurchaseOrders")}</button>
+            <button type="button"
               onClick={() => navigate("/workspace")}
               className="px-5 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition font-semibold text-sm"
-            >
-              Quay Lại Procurement Workspace
-            </button>
+            >{tx("checkout:backToProcurementWorkspace")}</button>
           </div>
         </div>
       </div>
@@ -188,44 +181,34 @@ const CreateOrderPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
+    <div className="pp-screen pp-checkout min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200">
-            Hồ Sơ Mua Sắm Doanh Nghiệp (PO)
-          </span>
-          <h1 className="text-2xl font-extrabold text-slate-900 mt-2">
-            Xác Nhận & Lập Đơn Hàng Doanh Nghiệp
-          </h1>
-          <p className="mt-1 text-xs text-slate-500">
-            Vui lòng điền thông tin pháp nhân doanh nghiệp để xuất hóa đơn VAT và hợp đồng bàn giao
-          </p>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[#254AD7] bg-[#edf1ff] px-3 py-1 rounded-full border border-indigo-200">{tx("checkout:enterpriseProcurementRecordPo")}</span>
+          <h1 className="text-2xl font-semibold text-slate-900 mt-2">{tx("checkout:confirmCreateBusinessOrder")}</h1>
+          <p className="mt-1 text-xs text-slate-500">{tx("checkout:enterYourBusinessDetailsForTheVat")}</p>
         </div>
 
         {error && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-700 p-4 mb-6 rounded-xl text-sm">
-            <p>{error}</p>
+          <div className="bg-rose-50 border border-rose-200 text-rose-700 p-4 mb-6 rounded-lg text-sm">
+            <p>{uiText(error)}</p>
           </div>
         )}
 
-        <div className="bg-white shadow-sm border border-slate-200 rounded-2xl overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
           <form onSubmit={handleSubmit} className="divide-y divide-slate-100">
             {/* 1. THÔNG TIN PHÁP NHÂN DOANH NGHIỆP */}
             <div className="px-6 py-6">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 mb-4 pb-2 border-b border-slate-100">
-                1. Thông Tin Doanh Nghiệp (Xuất Hóa Đơn GTGT)
-              </h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 mb-4 pb-2 border-b border-slate-100">{tx("checkout:1BusinessDetailsVatInvoice")}</h3>
 
               <div className="grid grid-cols-1 gap-y-4 gap-x-6 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <label htmlFor="organization" className="block text-xs font-semibold text-slate-700 mb-1">
-                    Tên Doanh Nghiệp / Cơ Quan Thu Mua *
-                  </label>
+                  <label htmlFor="organization" className="block text-xs font-semibold text-slate-700 mb-1">{tx("checkout:businessPurchasingOrganisationName")}</label>
                   <input
                     type="text"
                     id="organization"
                     name="organization"
-                    placeholder="VD: CÔNG TY CỔ PHẦN CÔNG NGHỆ VĂN PHÒNG VIỆT"
+                    placeholder={tx("checkout:eGYourRegisteredBusinessName")}
                     value={orderData.organization}
                     onChange={handleInputChange}
                     className="block w-full border border-slate-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -234,14 +217,12 @@ const CreateOrderPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="taxCode" className="block text-xs font-semibold text-slate-700 mb-1">
-                    Mã Số Thuế (MST) *
-                  </label>
+                  <label htmlFor="taxCode" className="block text-xs font-semibold text-slate-700 mb-1">{tx("checkout:taxIdentificationNumber")}</label>
                   <input
                     type="text"
                     id="taxCode"
                     name="taxCode"
-                    placeholder="VD: 0101234567"
+                    placeholder={tx("checkout:eG0101234567")}
                     value={orderData.taxCode}
                     onChange={handleInputChange}
                     className="block w-full border border-slate-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -250,14 +231,12 @@ const CreateOrderPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="quotationNumber" className="block text-xs font-semibold text-slate-700 mb-1">
-                    Số Hiệu Báo Giá Tham Chiếu (Nếu có)
-                  </label>
+                  <label htmlFor="quotationNumber" className="block text-xs font-semibold text-slate-700 mb-1">{tx("checkout:quotationReferenceOptional")}</label>
                   <input
                     type="text"
                     id="quotationNumber"
                     name="quotationNumber"
-                    placeholder="VD: PP-20261102-0001"
+                    placeholder={tx("checkout:eGPp202611020001")}
                     value={orderData.quotationNumber}
                     onChange={handleInputChange}
                     className="block w-full border border-slate-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -268,15 +247,11 @@ const CreateOrderPage: React.FC = () => {
 
             {/* 2. ĐẠI DIỆN & ĐỊA ĐIỂM GIAO HÀNG */}
             <div className="px-6 py-6">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 mb-4 pb-2 border-b border-slate-100">
-                2. Người Đại Diện Thu Mua & Địa Điểm Bàn Giao
-              </h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 mb-4 pb-2 border-b border-slate-100">{tx("checkout:2ProcurementContactDeliveryLocation")}</h3>
 
               <div className="grid grid-cols-1 gap-y-4 gap-x-6 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="fullname" className="block text-xs font-semibold text-slate-700 mb-1">
-                    Người Phụ Trách Nhận Thiết Bị *
-                  </label>
+                  <label htmlFor="fullname" className="block text-xs font-semibold text-slate-700 mb-1">{tx("checkout:equipmentRecipient")}</label>
                   <input
                     type="text"
                     id="fullname"
@@ -289,9 +264,7 @@ const CreateOrderPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="phone" className="block text-xs font-semibold text-slate-700 mb-1">
-                    Số Điện Thoại Liên Hệ *
-                  </label>
+                  <label htmlFor="phone" className="block text-xs font-semibold text-slate-700 mb-1">{tx("checkout:contactPhoneNumber")}</label>
                   <input
                     type="text"
                     id="phone"
@@ -304,14 +277,12 @@ const CreateOrderPage: React.FC = () => {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label htmlFor="address" className="block text-xs font-semibold text-slate-700 mb-1">
-                    Địa Chỉ Trụ Sở / Văn Phòng Bàn Giao On-site *
-                  </label>
+                  <label htmlFor="address" className="block text-xs font-semibold text-slate-700 mb-1">{tx("checkout:officeOnSiteDeliveryAddress")}</label>
                   <input
                     type="text"
                     id="address"
                     name="address"
-                    placeholder="Tòa nhà, số phòng, đường phố..."
+                    placeholder={tx("checkout:buildingRoomStreet")}
                     value={orderData.shippingAddress.address}
                     onChange={handleInputChange}
                     className="block w-full border border-slate-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -320,9 +291,7 @@ const CreateOrderPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="city" className="block text-xs font-semibold text-slate-700 mb-1">
-                    Tỉnh / Thành Phố *
-                  </label>
+                  <label htmlFor="city" className="block text-xs font-semibold text-slate-700 mb-1">{tx("checkout:provinceCity")}</label>
                   <input
                     type="text"
                     id="city"
@@ -335,9 +304,7 @@ const CreateOrderPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="country" className="block text-xs font-semibold text-slate-700 mb-1">
-                    Quốc Gia
-                  </label>
+                  <label htmlFor="country" className="block text-xs font-semibold text-slate-700 mb-1">{tx("checkout:country")}</label>
                   <input
                     type="text"
                     id="country"
@@ -351,11 +318,9 @@ const CreateOrderPage: React.FC = () => {
 
             {/* 3. PHƯƠNG THỨC THANH TOÁN */}
             <div className="px-6 py-6">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 mb-4 pb-2 border-b border-slate-100">
-                3. Phương Thức Thanh Toán Hợp Đồng
-              </h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 mb-4 pb-2 border-b border-slate-100">{tx("checkout:3ContractPaymentMethod")}</h3>
               <div className="mt-1">
-                <select
+                <select aria-label={tx("checkout:paymentMethod")}
                   value={orderData.paymentMethod}
                   onChange={(e) =>
                     setOrderData((prev) => ({
@@ -365,18 +330,16 @@ const CreateOrderPage: React.FC = () => {
                   }
                   className="block w-full border border-slate-200 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                 >
-                  <option value="BankTransfer">Chuyển khoản Doanh nghiệp (Có hợp đồng & xuất hóa đơn VAT)</option>
-                  <option value="VNPay">Cổng thanh toán điện tử VNPay (Thẻ Doanh nghiệp / QR Code)</option>
-                  <option value="COD">Thanh toán khi bàn giao và nghiệm thu On-site</option>
+                  <option value="BankTransfer">{tx("checkout:businessBankTransferContractVatInvoice")}</option>
+                  <option value="VNPay">{tx("checkout:vnpayPaymentGatewayBusinessCardQrCode")}</option>
+                  <option value="COD">{tx("checkout:paymentOnOnSiteHandoverAndAcceptance")}</option>
                 </select>
               </div>
             </div>
 
             {/* 4. TỔNG KẾT HẠN MỨC & THIẾT BỊ */}
             <div className="px-6 py-6 bg-slate-50">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 mb-4">
-                4. Danh Sách Thiết Bị Mua Sắm ({products.length} dòng)
-              </h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 mb-4">{tx("checkout:4EquipmentList")}{uiText(products.length)}{" "}{tx("checkout:lines")}</h3>
 
               <div className="space-y-3">
                 {products.map((prod) => (
@@ -384,18 +347,17 @@ const CreateOrderPage: React.FC = () => {
                     <div className="flex items-center gap-3">
                       <img
                         src={prod.image}
-                        alt={prod.name}
+                        alt={uiText(prod.name)}
                         className="w-12 h-12 rounded-lg object-cover border border-slate-200"
                       />
                       <div>
-                        <p className="font-bold text-slate-900">{prod.name}</p>
+                        <p className="font-bold text-slate-900">{uiText(prod.name)}</p>
                         <p className="text-slate-500 mt-0.5">
-                          {prod.price.toLocaleString("vi-VN")} ₫ × {prod.quantity} bộ
-                        </p>
+                          {formatVND(prod.price)} × {uiText(prod.quantity)}{" "}{tx("checkout:sets")}</p>
                       </div>
                     </div>
                     <div className="text-right font-bold text-slate-900">
-                      {(prod.price * prod.quantity).toLocaleString("vi-VN")} ₫
+                      {formatVND(prod.price * prod.quantity)}
                     </div>
                   </div>
                 ))}
@@ -404,30 +366,30 @@ const CreateOrderPage: React.FC = () => {
               {/* Tài chính chi tiết */}
               <div className="mt-5 pt-4 border-t border-slate-200 space-y-2 text-xs">
                 <div className="flex justify-between text-slate-600">
-                  <span>Tạm tính thiết bị:</span>
-                  <span className="font-semibold text-slate-900">{subtotal.toLocaleString("vi-VN")} ₫</span>
+                  <span>{tx("checkout:equipmentSubtotal")}</span>
+                  <span className="font-semibold text-slate-900">{formatVND(subtotal)}</span>
                 </div>
 
                 {discount > 0 && (
                   <div className="flex justify-between text-emerald-600 font-semibold">
-                    <span>Chiết khấu sỉ B2B (5%):</span>
-                    <span>-{discount.toLocaleString("vi-VN")} ₫</span>
+                    <span>{tx("checkout:b2bWholesaleDiscount5")}</span>
+                    <span>-{formatVND(discount)}</span>
                   </div>
                 )}
 
                 <div className="flex justify-between text-slate-600">
-                  <span>Phí bàn giao & bảo hành On-site:</span>
-                  <span className="text-emerald-700 font-semibold">Miễn phí toàn quốc</span>
+                  <span>{tx("checkout:onSiteHandoverWarrantyFee")}</span>
+                  <span className="text-emerald-700 font-semibold">{tx("checkout:freeNationwide")}</span>
                 </div>
 
                 <div className="flex justify-between text-slate-600">
-                  <span>Thuế GTGT VAT (10%):</span>
-                  <span className="font-semibold text-slate-900">{tax.toLocaleString("vi-VN")} ₫</span>
+                  <span>{tx("checkout:vat10")}</span>
+                  <span className="font-semibold text-slate-900">{formatVND(tax)}</span>
                 </div>
 
-                <div className="flex justify-between text-sm font-extrabold text-slate-900 pt-2 border-t border-slate-300">
-                  <span>Tổng kinh phí phê duyệt:</span>
-                  <span className="text-indigo-600 text-base">{total.toLocaleString("vi-VN")} ₫</span>
+                <div className="flex justify-between text-sm font-semibold text-slate-900 pt-2 border-t border-slate-300">
+                  <span>{tx("checkout:totalBudgetForApproval")}</span>
+                  <span className="text-[#254AD7] text-base">{formatVND(total)}</span>
                 </div>
               </div>
             </div>
@@ -437,9 +399,9 @@ const CreateOrderPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 px-6 rounded-lg text-sm font-semibold transition shadow-md disabled:opacity-50"
+                className="bg-[#254AD7] hover:bg-[#254AD7] text-white py-2.5 px-6 rounded-lg text-sm font-semibold transition disabled:opacity-50"
               >
-                {loading ? "Đang xử lý đơn mua sắm..." : "Xác Nhận & Lập Đơn Hàng Mua Sắm (PO)"}
+                {uiText(loading ? tx("checkout:processingPurchaseOrder") : tx("checkout:confirmCreatePurchaseOrderPo"))}
               </button>
             </div>
           </form>

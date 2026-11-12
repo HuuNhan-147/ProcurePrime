@@ -1,34 +1,34 @@
 ﻿import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import RouteSurface, { lazyPage } from "../components/ui/RouteSurface";
 import HomePage from "../pages/HomePage";
-import ProductList from "../components/FeaturedProducts";
-import LoginPage from "../pages/LoginPage";
-import AdminPage from "../pages/AdminPage";
+const ProductList = lazyPage(() => import("../components/FeaturedProducts"), ["catalog", "cart"]);
+const LoginPage = lazyPage(() => import("../pages/LoginPage"), ["auth"]);
+const AdminPage = lazyPage(() => import("../pages/AdminPage"), ["adminDashboard"]);
 import { AuthProvider } from "../context/AuthContext";
 import Layout from "../components/Layout";
-import CartPage from "../pages/CartPage";
-import ListOrderPage from "../pages/ListOrderPage";
-import PaymentResult from "../pages/PaymentPage";
-import OrderPage from "../pages/OrderPage";
-import ProductDetail from "../components/ProductDetail";
-import Register from "../pages/RegisterPage";
-import ForgotPassword from "../pages/ForgotPassword";
-import ResetPassword from "../pages/ResetPassword";
-import AdminLayout from "../admincomponents/AdminLayout";
-import AdminProductList from "../admincomponents/AdminProductList";
-import AddProduct from "../admincomponents/AddProduct";
-import UpdateProduct from "../admincomponents/GetDetail";
-import GetDetail from "../admincomponents/GetDetail";
-import ChangePassword from "../pages/ChangePassword";
+const CartPage = lazyPage(() => import("../pages/CartPage"), ["cart", "quotation"]);
+const ListOrderPage = lazyPage(() => import("../pages/ListOrderPage"), ["orders"]);
+const PaymentResult = lazyPage(() => import("../pages/PaymentPage"), ["payment"]);
+const OrderPage = lazyPage(() => import("../pages/OrderPage"), ["checkout"]);
+const ProductDetail = lazyPage(() => import("../components/ProductDetail"), ["catalog", "cart"]);
+const Register = lazyPage(() => import("../pages/RegisterPage"), ["auth"]);
+const ForgotPassword = lazyPage(() => import("../pages/ForgotPassword"), ["auth"]);
+const ResetPassword = lazyPage(() => import("../pages/ResetPassword"), ["auth"]);
+const AdminLayout = lazyPage(() => import("../admincomponents/AdminLayout"), ["admin"]);
+const AdminProductList = lazyPage(() => import("../admincomponents/AdminProductList"), ["admin", "adminProducts", "catalog"]);
+const AddProduct = lazyPage(() => import("../admincomponents/AddProduct"), ["adminProducts"]);
+const GetDetail = lazyPage(() => import("../admincomponents/GetDetail"), ["adminProducts"]);
+const ChangePassword = lazyPage(() => import("../pages/ChangePassword"), ["auth"]);
 import { CartProvider } from "../context/CartContext";
-import CategoryManagement from "../admincomponents/CategoryManagement";
-import AdminUserManagement from "../admincomponents/AdminUserManagement";
-import AdminOrderManager from "../admincomponents/AdminOrderManager";
-import OrderDetails from "../admincomponents/OrderDetails";
-import SearchProduct from "../admincomponents/SearchProduct";
+const CategoryManagement = lazyPage(() => import("../admincomponents/CategoryManagement"), ["admin", "adminCategories"]);
+const AdminUserManagement = lazyPage(() => import("../admincomponents/AdminUserManagement"), ["admin", "adminUsers"]);
+const AdminOrderManager = lazyPage(() => import("../admincomponents/AdminOrderManager"), ["admin", "adminOrders"]);
+const OrderDetails = lazyPage(() => import("../admincomponents/OrderDetails"), ["adminOrders", "orders"]);
+const SearchProduct = lazyPage(() => import("../admincomponents/SearchProduct"), ["adminProducts", "catalog"]);
 import AIAgentChat from "../components/AIAgentChat";
-import ProcurementWorkspace from "../pages/ProcurementWorkspace";
-import PolicyManagement from "../admincomponents/PolicyManagement";
+const ProcurementWorkspace = lazyPage(() => import("../pages/ProcurementWorkspace"), ["workspace", "quotation"]);
+const PolicyManagement = lazyPage(() => import("../admincomponents/PolicyManagement"), ["policies"]);
 
 const AppRoutes = () => {
   return (
@@ -37,7 +37,7 @@ const AppRoutes = () => {
         <Router>
           <Routes>
             {/* Tuyến đường chuyên biệt toàn màn hình cho AI Procurement Workstation */}
-            <Route path="/workspace" element={<ProcurementWorkspace />} />
+            <Route path="/workspace" element={<RouteSurface><ProcurementWorkspace /></RouteSurface>} />
 
             {/* Routes cho trang người dùng */}
             <Route
@@ -45,28 +45,28 @@ const AppRoutes = () => {
               element={
                 <Layout>
                   <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/workspace" element={<ProcurementWorkspace />} />
-                    <Route path="/products/search" element={<ProductList />} />
-                    <Route path="/products" element={<ProductList />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/cart" element={<CartPage />} />
-                    <Route path="/orders" element={<ListOrderPage />} />
-                    <Route path="/payment-result" element={<PaymentResult />} />
-                    <Route path="/create" element={<OrderPage />} />
-                    <Route path="/products/:id" element={<ProductDetail />} />
-                    <Route path="/register" element={<Register />} />
+                    <Route path="/" element={<RouteSurface><HomePage /></RouteSurface>} />
+                    <Route path="/workspace" element={<RouteSurface><ProcurementWorkspace /></RouteSurface>} />
+                    <Route path="/products/search" element={<RouteSurface><ProductList /></RouteSurface>} />
+                    <Route path="/products" element={<RouteSurface><ProductList /></RouteSurface>} />
+                    <Route path="/login" element={<RouteSurface><LoginPage /></RouteSurface>} />
+                    <Route path="/cart" element={<RouteSurface><CartPage /></RouteSurface>} />
+                    <Route path="/orders" element={<RouteSurface><ListOrderPage /></RouteSurface>} />
+                    <Route path="/payment-result" element={<RouteSurface><PaymentResult /></RouteSurface>} />
+                    <Route path="/create" element={<RouteSurface><OrderPage /></RouteSurface>} />
+                    <Route path="/products/:id" element={<RouteSurface><ProductDetail /></RouteSurface>} />
+                    <Route path="/register" element={<RouteSurface><Register /></RouteSurface>} />
                     <Route
                       path="/forgot-password"
-                      element={<ForgotPassword />}
+                      element={<RouteSurface><ForgotPassword /></RouteSurface>}
                     />
                     <Route
                       path="/reset-password/:resetToken"
-                      element={<ResetPassword />}
+                      element={<RouteSurface><ResetPassword /></RouteSurface>}
                     />
                     <Route
                       path="/change-password"
-                      element={<ChangePassword />}
+                      element={<RouteSurface><ChangePassword /></RouteSurface>}
                     />
                   </Routes>
                   <AIAgentChat />
@@ -78,27 +78,27 @@ const AppRoutes = () => {
             <Route
               path="/admin/*"
               element={
-                <AdminLayout>
+                <RouteSurface><AdminLayout>
                   <Routes>
-                    <Route path="/" element={<AdminPage />} />
-                    <Route path="/products" element={<AdminProductList />} />
-                    <Route path="/add-product" element={<AddProduct />} />
-                    <Route path="/product/:id" element={<GetDetail />} />
+                    <Route path="/" element={<RouteSurface><AdminPage /></RouteSurface>} />
+                    <Route path="/products" element={<RouteSurface><AdminProductList /></RouteSurface>} />
+                    <Route path="/add-product" element={<RouteSurface><AddProduct /></RouteSurface>} />
+                    <Route path="/product/:id" element={<RouteSurface><GetDetail /></RouteSurface>} />
                     <Route
                       path="/categories"
-                      element={<CategoryManagement />}
+                      element={<RouteSurface><CategoryManagement /></RouteSurface>}
                     />
-                    <Route path="/users" element={<AdminUserManagement />} />
-                    <Route path="/orders" element={<AdminOrderManager />} />
-                    <Route path="/orders/:id" element={<OrderDetails />} />
-                    <Route path="/workspace" element={<ProcurementWorkspace />} />
-                    <Route path="/policies" element={<PolicyManagement />} />
+                    <Route path="/users" element={<RouteSurface><AdminUserManagement /></RouteSurface>} />
+                    <Route path="/orders" element={<RouteSurface><AdminOrderManager /></RouteSurface>} />
+                    <Route path="/orders/:id" element={<RouteSurface><OrderDetails /></RouteSurface>} />
+                    <Route path="/workspace" element={<RouteSurface><ProcurementWorkspace /></RouteSurface>} />
+                    <Route path="/policies" element={<RouteSurface><PolicyManagement /></RouteSurface>} />
                     <Route
                       path="/products/search"
-                      element={<SearchProduct />}
+                      element={<RouteSurface><SearchProduct /></RouteSurface>}
                     />
                   </Routes>           
-                </AdminLayout>
+                </AdminLayout></RouteSurface>
               }
             />
           </Routes>

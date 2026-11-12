@@ -1,3 +1,5 @@
+import { tx, uiMessage, uiText, useLocale, localizedSwal } from "../i18n";
+import { AccessibleDialog } from "../components/ui/PresentationAccess";
 import React, { useState, useEffect } from "react";
 import {
   fetchCategory,
@@ -21,6 +23,7 @@ import {
 import AdminPagination from "./AdminPagination";
 
 const CategoryManagement = () => {
+  useLocale();
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [filteredCategories, setFilteredCategories] = useState<ICategory[]>([]);
   
@@ -64,7 +67,7 @@ const CategoryManagement = () => {
       setCategories(data);
     } catch (error) {
       console.error("Lỗi khi tải danh mục:", error);
-      Swal.fire("Lỗi", "Không thể tải danh sách danh mục", "error");
+      localizedSwal(Swal, uiMessage("adminCategories:error"), uiMessage("adminCategories:unableToLoadCategories"), "error");
     } finally {
       setIsLoading(false);
     }
@@ -102,7 +105,7 @@ const CategoryManagement = () => {
     e.preventDefault();
     
     if (!categoryData.name.trim()) {
-        Swal.fire("Cảnh báo", "Tên danh mục không được để trống", "warning");
+        localizedSwal(Swal, uiMessage("adminCategories:warning"), uiMessage("adminCategories:categoryNameIsRequired"), "warning");
         return;
     }
 
@@ -115,19 +118,19 @@ const CategoryManagement = () => {
       setIsLoading(true);
       if (isEditing && editingId) {
         await updateCategory(editingId, data);
-        Swal.fire({
+        localizedSwal(Swal, {
             icon: 'success',
-            title: 'Thành công',
-            text: 'Cập nhật danh mục thành công!',
+            title: uiMessage("adminCategories:success"),
+            text: uiMessage("adminCategories:categoryUpdatedSuccessfully"),
             timer: 1500,
             showConfirmButton: false
         });
       } else {
         await createCategory(data);
-        Swal.fire({
+        localizedSwal(Swal, {
             icon: 'success',
-            title: 'Thành công',
-            text: 'Đã thêm danh mục mới!',
+            title: uiMessage("adminCategories:success"),
+            text: uiMessage("adminCategories:categoryAddedSuccessfully"),
             timer: 1500,
             showConfirmButton: false
         });
@@ -135,31 +138,31 @@ const CategoryManagement = () => {
       closeModal();
       loadCategories();
     } catch (error) {
-      Swal.fire("Lỗi", isEditing ? "Cập nhật thất bại" : "Thêm mới thất bại", "error");
+      localizedSwal(Swal, uiMessage("adminCategories:error"), isEditing ? uiMessage("adminCategories:unableToUpdate") : uiMessage("adminCategories:unableToAdd"), "error");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    const result = await Swal.fire({
-      title: "Bạn có chắc chắn?",
-      text: "Hành động này không thể hoàn tác!",
+    const result = await localizedSwal(Swal, {
+      title: uiMessage("adminCategories:areYouSure"),
+      text: uiMessage("adminCategories:thisActionCannotBeUndone"),
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
-      confirmButtonText: "Xóa",
-      cancelButtonText: "Hủy",
+      confirmButtonText: uiMessage("adminCategories:delete"),
+      cancelButtonText: uiMessage("adminCategories:cancel"),
     });
 
     if (result.isConfirmed) {
       try {
         await deleteCategory(id);
-        Swal.fire("Đã xóa!", "Danh mục đã được xóa.", "success");
+        localizedSwal(Swal, uiMessage("adminCategories:deleted"), uiMessage("adminCategories:theCategoryHasBeenDeleted"), "success");
         loadCategories();
       } catch (error) {
-        Swal.fire("Lỗi", "Xóa danh mục không thành công", "error");
+        localizedSwal(Swal, uiMessage("adminCategories:error"), uiMessage("adminCategories:unableToDeleteCategory"), "error");
       }
     }
   };
@@ -169,62 +172,49 @@ const CategoryManagement = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2 border-b border-slate-200/80">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <LayoutGrid className="w-7 h-7 text-indigo-600" />
-            Quản Lý Danh Mục
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Phân loại danh mục hàng hóa và cấu trúc phân cấp sản phẩm
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight flex items-center gap-2.5">
+            <LayoutGrid className="w-7 h-7 text-[#254AD7]" />{tx("adminCategories:categoryManagement")}</h1>
+          <p className="text-slate-500 text-sm mt-1">{tx("adminCategories:organiseProductCategoriesAndHierarchy")}</p>
         </div>
-        <button
+        <button type="button"
           onClick={() => openModal()}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold py-2.5 px-5 rounded-xl transition-all shadow-md shadow-indigo-600/25 hover:shadow-lg hover:-translate-y-0.5 text-xs"
+          className="inline-flex items-center gap-2 bg-[#254AD7] hover: hover: text-white font-bold py-2.5 px-5 rounded-lg transition-all text-xs"
         >
           <Plus className="w-4 h-4" />
-          <span>Thêm Danh Mục Mới</span>
+          <span>{tx("adminCategories:addCategory")}</span>
         </button>
       </div>
 
       {/* Main Content card */}
-      <div className="bg-white rounded-2xl shadow-xs overflow-hidden border border-slate-200/80">
+      <div className="bg-white rounded-lg overflow-hidden border border-slate-200/80">
         {/* Toolbar */}
         <div className="p-4 border-b border-slate-200/80 bg-slate-50/50 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="relative w-full md:w-96">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
               <Search className="h-4 w-4" />
             </div>
-            <input
+            <input aria-label={tx("adminCategories:searchCategoriesByNameOrDescription")}
               type="text"
-              className="block w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl leading-5 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-xs transition duration-150"
-              placeholder="Tìm kiếm danh mục theo tên hoặc mô tả..."
+              className="block w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg leading-5 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-xs transition duration-150"
+              placeholder={tx("adminCategories:searchCategoriesByNameOrDescription")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="text-xs text-slate-500">
-            Hiển thị{" "}
+          <div className="text-xs text-slate-500">{tx("adminCategories:showing")}{" "}
             <span className="font-bold text-slate-800">
-              {filteredCategories.length}
-            </span>{" "}
-            danh mục hoạt động
-          </div>
+              {uiText(filteredCategories.length)}
+            </span>{" "}{tx("adminCategories:activeCategories")}</div>
         </div>
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <div className="pp-table-region" role="region" aria-label={tx("adminCategories:dataTable")} tabIndex={0}><table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50/80 text-slate-500 font-semibold uppercase tracking-wider">
-                <th scope="col" className="px-6 py-3.5">
-                  Tên Danh Mục
-                </th>
-                <th scope="col" className="px-6 py-3.5">
-                  Mô Tả Chi Tiết
-                </th>
-                <th scope="col" className="px-6 py-3.5 text-right">
-                  Thao Tác
-                </th>
+                <th scope="col" className="px-6 py-3.5">{tx("adminCategories:categoryName")}</th>
+                <th scope="col" className="px-6 py-3.5">{tx("adminCategories:description")}</th>
+                <th scope="col" className="px-6 py-3.5 text-right">{tx("adminCategories:actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -232,10 +222,8 @@ const CategoryManagement = () => {
                 <tr>
                   <td colSpan={3} className="px-6 py-16 text-center">
                     <div className="flex justify-center items-center gap-2">
-                      <Loader2 className="w-6 h-6 text-indigo-600 animate-spin" />
-                      <span className="text-slate-500 font-medium">
-                        Đang đồng bộ danh mục...
-                      </span>
+                      <Loader2 className="w-6 h-6 text-[#254AD7] animate-spin" />
+                      <span className="text-slate-500 font-medium">{tx("adminCategories:loadingCategories")}</span>
                     </div>
                   </td>
                 </tr>
@@ -244,9 +232,7 @@ const CategoryManagement = () => {
                   <td colSpan={3} className="px-6 py-16 text-center text-slate-400">
                     <div className="flex flex-col items-center justify-center">
                       <List className="w-10 h-10 text-slate-300 mb-2" />
-                      <p className="font-semibold text-slate-600">
-                        Không tìm thấy danh mục nào.
-                      </p>
+                      <p className="font-semibold text-slate-600">{tx("adminCategories:noCategoriesFound")}</p>
                     </div>
                   </td>
                 </tr>
@@ -262,35 +248,33 @@ const CategoryManagement = () => {
                     className="hover:bg-slate-50/80 transition-colors group"
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
-                        {category.name}
+                      <div className="text-sm font-bold text-slate-800 group-hover:text-[#254AD7] transition-colors">
+                        {uiText(category.name)}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div
                         className="text-xs text-slate-500 line-clamp-1 max-w-md"
-                        title={category.description}
+                        title={uiText(category.description)}
                       >
                         {category.description || (
-                          <span className="text-slate-300 italic">
-                            Chưa có mô tả
-                          </span>
+                          <span className="text-slate-300 italic">{tx("adminCategories:noDescription")}</span>
                         )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="inline-flex items-center gap-1.5">
-                        <button
+                        <button aria-label={tx("adminCategories:editCategory")} type="button"
                           onClick={() => openModal(category)}
-                          className="p-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border border-transparent hover:border-indigo-100 transition-all"
-                          title="Chỉnh sửa danh mục"
+                          className="p-2 rounded-lg text-slate-500 hover:text-[#254AD7] hover:bg-[#edf1ff] border border-transparent hover:border-indigo-100 transition-all"
+                          title={tx("adminCategories:editCategory")}
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button
+                        <button aria-label={tx("adminCategories:deleteCategory")} type="button"
                           onClick={() => handleDelete(category._id)}
-                          className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all"
-                          title="Xóa danh mục"
+                          className="p-2 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all"
+                          title={tx("adminCategories:deleteCategory")}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -300,7 +284,7 @@ const CategoryManagement = () => {
                 ))
               )}
             </tbody>
-          </table>
+          </table></div>
         </div>
 
         {/* Pagination Footer */}
@@ -316,7 +300,7 @@ const CategoryManagement = () => {
 
       {/* Modal */}
       {isModalOpen && (
-        <div
+        <AccessibleDialog onClose={closeModal} aria-label={tx("adminCategories:category")}
           className="fixed inset-0 z-50 overflow-y-auto animate-in fade-in duration-200"
           aria-labelledby="modal-title"
           role="dialog"
@@ -325,21 +309,21 @@ const CategoryManagement = () => {
           <div className="flex items-center justify-center min-h-screen p-4 text-center">
             {/* Backdrop */}
             <div
-              className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"
+              className="fixed inset-0 bg-slate-900/50 transition-opacity"
               aria-hidden="true"
               onClick={closeModal}
             ></div>
 
             {/* Modal Panel */}
-            <div className="inline-block bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:max-w-md sm:w-full z-10 border border-slate-200 animate-in zoom-in-95 duration-200">
+            <div className="inline-block bg-white rounded-lg text-left overflow-hidden transform transition-all sm:max-w-md sm:w-full z-10 border border-slate-200 animate-in zoom-in-95 duration-200">
               <div className="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
                 <h3
                   className="text-base font-bold text-white"
                   id="modal-title"
                 >
-                  {isEditing ? "Cập Nhật Danh Mục" : "Thêm Danh Mục Mới"}
+                  {uiText(isEditing ? tx("adminCategories:updateCategory") : tx("adminCategories:addCategory"))}
                 </h3>
-                <button
+                <button aria-label={tx("adminCategories:close")} type="button"
                   onClick={closeModal}
                   className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
                 >
@@ -353,8 +337,7 @@ const CategoryManagement = () => {
                     <label
                       htmlFor="name"
                       className="block font-semibold text-slate-700 mb-1.5"
-                    >
-                      Tên danh mục <span className="text-rose-500">*</span>
+                    >{tx("adminCategories:categoryName2")}{" "}<span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -362,8 +345,8 @@ const CategoryManagement = () => {
                       id="name"
                       value={categoryData.name}
                       onChange={handleChange}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-xs transition-all"
-                      placeholder="Ví dụ: Điện thoại & Máy tính bảng"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-xs transition-all"
+                      placeholder={tx("adminCategories:eGPhonesTablets")}
                       required
                     />
                   </div>
@@ -371,8 +354,7 @@ const CategoryManagement = () => {
                     <label
                       htmlFor="description"
                       className="block font-semibold text-slate-700 mb-1.5"
-                    >
-                      Mô tả chi tiết <span className="text-rose-500">*</span>
+                    >{tx("adminCategories:description2")}{" "}<span className="text-rose-500">*</span>
                     </label>
                     <textarea
                       name="description"
@@ -380,8 +362,8 @@ const CategoryManagement = () => {
                       rows={4}
                       value={categoryData.description}
                       onChange={handleChange}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-xs transition-all resize-none"
-                      placeholder="Mô tả nhóm sản phẩm và các tiêu chí phân loại..."
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-xs transition-all resize-none"
+                      placeholder={tx("adminCategories:describeTheProductGroupAndClassificationCriteria")}
                       required
                     />
                   </div>
@@ -393,31 +375,27 @@ const CategoryManagement = () => {
                   type="submit"
                   form="categoryForm"
                   disabled={isLoading}
-                  className="w-full inline-flex justify-center rounded-xl px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-xs font-bold text-white shadow-sm shadow-indigo-600/30 transition-all disabled:opacity-70 disabled:cursor-not-allowed items-center sm:w-auto"
+                  className="w-full inline-flex justify-center rounded-lg px-5 py-2 bg-[#254AD7] hover:bg-[#254AD7] text-xs font-bold text-white transition-all disabled:opacity-70 disabled:cursor-not-allowed items-center sm:w-auto"
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Đang xử lý...
-                    </>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />{tx("adminCategories:processing")}</>
                   ) : (
                     <>
                       <Save className="w-4 h-4 mr-1.5" />
-                      {isEditing ? "Lưu Cập Nhật" : "Tạo Mới Ngay"}
+                      {uiText(isEditing ? tx("adminCategories:saveChanges") : tx("adminCategories:createCategory"))}
                     </>
                   )}
                 </button>
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="mt-2 sm:mt-0 w-full inline-flex justify-center rounded-xl border border-slate-200 px-4 py-2 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-all sm:w-auto"
-                >
-                  Hủy bỏ
-                </button>
+                  className="mt-2 sm:mt-0 w-full inline-flex justify-center rounded-lg border border-slate-200 px-4 py-2 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-all sm:w-auto"
+                >{tx("adminCategories:cancel2")}</button>
               </div>
             </div>
           </div>
-        </div>
+        </AccessibleDialog>
       )}
     </div>
   );

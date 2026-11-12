@@ -1,9 +1,11 @@
+import { tx, uiMessage, uiText, useLocale, formatVND } from "../../i18n";
 // frontend/src/components/procurement/ApprovalPanel.tsx
 // ============================================
 // APPROVAL PANEL — Bảng Phê Duyệt Thẩm Quyền Dành Cho Manager & CFO
 // ============================================
 
 import React, { useState } from "react";
+import { AccessibleDialog } from "../ui/PresentationAccess";
 import {
   FaUserCheck,
   FaTimes,
@@ -30,6 +32,7 @@ export const ApprovalPanel: React.FC<ApprovalPanelProps> = ({
   authorityLevel = "MANAGER",
   onApprovalSuccess,
 }) => {
+  useLocale();
   const [approverRole, setApproverRole] = useState<"MANAGER" | "CFO">(
     authorityLevel === "CFO" ? "CFO" : "MANAGER"
   );
@@ -57,25 +60,25 @@ export const ApprovalPanel: React.FC<ApprovalPanelProps> = ({
       if (data.success) {
         setResultMsg({
           type: "success",
-          text: `Đã phê duyệt báo giá ${quotationNumber} thành công! Trạng thái chuyển sang ISSUED.`,
+          text: uiMessage("quotation:approvalSuccess", {v0: quotationNumber}),
         });
         if (onApprovalSuccess) onApprovalSuccess(quotationNumber);
         setTimeout(() => {
           onClose();
         }, 1500);
       } else {
-        setResultMsg({ type: "error", text: data.message || "Không thể phê duyệt báo giá" });
+        setResultMsg({ type: "error", text: data.message || uiMessage("quotation:approvalFailed") });
       }
     } catch (err: any) {
-      setResultMsg({ type: "error", text: err.message || "Lỗi kết nối máy chủ" });
+      setResultMsg({ type: "error", text: err.message || uiMessage("quotation:connectionFailed") });
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+    <AccessibleDialog onClose={onClose} aria-label={tx("quotation:procurementApprovalAuthority")} className="pp-dialog pp-approval-dialog">
+      <div className="bg-white rounded-lg max-w-lg w-full overflow-hidden border border-slate-200">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3.5 bg-slate-900 text-white">
           <div className="flex items-center gap-2">
@@ -83,11 +86,11 @@ export const ApprovalPanel: React.FC<ApprovalPanelProps> = ({
               <FaUserCheck className="text-white text-base" />
             </div>
             <div>
-              <h3 className="font-bold text-sm tracking-tight">Thẩm Quyền Phê Duyệt Thu Mua</h3>
-              <p className="text-[11px] text-slate-400 font-mono">Báo giá: {quotationNumber}</p>
+              <h3 className="font-bold text-sm tracking-tight">{tx("quotation:procurementApprovalAuthority")}</h3>
+              <p className="text-[11px] text-slate-400 font-mono">{tx("quotation:quotation")}{" "}{uiText(quotationNumber)}</p>
             </div>
           </div>
-          <button
+          <button aria-label={tx("quotation:close")} type="button"
             onClick={onClose}
             className="text-slate-400 hover:text-white p-1 rounded transition-colors"
           >
@@ -100,60 +103,54 @@ export const ApprovalPanel: React.FC<ApprovalPanelProps> = ({
           <div className="flex items-start gap-2.5 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900">
             <FaExclamationCircle className="text-amber-600 text-sm flex-shrink-0 mt-0.5" />
             <div>
-              <strong>Yêu cầu xác thực thẩm quyền:</strong> Đơn hàng có tổng giá trị{" "}
-              <strong>{grandTotal.toLocaleString("vi-VN")} đ</strong> vượt ngưỡng tự duyệt của nhân
-              viên (&gt; 50 triệu VNĐ).
-            </div>
+              <strong>{tx("quotation:approvalAuthorityVerificationRequired")}</strong>{" "}{tx("quotation:thisOrderHasATotalValueOf")}{" "}
+              <strong>{formatVND(grandTotal)}</strong>{" "}{tx("quotation:andExceedsTheStaffSelfApprovalLimit")}</div>
           </div>
 
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Cấp thẩm quyền phê duyệt:</label>
+            <label className="block font-bold text-slate-700 mb-1">{tx("quotation:approvalAuthority")}</label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setApproverRole("MANAGER")}
-                className={`py-2 px-3 rounded-lg border text-xs font-bold transition-all ${
+                className={` py-2 px-3 rounded-lg border text-xs font-bold transition-all ${
                   approverRole === "MANAGER"
-                    ? "bg-indigo-50 border-indigo-600 text-indigo-700 ring-2 ring-indigo-500/20"
+                    ? "bg-[#edf1ff] border-indigo-600 text-[#254AD7] ring-2 ring-indigo-500/20"
                     : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                Trưởng Phòng (Manager)
-              </button>
+                }  `}
+              >{tx("quotation:lineManager")}</button>
               <button
                 type="button"
                 onClick={() => setApproverRole("CFO")}
-                className={`py-2 px-3 rounded-lg border text-xs font-bold transition-all ${
+                className={` py-2 px-3 rounded-lg border text-xs font-bold transition-all ${
                   approverRole === "CFO"
-                    ? "bg-indigo-50 border-indigo-600 text-indigo-700 ring-2 ring-indigo-500/20"
+                    ? "bg-[#edf1ff] border-indigo-600 text-[#254AD7] ring-2 ring-indigo-500/20"
                     : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                Giám Đốc Tài Chính (CFO)
-              </button>
+                }  `}
+              >{tx("quotation:chiefFinancialOfficerCfo")}</button>
             </div>
           </div>
 
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Ghi chú phê duyệt:</label>
-            <textarea
+            <label className="block font-bold text-slate-700 mb-1">{tx("quotation:approvalNotes")}</label>
+            <textarea aria-label={tx("quotation:approvalNotes2")}
               rows={3}
               value={note}
               onChange={(e) => setNote(e.target.value)}
               className="w-full p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
-              placeholder="Nhập ý kiến phê duyệt hoặc căn cứ giải trình..."
+              placeholder={tx("quotation:enterApprovalCommentsOrSupportingReasons")}
             />
           </div>
 
           {resultMsg && (
             <div
-              className={`p-3 rounded-lg text-xs font-semibold ${
+              className={` p-3 rounded-lg text-xs font-semibold ${
                 resultMsg.type === "success"
                   ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
                   : "bg-rose-50 text-rose-800 border border-rose-200"
-              }`}
+              }  `}
             >
-              {resultMsg.type === "success" ? "✓" : "⚠️"} {resultMsg.text}
+              {uiText(resultMsg.type === "success" ? "✓" : "⚠️")} {uiText(resultMsg.text)}
             </div>
           )}
         </div>
@@ -164,20 +161,18 @@ export const ApprovalPanel: React.FC<ApprovalPanelProps> = ({
             type="button"
             onClick={onClose}
             className="px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-800 bg-white border border-slate-300 rounded-lg"
-          >
-            Hủy Bỏ
-          </button>
+          >{tx("quotation:cancel")}</button>
           <button
             type="button"
             disabled={submitting}
             onClick={handleApprove}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg disabled:opacity-50"
           >
-            <FaCheck /> {submitting ? "Đang xử lý..." : "Xác Nhận Phê Duyệt"}
+            <FaCheck /> {uiText(submitting ? tx("quotation:processing") : tx("quotation:confirmApproval"))}
           </button>
         </div>
       </div>
-    </div>
+    </AccessibleDialog>
   );
 };
 
