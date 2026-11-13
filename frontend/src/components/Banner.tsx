@@ -9,7 +9,7 @@ import LandingRequestComposer from "./landing/LandingRequestComposer";
 import { lazy, Suspense } from "react";
 const IntelligenceFlowPreview = lazy(() => import("./landing/IntelligenceFlowPreview"));
 import { ArrowRight, ArrowUpRight, Laptop, Monitor, Video, Printer, Network } from "lucide-react";
-import { landingScene } from "./landing/landingScene";
+import FloatingProcurementScene from "./landing/FloatingProcurementScene";
 
 // Cấu hình danh mục B2B tiêu biểu cho Interactive Matrix
 const B2B_SOLUTIONS = [
@@ -119,16 +119,7 @@ const Banner: React.FC = () => {
               <a href="#intelligence-flow" className="pl-text-link pl-text-link-muted">{tx("marketing:seeHowItWorks")}</a>
             </div>
           </div>
-          <figure className="pl-device-scene">
-            <div className="pl-device-frame">
-              <picture>
-                <source type="image/webp" srcSet={landingScene.srcSet} sizes={landingScene.sizes} />
-                <img src={landingScene.src} width={1600} height={900} alt={tx("marketing:conceptImageOfAnUnbrandedLaptopMonitor")} fetchPriority="high" decoding="async" />
-              </picture>
-            </div>
-            <figcaption>{tx("marketing:aiGeneratedConceptImageDoesNotRepresent")}</figcaption>
-            <div className="pl-hero-trail" aria-label={tx("marketing:requirementsOptionsQuotation")}><span>{tx("marketing:requirements")}</span><ArrowRight size={16} aria-hidden="true" /><span>{tx("marketing:options")}</span><ArrowRight size={16} aria-hidden="true" /><span>{tx("marketing:quotation")}</span></div>
-          </figure>
+          <FloatingProcurementScene />
         </div>
       </section>
       <Suspense fallback={<section id="intelligence-flow" className="pl-wrap pl-flow-loading" role="status">{tx("common:screen.loading")}</section>}><IntelligenceFlowPreview /></Suspense>

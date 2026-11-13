@@ -100,5 +100,11 @@
   "oneStartingPoint": "Một điểm bắt đầu.",
   "moreClarity": "Nhiều điều được làm rõ.",
   "describeRequirements": "Mô tả yêu cầu",
-  "orOpenWorkspaceDirectly": "Hoặc mở Workspace trực tiếp"
+  "orOpenWorkspaceDirectly": "Hoặc mở Workspace trực tiếp",
+  "sceneCoreTitle": "Điều phối thu mua",
+  "sceneIllustration": "Minh họa hệ sinh thái thu mua, không phải dữ liệu hoặc kết quả AI trực tiếp.",
+  "scenePause": "Tạm dừng chuyển động",
+  "sceneResume": "Tiếp tục chuyển động",
+  "sceneSpatialHint": "Cuộn để xem ba bước kết nối.",
+  "sceneDescription": "Minh họa ba chiều: yêu cầu, thiết bị và thông số kết nối với báo giá quanh trung tâm ProcurePrime."
 }

@@ -23,9 +23,9 @@ const IntelligenceFlowPreview = () => {
     if (last.current === active) return;
     last.current = active;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const animation = content.current?.animate?.(
-      [{ opacity: 0.55, transform: "translateY(4px)" }, { opacity: 1, transform: "translateY(0)" }],
-      { duration: 260, easing: "cubic-bezier(.2,.7,.2,1)" },
+    const animation = content.current?.querySelector<HTMLElement>(".pl-flow-art")?.animate?.(
+      [{ transform: "translate3d(0,0,-24px) rotateY(7deg)" }, { transform: "translate3d(0,0,0) rotateY(0deg)" }],
+      { duration: 300, easing: "cubic-bezier(.2,.7,.2,1)" },
     );
     return () => animation?.cancel();
   }, [active]);

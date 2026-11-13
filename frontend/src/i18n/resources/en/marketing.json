@@ -100,5 +100,11 @@
   "oneStartingPoint": "One starting point.",
   "moreClarity": "More clarity.",
   "describeRequirements": "Describe requirements",
-  "orOpenWorkspaceDirectly": "Or open Workspace directly"
+  "orOpenWorkspaceDirectly": "Or open Workspace directly",
+  "sceneCoreTitle": "Procurement core",
+  "sceneIllustration": "Procurement ecosystem illustration, not live data or AI output.",
+  "scenePause": "Pause motion",
+  "sceneResume": "Resume motion",
+  "sceneSpatialHint": "Scroll to see the three steps connect.",
+  "sceneDescription": "Three-dimensional illustration: requirements, devices and specifications connect to a quotation around the ProcurePrime core."
 }
