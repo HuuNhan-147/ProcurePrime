@@ -162,5 +162,18 @@
   "officeDesktop": "PC đồng bộ văn phòng",
   "salesOperations": "Kinh doanh & Vận hành",
   "typeCAdapter": "Hub chuyển đổi Type-C",
-  "noiseCancellingHeadset": "Tai nghe chống ồn"
+  "noiseCancellingHeadset": "Tai nghe chống ồn",
+  "emptyStepRequestTitle": "1. Nhập Yêu Cầu",
+  "emptyStepRequestDescription": "Điền form Wizard có cấu trúc hoặc chat trực tiếp với AI Copilot.",
+  "emptyStepAnalysisTitle": "2. AI Tính Toán & Tối Ưu",
+  "emptyStepAnalysisDescription": "Đối chiếu catalog, kiểm tra trần ngân sách và tính chiết khấu B2B.",
+  "emptyStepReviewTitle": "3. Xem & Phê Duyệt",
+  "emptyStepReviewDescription": "Kiểm tra chi tiết thiết bị, phê duyệt quản lý 1-click và xuất file Excel.",
+  "starterTemplatesHeading": "Gợi ý cấu hình thu mua mẫu (Bấm chạy thử ngay)",
+  "starterDevelopersTitle": "Gói Onboarding 5 Dev",
+  "starterDevelopersDetail": "5 Laptop Core i7/16GB + Chuột, Phím văn phòng",
+  "starterOfficeTitle": "Gói 10 PC Văn Phòng",
+  "starterOfficeDetail": "10 PC đồng bộ + Màn hình 24\" + Phím Chuột",
+  "starterResearchTitle": "Gói Nâng Cấp R&D",
+  "starterResearchDetail": "3 Workstation 32GB + Hub Type-C + Màn hình"
 }

@@ -156,7 +156,7 @@ export const ProcurementWizard: React.FC<ProcurementWizardProps> = ({
             >
               <span className="font-medium text-xs group-hover:text-blue-700">{uiText(p.label)}</span>
               <span className="text-[11px] text-blue-700 font-bold bg-white px-2 py-0.5 rounded border border-slate-200 group-hover:border-blue-200">
-                {uiText((p.budget / 1000000).toLocaleString(locale()))} Tr</span>
+                {uiText((p.budget / 1000000).toLocaleString(locale()))}{" "}{tx("workspace:m")}</span>
             </button>
           ))}
         </div>
@@ -308,7 +308,7 @@ export const ProcurementWizard: React.FC<ProcurementWizardProps> = ({
                     : "bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-600"
                 }`}
               >
-                {uiText((bVal / 1000000).toLocaleString(locale()))} Triệu
+                {uiText((bVal / 1000000).toLocaleString(locale()))}{" "}{tx("workspace:m2")}
               </button>
             ))}
           </div>

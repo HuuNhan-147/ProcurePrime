@@ -162,5 +162,18 @@
   "officeDesktop": "Office desktop PC",
   "salesOperations": "Sales & operations",
   "typeCAdapter": "Type-C adapter hub",
-  "noiseCancellingHeadset": "Noise-cancelling headset"
+  "noiseCancellingHeadset": "Noise-cancelling headset",
+  "emptyStepRequestTitle": "1. Describe requirements",
+  "emptyStepRequestDescription": "Use the structured Wizard form or chat directly with AI Copilot.",
+  "emptyStepAnalysisTitle": "2. AI calculation & optimisation",
+  "emptyStepAnalysisDescription": "Check the catalog and budget limit, and calculate B2B discounts.",
+  "emptyStepReviewTitle": "3. Review & approve",
+  "emptyStepReviewDescription": "Review device details, use one-click manager approval and export to Excel.",
+  "starterTemplatesHeading": "Sample procurement configurations (select one to try)",
+  "starterDevelopersTitle": "Onboarding for 5 developers",
+  "starterDevelopersDetail": "5 Core i7/16GB laptops + office mice and keyboards",
+  "starterOfficeTitle": "10 office PCs",
+  "starterOfficeDetail": "10 desktop PCs + 24-inch monitors, keyboards and mice",
+  "starterResearchTitle": "R&D upgrade",
+  "starterResearchDetail": "3 workstations with 32GB RAM + Type-C hubs and monitors"
 }

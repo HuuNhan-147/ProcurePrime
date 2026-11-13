@@ -526,24 +526,24 @@ export const ProcurementWorkspace: React.FC = () => {
                 <div className="pw-workflow-steps">
                   <div className="pw-step-card">
                     <span className="pw-step-num">1</span>
-                    <div className="pw-step-title">1. Nhập Yêu Cầu</div>
-                    <div className="pw-step-desc">Điền form Wizard có cấu trúc hoặc chat trực tiếp với AI Copilot.</div>
+                    <div className="pw-step-title">{tx("workspace:emptyStepRequestTitle")}</div>
+                    <div className="pw-step-desc">{tx("workspace:emptyStepRequestDescription")}</div>
                   </div>
                   <div className="pw-step-card">
                     <span className="pw-step-num">2</span>
-                    <div className="pw-step-title">2. AI Tính Toán & Tối Ưu</div>
-                    <div className="pw-step-desc">Đối chiếu catalog, kiểm tra trần ngân sách và tính chiết khấu B2B.</div>
+                    <div className="pw-step-title">{tx("workspace:emptyStepAnalysisTitle")}</div>
+                    <div className="pw-step-desc">{tx("workspace:emptyStepAnalysisDescription")}</div>
                   </div>
                   <div className="pw-step-card">
                     <span className="pw-step-num">3</span>
-                    <div className="pw-step-title">3. Xem & Phê Duyệt</div>
-                    <div className="pw-step-desc">Kiểm tra chi tiết thiết bị, phê duyệt quản lý 1-click và xuất file Excel.</div>
+                    <div className="pw-step-title">{tx("workspace:emptyStepReviewTitle")}</div>
+                    <div className="pw-step-desc">{tx("workspace:emptyStepReviewDescription")}</div>
                   </div>
                 </div>
 
                 {/* 1-Click Quick Starter Templates */}
                 <div className="pw-starter-templates">
-                  <h4>Gợi ý cấu hình thu mua mẫu (Bấm chạy thử ngay)</h4>
+                  <h4>{tx("workspace:starterTemplatesHeading")}</h4>
                   <div className="pw-starter-grid">
                     <button
                       type="button"
@@ -551,10 +551,10 @@ export const ProcurementWorkspace: React.FC = () => {
                       onClick={() => handleWizardSubmit("Trang bị cho 5 nhân sự thuộc phòng ban Kỹ thuật / IT: 5 Laptop văn phòng có RAM tối thiểu 16GB, kèm phụ kiện: Chuột không dây, Bàn phím văn phòng. Trần ngân sách tối đa 90.000.000 VNĐ, cần xuất hóa đơn VAT cho Công ty TNHH AI Solutions. Hãy tối ưu hóa cấu hình, gom giỏ hàng qua WebMCP và lập Báo giá Doanh nghiệp ngay lập tức!")}
                     >
                       <div>
-                        <div className="pw-starter-title">💻 Gói Onboarding 5 Dev</div>
-                        <div className="pw-starter-detail">5 Laptop Core i7/16GB + Chuột, Phím văn phòng</div>
+                        <div className="pw-starter-title">💻 {tx("workspace:starterDevelopersTitle")}</div>
+                        <div className="pw-starter-detail">{tx("workspace:starterDevelopersDetail")}</div>
                       </div>
-                      <span className="pw-starter-badge">90.000.000 đ</span>
+                      <span className="pw-starter-badge">{formatVND(90_000_000)}</span>
                     </button>
 
                     <button
@@ -563,10 +563,10 @@ export const ProcurementWorkspace: React.FC = () => {
                       onClick={() => handleWizardSubmit("Trang bị cho 10 nhân sự thuộc phòng ban Kinh doanh & Vận hành: 10 PC đồng bộ văn phòng có RAM tối thiểu 16GB, kèm phụ kiện: Chuột không dây, Bàn phím văn phòng, Màn hình ngoài 24 inch. Trần ngân sách tối đa 150.000.000 VNĐ, cần xuất hóa đơn VAT cho Công ty TNHH Phân Phối SteelCorp. Hãy tối ưu hóa cấu hình, gom giỏ hàng qua WebMCP và lập Báo giá Doanh nghiệp ngay lập tức!")}
                     >
                       <div>
-                        <div className="pw-starter-title">🏢 Gói 10 PC Văn Phòng</div>
-                        <div className="pw-starter-detail">10 PC đồng bộ + Màn hình 24" + Phím Chuột</div>
+                        <div className="pw-starter-title">🏢 {tx("workspace:starterOfficeTitle")}</div>
+                        <div className="pw-starter-detail">{tx("workspace:starterOfficeDetail")}</div>
                       </div>
-                      <span className="pw-starter-badge">150.000.000 đ</span>
+                      <span className="pw-starter-badge">{formatVND(150_000_000)}</span>
                     </button>
 
                     <button
@@ -575,10 +575,10 @@ export const ProcurementWorkspace: React.FC = () => {
                       onClick={() => handleWizardSubmit("Trang bị cho 3 nhân sự thuộc phòng ban R&D Software: 3 Laptop kỹ thuật hiệu năng cao có RAM tối thiểu 32GB, kèm phụ kiện: Chuột không dây, Màn hình ngoài 24 inch, Hub Type-C. Trần ngân sách tối đa 85.000.000 VNĐ, cần xuất hóa đơn VAT cho Công ty Cổ phần Công nghệ TechCorp. Hãy tối ưu hóa cấu hình, gom giỏ hàng qua WebMCP và lập Báo giá Doanh nghiệp ngay lập tức!")}
                     >
                       <div>
-                        <div className="pw-starter-title">⚡ Gói Nâng Cấp R&D</div>
-                        <div className="pw-starter-detail">3 Workstation 32GB + Hub Type-C + Màn hình</div>
+                        <div className="pw-starter-title">⚡ {tx("workspace:starterResearchTitle")}</div>
+                        <div className="pw-starter-detail">{tx("workspace:starterResearchDetail")}</div>
                       </div>
-                      <span className="pw-starter-badge">85.000.000 đ</span>
+                      <span className="pw-starter-badge">{formatVND(85_000_000)}</span>
                     </button>
                   </div>
                 </div>
