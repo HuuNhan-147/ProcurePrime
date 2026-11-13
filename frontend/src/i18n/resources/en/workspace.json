@@ -163,6 +163,7 @@
   "salesOperations": "Sales & operations",
   "typeCAdapter": "Type-C adapter hub",
   "noiseCancellingHeadset": "Noise-cancelling headset",
+  "aiProcurementCopilot": "AI Procurement Copilot",
   "emptyStepRequestTitle": "1. Describe requirements",
   "emptyStepRequestDescription": "Use the structured Wizard form or chat directly with AI Copilot.",
   "emptyStepAnalysisTitle": "2. AI calculation & optimisation",

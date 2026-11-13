@@ -163,6 +163,7 @@
   "salesOperations": "Kinh doanh & Vận hành",
   "typeCAdapter": "Hub chuyển đổi Type-C",
   "noiseCancellingHeadset": "Tai nghe chống ồn",
+  "aiProcurementCopilot": "Copilot thu mua AI",
   "emptyStepRequestTitle": "1. Nhập Yêu Cầu",
   "emptyStepRequestDescription": "Điền form Wizard có cấu trúc hoặc chat trực tiếp với AI Copilot.",
   "emptyStepAnalysisTitle": "2. AI Tính Toán & Tối Ưu",
