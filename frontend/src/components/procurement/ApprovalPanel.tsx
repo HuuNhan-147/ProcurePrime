@@ -1,4 +1,5 @@
 import { tx, uiMessage, uiText, useLocale, formatVND } from "../../i18n";
+import { env } from "../../config/env";
 // frontend/src/components/procurement/ApprovalPanel.tsx
 // ============================================
 // APPROVAL PANEL — Bảng Phê Duyệt Thẩm Quyền Dành Cho Manager & CFO
@@ -48,9 +49,13 @@ export const ApprovalPanel: React.FC<ApprovalPanelProps> = ({
     setSubmitting(true);
     setResultMsg(null);
     try {
-      const res = await fetch(`http://localhost:5000/api/quotations/${quotationNumber}/approve`, {
+      const token = localStorage.getItem("token") || "";
+      const res = await fetch(`${env.apiUrl}/quotations/${quotationNumber}/approve`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           approverRole,
           approverNote: note,

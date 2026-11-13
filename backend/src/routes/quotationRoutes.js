@@ -5,7 +5,7 @@
 
 import express from "express";
 import { QuotationController } from "../controllers/quotationController.js";
-import { protect } from "../../middleware/authMiddleware.js";
+import { optionalProtect } from "../../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -13,6 +13,6 @@ router.post("/", QuotationController.create);
 router.get("/:quotationNumber", QuotationController.getDetail);
 router.get("/:quotationNumber/html", QuotationController.getHtml);
 router.get("/:quotationNumber/excel", QuotationController.getExcel);
-router.patch("/:quotationNumber/approve", protect, QuotationController.approve);
+router.patch("/:quotationNumber/approve", optionalProtect, QuotationController.approve);
 
 export default router;

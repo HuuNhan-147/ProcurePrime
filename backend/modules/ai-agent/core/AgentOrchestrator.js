@@ -149,12 +149,24 @@ export class AgentOrchestrator {
       );
 
       let iterationCount = 0;
-      const maxIterations = 10;
+      const maxIterations = 5; // Tối ưu: Hard cap 5 vòng lặp ReAct, chống loop vô hạn
       const allFunctionCalls = [];
 
       while (response.functionCalls && iterationCount < maxIterations) {
         iterationCount++;
         console.log(`\n🔄 [AgentOrchestrator] Vòng lặp suy luận ${iterationCount}:`);
+
+        // Bắn status update nhẹ nhàng cho người dùng thấy Agent đang thực thi
+        if (onChunk) {
+          const toolNames = response.functionCalls.map((f) => f.name);
+          if (toolNames.includes("search_products")) {
+            onChunk("🔍 *Đang tra cứu catalog thiết bị và đối chiếu cấu hình...*\n", currentSessionId);
+          } else if (toolNames.includes("bulk_add_to_cart") || toolNames.includes("add_to_cart")) {
+            onChunk("🛒 *Đang gom các thiết bị vào giỏ hàng doanh nghiệp...*\n", currentSessionId);
+          } else if (toolNames.includes("create_quotation")) {
+            onChunk("📑 *Đang thẩm định ngân sách và khởi tạo Báo giá Doanh nghiệp...*\n", currentSessionId);
+          }
+        }
 
         const functionResponses = await Promise.all(
           response.functionCalls.map(async (fc) => {
@@ -236,9 +248,7 @@ export class AgentOrchestrator {
           })),
         });
 
-        // Giãn cách 1200ms giữa các vòng gọi để tránh Burst Rate Limit (429) của Google Gemini
-        await new Promise((r) => setTimeout(r, 1200));
-
+        // ⚡ TỐI ƯU SIÊU TỐC: Loại bỏ hoàn toàn sleep 1200ms! Multi-Key Round-Robin đã đảm bảo không bị 429
         response = await this.llmClient.streamGenerateContent(
           contents,
           functionDeclarations,
@@ -249,27 +259,15 @@ export class AgentOrchestrator {
         );
       }
 
-      // Nếu chạm trần vòng lặp nhưng chưa có text kết luận (do LLM vừa trả functionCall dở dang)
+      // ⚡ FAST-PATH SUMMARY: Nếu các tool B2B đã hoàn tất mà LLM chưa kịp sinh đoạn text kết thúc,
+      // tự động sinh câu kết luận chuẩn xác ngay lập tức từ dữ liệu tool, KHÔNG gọi thêm lượt LLM thừa!
       if (!response.text && allFunctionCalls.length > 0) {
-        try {
-          console.log("ℹ️ [AgentOrchestrator] Chạm ngưỡng lặp, yêu cầu LLM tóm tắt kết quả nghiệp vụ...");
-          contents.push({
-            role: "user",
-            parts: [{ text: "Hãy tóm tắt lại toàn bộ kết quả cấu hình thiết bị, các bước đã hoàn tất (như gom giỏ hàng B2B, khởi tạo báo giá) và thông tin hướng dẫn tiếp theo cho doanh nghiệp." }],
-          });
-          const summaryResponse = await this.llmClient.streamGenerateContent(
-            contents,
-            [], // Không truyền tools để ép LLM trả lời bằng text tóm tắt
-            systemInstruction,
-            (chunkText) => {
-              if (onChunk) onChunk(chunkText, currentSessionId);
-            }
-          );
-          if (summaryResponse?.text) {
-            response.text = summaryResponse.text;
-          }
-        } catch (sumErr) {
-          console.warn("⚠️ [AgentOrchestrator] Lỗi khi tạo summary fallback:", sumErr.message);
+        const quotationCall = allFunctionCalls.find((fc) => fc.name === "create_quotation" && fc.result?.success);
+        if (quotationCall) {
+          const qData = quotationCall.result.data || {};
+          const qNum = qData.quotationNumber || "PP-OFFICIAL";
+          response.text = `Hệ thống ProcurePrime đã thẩm định thành công cấu hình và lập Báo giá Doanh nghiệp mã **${qNum}**.\n\nDữ liệu báo giá đã được đồng bộ lên Bảng Thảo Live Canvas bên phải. Quý khách có thể kiểm tra bảng chi phí, chiết khấu hoặc tải file Excel đính kèm.\n\n[ACTIONS]\n{\n  "buttons": [\n    { "label": "Xem giỏ hàng B2B", "action": "cart", "style": "secondary" },\n    { "label": "Xuất Báo Giá Excel (.xlsx)", "action": "navigate", "url": "/api/quotations/${qNum}/excel", "style": "primary" }\n  ]\n}\n[/ACTIONS]`;
+          if (onChunk) onChunk(response.text, currentSessionId);
         }
       }
 

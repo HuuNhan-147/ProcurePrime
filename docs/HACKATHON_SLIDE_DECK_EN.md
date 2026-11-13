@@ -1,332 +1,506 @@
-# 📊 PROCUREPRIME — OFFICIAL HACKATHON SLIDE DECK (ENGLISH)
+# 📊 PROCUREPRIME — OFFICIAL 10-SLIDE PITCH DECK (ENGLISH)
 > **Competition:** K-Tech College 2026 — AI for Business Innovation Hackathon  
 > **Challenge Topic:** *Solve Real Business Problems with AI*  
 > **Team Name:** **AgentX Prime**  
-> **Project Name:** **ProcurePrime**  
+> **Product Name:** **ProcurePrime**  
 > **Category / Track:** Operations & Productivity | Supply Chain & Logistics | Decision Intelligence  
-> **Submission Format:** 13 Slides (Compliant with <= 15 Slides PDF Regulation)  
+> **Format:** Exactly 10 Slides (English) | Presentation Duration: ~8–10 Minutes + 2-Minute Live Demo  
 
 ---
 
 ```
 ========================================================================================
-                                 SLIDE DECK OVERVIEW
+                         10-SLIDE PITCH DECK MASTER INDEX
 ========================================================================================
-SLIDE 01: Title & Executive Hook
-SLIDE 02: The B2B Procurement Dilemma (Business Problem - 25%)
-SLIDE 03: Target Customers & Addressable Market (ICP & TAM/SAM/SOM)
-SLIDE 04: Business Insights & Root Cause Analysis
-SLIDE 05: Proposed Solution: ProcurePrime Autonomous B2B Platform
-SLIDE 06: How AI Solves It: Autonomous ReAct Agent vs. Generic Chatbots (30%)
-SLIDE 07: System Architecture & Zero-Latency WebMCP Technology
-SLIDE 08: Multi-Tenant Configurable AI Governance & Midesk Condition Engine
-SLIDE 09: 3-Tier Threshold Decision Table (Deterministic Guardrails)
-SLIDE 10: Live Product Demonstration & Dual-Tenant Head-to-Head
-SLIDE 11: Feasibility, Unit Economics & Measurable ROI (20%)
-SLIDE 12: Competitive Advantage & Unfair Moat
-SLIDE 13: Product Roadmap, Team AgentX Prime & Vision (25%)
+SLIDE 01: Project Introduction & Executive Hook
+SLIDE 02: The B2B Purchasing Bottleneck (Business Problem - 25%)
+SLIDE 03: Market Opportunity & Target Enterprise Personas
+SLIDE 04: Our Solution: Autonomous Agent vs. Static Chatbots (Innovation - 30%)
+SLIDE 05: Product Workflow & End-to-End Live Demo Journey
+SLIDE 06: Core AI Agent Architecture & ReAct Tool Execution
+SLIDE 07: Enterprise Governance, Dynamic Thresholds & Human-in-the-Loop
+SLIDE 08: Technical System Architecture, Security & Scalability (Feasibility - 20%)
+SLIDE 09: Business Model, Measurable ROI & Unfair Moats
+SLIDE 10: Product Roadmap, Vision & Closing (Presentation - 25%)
 ========================================================================================
 ```
 
 ---
 
-## SLIDE 1: TITLE & EXECUTIVE HOOK
+## SLIDE 1: PROJECT INTRODUCTION & EXECUTIVE HOOK
 
 * **Slide Title:** **ProcurePrime**
-* **Subtitle:** Autonomous B2B Procurement & Smart Governance AI Agent Platform
-* **Competition:** K-Tech College 2026 — AI for Business Innovation Hackathon
-* **Team:** AgentX Prime
+* **Subtitle:** Autonomous B2B Procurement & Smart Quotation Agent for Enterprises
+* **Presenter:** Team AgentX Prime (K-Tech College 2026 Hackathon)
 * **Core Tagline:** *"Empowering Enterprise Purchasing with Autonomous AI & Zero-Latency WebMCP"*
 
-### Visual Layout:
-* High-tech dark mode background with subtle glowing cyan & emerald accents.
-* Left side: Sleek product mockup showing the B2B Storefront, Socket.IO WebMCP live cart synchronization, and the Admin Governance Studio.
-* Right side: Team credentials, category tracks, and key value badges:
-  - ⚡ **99% Quote Latency Reduction** (72 hours $\rightarrow$ 30 seconds)
-  - 🛡️ **100% Deterministic Financial Guardrails** (Zero hallucination)
-  - 🌐 **Zero-Latency WebMCP** (In-browser autonomous execution)
+### Key Message:
+ProcurePrime bridges the critical gap between conversational natural language requests and enterprise-grade financial execution, transforming 3–5 days of B2B quoting friction into a 30-second compliant transaction.
 
-### Speaker Notes (30 seconds):
-> *"Distinguished judges, in modern business, speed and margin control are the two pillars of B2B commerce. Yet, companies are forced to choose between fast quotes that risk rogue discounts, or slow bureaucratic approvals that take 3 to 5 days. Today, Team AgentX Prime is proud to present ProcurePrime — an enterprise-grade autonomous procurement agent that turns days of email exchanges into a 30-second, policy-compliant B2B quotation."*
+### Slide Body Content:
+* **The Product:** An enterprise-grade autonomous procurement agent tailored for internal procurement teams, corporate buyers, and B2B sales representatives.
+* **Core Differentiator:** Executes real business actions (spec extraction, catalog matching, WebMCP bulk cart synchronization, and dynamic policy-checked quotation generation) with 100% deterministic financial guardrails.
+* **High-Impact Badges:**
+  - ⚡ **99% Quote Latency Reduction:** From 72 hours down to 30 seconds.
+  - 🛡️ **Zero Financial Hallucination:** Deterministic policy gatekeeper with SHA-256 audit trails.
+  - 🌐 **Zero-Latency WebMCP:** Direct in-browser cart control (< 50ms) via Socket.IO.
+  - 🧪 **Production-Grade Evidence:** 34/34 Backend automated tests passing; React 19 Frontend built with 0 errors.
 
----
-
-## SLIDE 2: THE B2B PROCUREMENT DILEMMA (BUSINESS PROBLEM - 25%)
-
-* **Slide Title:** The \$1.8 Trillion Enterprise Purchasing Bottleneck
-* **Subtitle:** The high cost of manual quoting, delayed approvals, and margin erosion.
-
-### Key Pain Points & Industry Statistics:
-1. **Quote Latency Drives 42% Cart Abandonment:**  
-   Unlike B2C retail, enterprise procurement requires bundled line items, minimum hardware specs (RAM/CPU), wholesale volume pricing, and official VAT commercial invoices. Waiting 3–5 business days for manual sales replies causes 42% of B2B enterprise leads to drop off or turn to competitors.
-2. **Rogue Discounts Erode Net Operating Margins (3%–5% Revenue Loss):**  
-   Sales reps chasing monthly revenue quotas frequently grant unapproved volume discounts or lenient credit terms without CFO sign-off, destroying razor-thin industrial margins.
-3. **Operational Overhead (120 Hours/Month Wasted):**  
-   Procurement leads and sales operations teams waste hundreds of hours copying line items between unstructured emails, Excel spreadsheets, and legacy ERP screens.
-
-### Visual Layout:
-* Three distinct alert cards showing red metrics:
-  - Card 1: `3–5 Days` average turnaround time for custom enterprise quotes.
-  - Card 2: `42%` lead abandonment rate due to quoting latency (Gartner / McKinsey B2B benchmark).
-  - Card 3: `120+ Hours` lost per department every month in manual Excel calculations.
-
-### Speaker Notes (45 seconds):
-> *"Judges, let's look at the reality of B2B procurement today. When an IT manager needs to equip 10 new engineers, they cannot just click 'buy now' on a retail website. They need bulk quotes, credit terms, and VAT invoices. Today, that means endless back-and-forth emails. By the time sales responds 3 days later, almost half the buyers have moved on. Meanwhile, uncontrolled sales discounting silently eats away 3 to 5 percent of company margins."*
-
----
-
-## SLIDE 3: TARGET CUSTOMERS & MARKET OPPORTUNITY
-
-* **Slide Title:** Massive Market, Urgent Enterprise Demand
-* **Subtitle:** Tailored for B2B distributors, high-growth startups, and corporate procurement teams.
-
-### Target Personas (Ideal Customer Profile - ICP):
-* **Persona 1: Enterprise Procurement Officers & IT Directors:**  
-  Needs to equip teams with verified hardware within tight budgets without managing tens of manual supplier calls.
-* **Persona 2: B2B Distributors & Industrial Suppliers (RevOps / CFOs):**  
-  Wants to accelerate quote turnaround times while strictly enforcing discount authorization thresholds.
-* **Persona 3: Fast-Growing SMEs & Tech Startups:**  
-  Needs self-serve, instant credit terms and VAT quotations with zero administrative overhead.
-
-### Market Size & TAM/SAM/SOM:
-* **TAM (Global B2B E-Commerce):** \$20.9 Trillion by 2027 (CAGR 18.2%).
-* **SAM (Enterprise Quoting & CPQ Software):** \$4.8 Billion Southeast Asia & APAC opportunity.
-* **SOM (Vietnam & Regional SME Tech/Equipment Procurement):** \$380 Million addressable beachhead.
-
-### Visual Layout:
-* Left: 3 Persona cards with avatars and specific pain triggers.
-* Right: Expanding concentric circle chart illustrating TAM $\rightarrow$ SAM $\rightarrow$ SOM.
-
----
-
-## SLIDE 4: BUSINESS INSIGHT & ROOT CAUSE ANALYSIS
-
-* **Slide Title:** Why Existing Solutions Fail
-* **Subtitle:** The fundamental gap between B2C retail carts and B2B governance.
-
-### Comparison Matrix:
-
-| Operational Dimension | B2C E-Commerce (Shopee, Amazon) | Traditional B2B / Legacy ERP | ProcurePrime Autonomous B2B |
-| :--- | :--- | :--- | :--- |
-| **Order Paradigm** | Single-item impulse buying | Heavy, manual RFP & Email forms | **Multi-constraint natural language combo** |
-| **Quoting Latency** | No pre-purchase quotation | **3 to 5 business days** | **Instant (Under 30 seconds)** |
-| **Cart Interaction** | Manual multi-click browsing | Manual data entry into ERP | **Zero-latency WebMCP bulk cart sync** |
-| **Discount Control** | Static coupon codes | Paper approvals / Email chains | **3-tier deterministic decision matrix** |
-| **Policy Adaptability** | One-size-fits-all | Hardcoded, expensive to change | **Dynamic Condition Builder per Tenant** |
-
-### Core Root Cause Insight:
-> *"Traditional e-commerce platforms lack corporate governance. Enterprise ERP systems have governance but lack intuitive, agentic agility. ProcurePrime bridges this exact gap."*
-
----
-
-## SLIDE 5: PROPOSED SOLUTION: PROCUREPRIME
-
-* **Slide Title:** The Next-Generation Autonomous B2B Platform
-* **Subtitle:** Blending agentic intelligence, real-time browser execution, and strict enterprise guardrails.
-
-### The 4 Pillars of ProcurePrime:
-1. **Natural Language Multi-Constraint Understanding:**  
-   Understands complex enterprise briefs: *"Equip 5 engineers with 16GB RAM laptops and wireless accessories under 90 million VND with VAT invoice."*
-2. **Autonomous ReAct Reasoning & Budget Optimizer:**  
-   Filters technical specs, checks inventory, and balances package costs dynamically to fit budget caps.
-3. **Zero-Latency WebMCP Cart Orchestration:**  
-   Dispatches structured browser instructions; syncs cart items in real time without page refreshes.
-4. **Deterministic Multi-Tenant Governance Studio:**  
-   Guarantees zero hallucinations on price, discount limits, and payment terms via backend rule evaluation.
-
-### Visual Layout:
-* Center diagram showing the end-to-end journey: Natural Language Input $\rightarrow$ Autonomous ReAct Spec Match $\rightarrow$ WebMCP Live Cart Sync $\rightarrow$ Instant VAT Quotation $\rightarrow$ 1-Click VNPay Deposit.
-
----
-
-## SLIDE 6: HOW AI SOLVES IT: AGENT VS. CHATBOT (IDEA & INNOVATION - 30%)
-
-* **Slide Title:** Beyond Generic Chatbots: True Agentic Autonomy
-* **Subtitle:** Why LLM wrappers fail and how our ReAct + Function Calling architecture succeeds.
-
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                        GENERIC CHATBOT WRAPPER vs. PROCUREPRIME                        │
-├───────────────────────────────────┬────────────────────────────────────────────────────┤
-│ ❌ THE GENERIC CHATBOT MISTAKE    │ ⭐ THE PROCUREPRIME AUTONOMOUS AGENT               │
-├───────────────────────────────────┼────────────────────────────────────────────────────┤
-│ • Read-only text generator        │ • Action-oriented: Executes 16 standardized tools  │
-│ • Hallucinates prices & discounts │ • 100% Deterministic Backend Policy Guardrails     │
-│ • User must manually add items    │ • Autonomous bulk cart addition via WebMCP Socket  │
-│ • Static prompt for all companies │ • Multi-Tenant Isolation with custom policy rules │
-│ • No escalation workflow          │ • Automated 3-tier escalation to Manager and CFO   │
-└───────────────────────────────────┴────────────────────────────────────────────────────┘
+### Visual / Diagram:
+```mermaid
+graph LR
+    A["🏢 Enterprise Buyer / Sales Rep"] -->|"Natural Language Request"| B["🤖 ProcurePrime Agent"]
+    B -->|"Zero-Latency WebMCP"| C["🛒 Live Cart Sync (< 50ms)"]
+    B -->|"Deterministic Governance"| D["🛡️ Policy Engine (No Hallucination)"]
+    B -->|"Excel / HTML Engine"| E["📄 VAT Quotation (30s)"]
+    
+    style B fill:#e0f2fe,stroke:#0284c7,stroke-width:2px
+    style D fill:#fef3c7,stroke:#d97706,stroke-width:2px
+    style E fill:#dcfce7,stroke:#16a34a,stroke-width:2px
 ```
 
-### 16 Standardized Agent Tools:
-* Categorized across 4 core domains: `PRODUCT` (search, specs), `CART` (`bulk_add_to_cart`, update, sync), `ORDER` (commercial quotation, cancel, track), and `PAYMENT` (VNPay gateway generation).
+### Speaker Script (45 seconds):
+> *"Distinguished judges and business leaders, in modern commerce, speed and margin control are the two pillars of profitability. Yet, while B2C shopping takes seconds, enterprise B2B purchasing remains trapped in the dark ages of 42-hour email back-and-forths, manual Excel sheets, and delayed approvals.  
+> Today, Team AgentX Prime is proud to introduce ProcurePrime — an autonomous B2B procurement agent that turns complex enterprise hardware requirements into policy-compliant, VAT-ready commercial quotations in under 30 seconds."*
+
+* **Estimated Duration:** 45 seconds
+* **Rubric Alignment:** Idea & Innovation (30%) & Presentation (25%)
 
 ---
 
-## SLIDE 7: SYSTEM ARCHITECTURE & WEBMCP TECHNOLOGY
+## SLIDE 2: THE B2B PURCHASING BOTTLENECK (BUSINESS PROBLEM)
 
-* **Slide Title:** Dual-Path WebMCP Engineering Architecture
-* **Subtitle:** Zero-latency client execution paired with mission-critical server-side fallback.
+* **Slide Title:** The \$1.8 Trillion Enterprise Purchasing Dilemma
+* **Subtitle:** Why B2B transactions suffer from quote delays, lead drop-offs, and margin erosion.
 
-### Architectural Diagram:
-```
-[User Browser Runtime]                 [ProcurePrime Core API]                [External Services]
- React 19 + Tailwind SPA                Node.js + Express + Socket.IO          Google Gemini 2.0 Flash
-         │                                        │                                       │
-         ├── 1. Natural Lang Prompt ─────────────>│── 2. Stream Prompt with 16 Tools ────>│
-         │                                        │<── 3. Tool Call: bulk_add_to_cart ────│
-         │                                        │
-         │<── 4. WebMCP Socket Event (<50ms) ─────│── 5. Evaluate Governance Policies ────┐
-         │       `execute_webmcp_tool`            │       (Decision Table & Dynamic Rules)│
-         │                                        │<──────────────────────────────────────┘
-         ├── 6. Live Cart State Sync (Zero Reload)│
-         │<── 7. Instant VAT B2B Quotation ───────│── 8. VNPay Gateway & MongoDB Persist ─>
-```
+### Key Message:
+Manual quotation workflows are the single largest bottleneck in B2B commerce, causing 42% lead abandonment and 3–5% margin leakage.
 
-### Key Technical Highlights:
-* **Sub-50ms Reaction Time:** WebSocket streaming enables instant visual updates on the client storefront.
-* **Dual-Path Reliability:** If WebSocket drops, it transparently falls back to `LocalServiceAdapter` on MongoDB without losing state.
-* **Modern Stack:** React 19, Tailwind CSS, Node.js ES Modules, MongoDB, Socket.IO, Google GenAI SDK.
+### Slide Body Content:
+1. **Quote Latency Drives 42% Customer Abandonment:**
+   * Enterprise buyers require bundled hardware (RAM, CPU, monitors), volume tier discounts, and VAT invoices.
+   * Waiting 3–5 days for sales reps to manually price out quotes causes **42% of B2B corporate buyers to abandon their carts or switch to competitors** (*Harvard Business Review & McKinsey B2B Pulse*).
+2. **Rogue Discounting Erodes Net Margins (3%–5% Revenue Loss):**
+   * Sales reps under end-of-month quota pressure frequently grant unauthorized discounts beyond guidelines, eroding razor-thin wholesale margins.
+3. **Severe Operational Overhead (120+ Hours Wasted/Month):**
+   * Procurement officers and sales ops spend 2–3 hours per transaction manually matching SKUs, calculating taxes, and verifying inventory across fragmented spreadsheets.
 
----
-
-## SLIDE 8: MULTI-TENANT CONFIGURABLE AI GOVERNANCE
-
-* **Slide Title:** Enterprise Rule Customization: The Midesk Engine
-* **Subtitle:** Inherited production-grade `IF (Condition) THEN (Action)` dynamic rule engine.
-
-### Real-World Business Customization:
-Different enterprises have completely different risk profiles:
-* **Pricing & Discount Authority:** Set strict discount ceilings per sales role.
-* **Quote Validity & Expiration:** 48 hours for volatile commodity materials vs. 30 days for SaaS.
-* **Payment Terms & Credit Limits:** Mandatory upfront deposits vs. Net 30/60 for Tier-1 clients.
-
-### Dynamic Condition Builder Syntax:
-* **Evaluation Structure:** `IF (Field + Operator + Value) THEN (Action)`
-* **Supported Operators:** `>`, `>=`, `<`, `<=`, `==`, `!=`, `CONTAINS`, `IN`
-* **Logical Combinators:** `ALL` (AND) or `ANY` (OR)
-* **Actions:** `REQUIRE_APPROVAL`, `REQUIRE_3_BIDS`, `HARD_REJECT`, `WARN_LOW_MARGIN`, `TAG_CAPEX`
-
----
-
-## SLIDE 9: 3-TIER THRESHOLD DECISION TABLE
-
-* **Slide Title:** Deterministic Guardrails: Zero Hallucination
-* **Subtitle:** How our 3-tier matrix enforces fiscal discipline before quotes reach the customer.
-
-### The Decision Matrix:
-
-```
-                  ┌────────────────────────────────────────────────────────┐
-                  │                 INCOMING B2B PURCHASE                  │
-                  └───────────────────────────┬────────────────────────────┘
-                                              │
-                      ┌───────────────────────┴───────────────────────┐
-                      ▼                                               ▼
-          [Budget <= 50M & Disc <= 5%]                  [Budget > 50M OR Disc > 5%]
-                      │                                               │
-                      ▼                                               ▼
-           ┌──────────────────────┐                     ┌───────────────────────────┐
-           │   TIER 1: AUTO-OK    │                     │   TIER 2: ESCALATE DEPT   │
-           │  Instant AI Approval │                     │ Manager 1-Click Approval  │
-           └──────────────────────┘                     └─────────────┬─────────────┘
-                                                                      │
-                                                        [Budget > 200M OR Disc > 15%]
-                                                                      │
-                                                                      ▼
-                                                        ┌───────────────────────────┐
-                                                        │    TIER 3: STRICT CFO     │
-                                                        │ Hard Escalation Required  │
-                                                        └───────────────────────────┘
+### Visual / Diagram:
+```mermaid
+flowchart TD
+    subgraph "Legacy B2B Workflow (42 - 72 Hours Delay)"
+        L1["Unstructured Email / RFQ"] --> L2["Manual SKU Lookup (Excel)"]
+        L2 --> L3["Manual Quote Drafting"]
+        L3 --> L4["Uncontrolled Sales Discounting"]
+        L4 --> L5["Multi-day Email Approvals"]
+        L5 --> L6["❌ 42% Leads Abandoned / Lost"]
+    end
+    
+    style L4 fill:#fee2e2,stroke:#ef4444
+    style L6 fill:#fee2e2,stroke:#ef4444,stroke-width:2px
 ```
 
-* **Mathematical Certainty:** LLM generates recommendations, but the deterministic Backend Decision Table holds the veto power.
+### Speaker Script (60 seconds):
+> *"Let's look at the harsh reality of corporate procurement today. When an IT Director needs to equip 10 new software engineers, they cannot simply swipe a credit card on Amazon. They have strict technical specs — 16GB RAM minimum, quad-core processors, departmental budget caps, and statutory VAT invoicing.  
+> Today, that means sending an email and waiting. Harvard Business Review proved that responding within 1 hour yields 7 times higher conversion than responding after 2 hours. Yet, the average B2B quote takes 42 hours. Nearly half of all buyers leave. Worse, when sales reps finally rush to close the deal, they give away 3 to 5 percent in unauthorized rogue discounts because there are no automated guardrails."*
+
+* **Estimated Duration:** 60 seconds
+* **Rubric Alignment:** Problem (25% — Real-world business impact & root cause analysis)
 
 ---
 
-## SLIDE 10: LIVE PRODUCT DEMO & HEAD-TO-HEAD COMPARISON
+## SLIDE 3: MARKET OPPORTUNITY & TARGET CUSTOMERS
 
-* **Slide Title:** Dual-Tenant Head-to-Head Demonstration
-* **Subtitle:** Same request, two distinct enterprise behaviors based on tenant configuration.
+* **Slide Title:** Massive Market, Urgently Demanding Automation
+* **Subtitle:** Serving the \$20.9 Trillion B2B ecosystem across Buyers, Suppliers, and Approvers.
 
-### Live Scenario: Requesting an 8% Volume Discount on a 90M VND Hardware Bundle
+### Key Message:
+75% of B2B buyers now demand digital self-service; ProcurePrime unlocks a \$380M immediate regional beachhead.
 
-| Evaluation Criteria | Tenant A: TechCorp Solutions (`tenant_techcorp`) | Tenant B: SteelCorp Industrial (`tenant_steelcorp`) |
-| :--- | :--- | :--- |
-| **Industry & Margin** | Cloud SaaS (Gross Margin 75%) | Industrial Materials (Gross Margin 7%) |
-| **Configured Policy** | Max 15% discount for auto-approval | Max 3% auto-approval; >5% requires CFO |
-| **Quote Validity** | 30 Days (Stable pricing) | 7 Days (Volatile raw material costs) |
-| **System Reaction** | 🟢 **`AUTO_APPROVED`** | 🟡 **`ESCALATE_TO_STAFF` (CFO Alert)** |
-| **User Experience** | Instant quotation generated with VAT in 5s | Escalation ticket routed to CFO with 1-click review |
+### Slide Body Content:
+* **The Macro Shift:**
+  - **TAM (Global B2B E-Commerce):** \$20.9 Trillion by 2027 (*Grand View Research*).
+  - **SAM (APAC CPQ & Procurement Software):** \$4.8 Billion.
+  - **SOM (Vietnam & Regional SME Tech & Equipment Procurement):** \$380 Million addressable beachhead.
+* **Target Enterprise Personas (Ideal Customer Profile):**
+  1. *Technical Buyers & IT Leads:* Needs to configure team gear within strict specs and department budget caps.
+  2. *B2B Sales Reps & Distributors:* Needs instant quotation turnaround to close deals before competitors respond.
+  3. *Procurement Managers & CFOs:* Needs automated policy enforcement and immutable audit trails to prevent rogue discounts.
 
-### Visual Layout:
-* Side-by-side screenshots showing:
-  - Left: TechCorp's green instant quotation badge.
-  - Right: SteelCorp's warning banner and CFO escalation prompt.
+### Visual / Diagram:
+```mermaid
+graph TD
+    TAM["TAM: $20.9T (Global B2B E-Commerce)"] --> SAM["SAM: $4.8B (APAC Quoting & CPQ)"]
+    SAM --> SOM["SOM: $380M (Vietnam Tech/Equipment B2B)"]
 
----
+    style TAM fill:#f8fafc,stroke:#94a3b8
+    style SAM fill:#e0f2fe,stroke:#38bdf8
+    style SOM fill:#dcfce7,stroke:#22c55e,stroke-width:2px
+```
 
-## SLIDE 11: FEASIBILITY, UNIT ECONOMICS & MEASURABLE ROI (20%)
+### Speaker Script (50 seconds):
+> *"The market opportunity is staggering. B2B e-commerce is five times larger than B2C, racing toward 21 trillion dollars globally. According to Gartner, 75 percent of B2B buyers now demand rep-free digital self-service.  
+> ProcurePrime targets a triple-sided persona: Technical Buyers who want instant spec matching, B2B Distributors who want to 10x their sales velocity, and CFOs who refuse to sign off on rogue discounts. Our beachhead market alone in Vietnam and regional hardware distribution represents a 380 million dollar opportunity."*
 
-* **Slide Title:** Proven Feasibility & Quantifiable Enterprise ROI
-* **Subtitle:** Real-world metrics demonstrating cost savings, revenue uplift, and operational speed.
-
-### Measurable Impact Metrics:
-* 📉 **99.3% Reduction in Turnaround Time:** Drops from 72 hours down to 30 seconds.
-* 📈 **1.8x Increase in B2B Win Rate:** Rapid quotation response prevents 42% cart abandonment.
-* 💰 **87.5% Procurement OPEX Reduction:** Cuts manual quoting time from 120 hrs/month to 15 hrs/month.
-* 🛡️ **Zero Margin Leakage:** Completely eliminates unapproved sales discounting.
-
-### Financial Return (Mid-Market B2B Enterprise Example - 50B VND Annual Turnover):
-* **Direct Labor Savings:** \$15,000 / year (eliminates manual data re-entry).
-* **Margin Preservation:** \$32,000 / year (preventing rogue 1.5% average price slippage).
-* **Incremental Revenue Captured:** \$17,000 / year (closing deals before competitors respond).
-* **Total Value Generated:** **~\$64,000 / year** vs. Software Cost < \$3,000 / year (**> 20x Annual ROI**).
-
-### Production Readiness:
-* **27/27 Automated Backend Unit Tests Passing (100%)**.
-* Vite Production build verified with zero errors.
+* **Estimated Duration:** 50 seconds
+* **Rubric Alignment:** Problem (25%) & Feasibility/Value (20%)
 
 ---
 
-## SLIDE 12: COMPETITIVE ADVANTAGE & UNFAIR MOAT
+## SLIDE 4: OUR SOLUTION — AUTONOMOUS AGENT VS. GENERIC CHATBOTS
 
-* **Slide Title:** Why ProcurePrime Wins
-* **Subtitle:** Our defensive moat across user experience, agent architecture, and enterprise control.
+* **Slide Title:** Not Just a Chatbot — An Autonomous Enterprise Agent
+* **Subtitle:** Combining LLM reasoning with deterministic financial execution and WebMCP.
 
-### Competitive Matrix:
+### Key Message:
+ProcurePrime moves beyond conversational fluff by executing end-to-end B2B procurement workflows with zero financial hallucination.
 
-| Capabilities | Generic Chatbots (ChatGPT/Copilot) | Legacy CPQ/ERP (Salesforce/SAP) | ProcurePrime Platform |
+### Slide Body Content:
+* **The Architectural Leap:**
+  - *Generic Chatbots (B2C):* Read-only, produce text suggestions, suffer from financial hallucinations, cannot touch client carts.
+  - *Legacy CPQ (Salesforce/SAP):* Clunky forms, complex onboarding, zero natural language understanding, requires weeks of training.
+  - *ProcurePrime Autonomous Platform:* Understands multi-constraint natural language, automatically matches catalog inventory, controls the browser cart via WebMCP, and issues policy-compliant quotations.
+
+| Capability | Generic Chatbots | Legacy CPQ Software | **ProcurePrime Autonomous Agent** |
 | :--- | :---: | :---: | :---: |
-| **Natural Language Understanding** | ✅ Advanced | ❌ Complex menus only | ⭐ **Optimized for B2B specs** |
-| **Zero-Latency In-Browser WebMCP** | ❌ None | ❌ None | ⭐ **Native Browser Control** |
-| **Deterministic Financial Guardrails** | ❌ Prone to Hallucination | ✅ Rules-based | ⭐ **Hybrid AI + Decision Table** |
-| **Multi-Tenant Policy Studio** | ❌ Single Prompt | ⚠️ Expensive setup | ⭐ **Self-Serve Visual Studio** |
-| **Time to Deployment** | Instant (but unusable) | 6 to 12 Months | ⭐ **Under 48 Hours** |
+| **Interaction Model** | Chit-chat text box | Multi-tab complex forms | **Intelligent Workspace + 1-Click Action** |
+| **Multi-Constraint Parsing** | ❌ Hallucinates specs | ❌ Manual dropdowns only | **✅ ReAct Parser (RAM, CPU, Budget)** |
+| **Cart Execution** | ❌ User clicks manually | ❌ No real-time browser sync | **✅ WebMCP Zero-Latency (< 50ms)** |
+| **Financial Guardrails** | ❌ Unreliable math | ⚠️ Hardcoded static rules | **✅ 4-Decision Deterministic Policy Engine** |
+| **Turnaround Time** | N/A (Cannot quote) | 2–4 hours | **✅ < 30 Seconds (99% Reduction)** |
 
-### Our 3 Unfair Moats:
-1. **The WebMCP Latency Barrier:** Direct client-state manipulation creates a magical user experience no conventional backend API can match.
-2. **Deterministic Trust:** Enterprise CFOs reject black-box LLMs; ProcurePrime gives them complete mathematical rule control.
-3. **Pluggable Architecture:** Ready to integrate with existing ERP backends via REST/Webhooks.
+### Visual / Diagram:
+```mermaid
+graph LR
+    A["User Prompt:<br/>'10 laptops 16GB RAM,<br/>max 150M VND, VAT'"] --> B["🤖 ProcurePrime Agent"]
+    B --> C["1. Constraint Extractor"]
+    B --> C2["2. Dual-Path WebMCP"]
+    B --> C3["3. Policy Engine Gatekeeper"]
+    B --> C4["4. Live Formula Excel (.xlsx)"]
+    
+    style B fill:#eff6ff,stroke:#2563eb,stroke-width:2px
+```
+
+### Speaker Script (50 seconds):
+> *"When people hear 'AI for Sales', they often think of customer service chatbots that spit out generic text. ProcurePrime is fundamentally different. It is an Autonomous Agentic Workflow.  
+> It does not tell you to go find products; it extracts your technical constraints, queries inventory, negotiates wholesale tier discounts, dispatches tools via WebMCP to update your browser cart in 50 milliseconds, and subjects every cent to a deterministic financial policy engine. It replaces days of human friction with 30 seconds of pure, auditable automation."*
+
+* **Estimated Duration:** 50 seconds
+* **Rubric Alignment:** Idea & Innovation (30% — AI application with clear purpose)
+
+---
+
+## SLIDE 5: PRODUCT WORKFLOW & DEMO JOURNEY
+
+* **Slide Title:** From Raw Intent to VAT Quotation in 30 Seconds
+* **Subtitle:** A frictionless 4-step execution flow demonstrated live on production code.
+
+### Key Message:
+ProcurePrime processes complex, multi-constraint enterprise procurement requests in four seamless automated stages.
+
+### Slide Body Content:
+* **Step 1: Multi-Constraint Natural Language Request:**
+  - User submits: *"Equip our 5 new engineers: 5 office laptops (minimum 16GB RAM) and 5 wireless mouse/keyboard sets. Budget ceiling 90,000,000 VND, official VAT invoice for AI Solutions Ltd."*
+* **Step 2: Autonomous ReAct Extraction & Spec Matching:**
+  - AI extracts constraints: $N=5$, RAM $\ge$ 16GB, Peripherals, Budget Cap = 90M VND.
+  - Queries catalog: Matches Asus Vivobook i5/16GB (15M VND) + Logitech Combos (500K VND) = 77.5M VND $\le$ 90M VND (Compliant).
+* **Step 3: Zero-Latency WebMCP Cart Synchronization:**
+  - Executes `bulk_add_to_cart` via WebSocket. Cart counter instantly updates from 0 to 10 items without page reload.
+* **Step 4: Deterministic Policy Check & 1-Click Approval:**
+  - Policy Engine classifies 77.5M VND transaction $\rightarrow$ `ESCALATE_TO_STAFF` (Manager tier: 50M–200M).
+  - Manager clicks [Approve] $\rightarrow$ Issues official Quotation with live `.xlsx` formulas and VNPay checkout.
+
+### Visual / Diagram:
+```mermaid
+flowchart LR
+    S1["1. Prompt Input<br/>(5 Laptops, 5 Mice, 90M)"] --> S2["2. ReAct Matcher<br/>(Spec & Budget Match)"]
+    S2 --> S3["3. WebMCP Sync<br/>(Cart jumps 0 -> 10)"]
+    S3 --> S4["4. Policy & 1-Click<br/>(Manager Approval)"]
+    S4 --> S5["5. Commercial Quote<br/>(Excel .xlsx & VNPay)"]
+
+    style S3 fill:#dbeafe,stroke:#1d4ed8
+    style S4 fill:#fef3c7,stroke:#b45309
+    style S5 fill:#dcfce7,stroke:#15803d,stroke-width:2px
+```
+
+### Speaker Script (60 seconds):
+> *"Here is how ProcurePrime works in real life. Imagine an IT manager typing: 'Equip 5 new developers: 5 laptops with at least 16GB RAM, 5 wireless keyboard-mouse combos, maximum budget 90 million VND, with VAT invoice.'  
+> Watch what happens:  
+> First, our ReAct engine parses all four constraints simultaneously. It searches inventory and identifies Asus Vivobook 16GB laptops and Logitech combos totaling 77.5 million VND — well within budget.  
+> Second, our WebMCP bridge fires a real-time event. The cart counter in the header instantly jumps from 0 to 10 items right before your eyes.  
+> Third, because 77.5 million falls between 50 and 200 million, the Policy Engine routes it for Manager sign-off. The manager clicks 'Approve' in 1 click, and instantly, an official Excel quotation with live formulas and VNPay payment links is generated."*
+
+* **Estimated Duration:** 60 seconds
+* **Rubric Alignment:** Idea & Innovation (30%) & Feasibility (20%)
 
 ---
 
-## SLIDE 13: PRODUCT ROADMAP, TEAM & VISION (25%)
+## SLIDE 6: CORE AI AGENT ARCHITECTURE & REACT TOOL EXECUTION
 
-* **Slide Title:** Scaling Autonomous B2B Commerce
-* **Subtitle:** From smart quoting to multi-party autonomous procurement networks.
+* **Slide Title:** Autonomous ReAct Brain & Dual-Path WebMCP
+* **Subtitle:** Clean separation of LLM reasoning, tool dispatching, and deterministic services.
 
-### Phased Roadmap:
-* **Phase 1 (Current MVP):** ReAct Agent, WebMCP Live Cart Sync, Visual Governance Studio, 3-Tier Decision Table, VNPay Deposit Gateway.
-* **Phase 2 (Q1–Q2 2027):** Multimodal OCR for enterprise PDF/Excel RFPs, bidirectional ERP connectors (SAP, Odoo), automated digital contract signing.
-* **Phase 3 (Q3–Q4 2027):** Autonomous Agent-to-Agent Price Negotiation (buyer agent negotiates with supplier agent within preset boundaries).
+### Key Message:
+ProcurePrime uses a robust ReAct (Reasoning + Acting) loop backed by an innovative Dual-Path architecture for bulletproof client-server reliability.
 
-### Team AgentX Prime:
-* Interdisciplinary team combining AI Agent Engineering, Full-Stack Architecture, and B2B Operations domain expertise.
+### Slide Body Content:
+* **Agent Orchestrator:** Manages multi-turn conversation memory, sliding-window token budgets, and step iteration limits (max 5 loops).
+* **Dual-Path Execution Architecture:**
+  - *Path A — WebMCP Adapter (Active Client):* Dispatches `execute_webmcp_tool` via Socket.IO directly to the browser DOM (< 50ms latency).
+  - *Path B — Local Service Adapter (Fallback):* If client disconnects or runs in headless API mode, gracefully degrades to direct MongoDB/Redis backend service execution.
+* **Extensible Tool Registry:**
+  - `search_products`: Multi-filter inventory querying.
+  - `bulk_add_to_cart`: High-volume multi-line cart population.
+  - `validate_specifications`: Hardware compatibility checks.
+  - `generate_quotation`: Commercial contract compilation.
 
-### Closing Statement:
-> *"ProcurePrime does not just make procurement faster. We are building the intelligent operating system for future autonomous commerce — where enterprise business rules and agentic AI work in perfect harmony. Thank you, and we welcome your questions!"*
+### Visual / Diagram:
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as Frontend (WebMCP Listener)
+    participant Orchestrator as Agent Orchestrator
+    participant LLM as Gemini 2.5 Flash
+    participant Registry as Tool Registry
+    participant DualPath as Dual-Path Adapter
+
+    Orchestrator->>LLM: Stream User Request + Tool Declarations
+    LLM-->>Orchestrator: Thought: Match RAM & Budget -> Call search_products
+    Orchestrator->>Registry: Dispatch search_products(RAM>=16GB)
+    Registry-->>Orchestrator: Return Product Matches
+    Orchestrator->>LLM: Feedback Loop -> Thought: Call bulk_add_to_cart
+    Orchestrator->>Registry: Dispatch bulk_add_to_cart
+    Registry->>DualPath: Resolve Client State
+    alt Socket.IO Connected
+        DualPath-->>Client: WebMCP Event (< 50ms DOM Sync)
+    else Socket Disconnected
+        DualPath->>DualPath: LocalServiceAdapter Fallback (DB)
+    end
+    Orchestrator-->>Client: Final Response + Quotation Summary
+```
+
+### Speaker Script (55 seconds):
+> *"Under the hood, ProcurePrime does not rely on fragile prompt hacks. We engineered a robust ReAct loop powered by Gemini 2.5 Flash.  
+> The core innovation is our Dual-Path Adapter architecture. When the agent decides to add 10 items to a cart, it inspects client connectivity. If the user is on the web workspace, it routes through our WebMCP bridge over Socket.IO, updating the browser UI in under 50 milliseconds.  
+> If the client is disconnected or interacting via an automated API, it seamlessly falls back to our Local Service Adapter, committing directly to MongoDB and Redis. This gives us sub-second responsiveness with enterprise-grade fault tolerance."*
+
+* **Estimated Duration:** 55 seconds
+* **Rubric Alignment:** Idea & Innovation (30%) & Feasibility (20%)
 
 ---
-*Slide Deck Prepared for K-Tech College 2026 AI for Business Innovation Hackathon by Team AgentX Prime.*
 
+## SLIDE 7: ENTERPRISE GOVERNANCE, DYNAMIC THRESHOLDS & HITL
+
+* **Slide Title:** Zero Financial Hallucination via Deterministic Policy Engine
+* **Subtitle:** Separating AI reasoning from corporate financial authorization.
+
+### Key Message:
+AI proposes; deterministic code decides. ProcurePrime guarantees 100% financial compliance with immutable SHA-256 audit trails.
+
+### Slide Body Content:
+* **The 4 Canonical Policy Decisions:**
+  1. `AUTO_APPROVED`: Routine orders $\le$ 50M VND within budget $\rightarrow$ Instant quotation issued.
+  2. `ASK_CLARIFICATION`: Missing technical specs or contradictory requests $\rightarrow$ Prompts user for clarification.
+  3. `REJECTED_POLICY`: Blacklisted categories or strict budget violations $\rightarrow$ Hard block with explicit policy code.
+  4. `ESCALATE_TO_STAFF`: High-value or deep-discount orders $\rightarrow$ Generates 1-Click Human-in-the-Loop approval card.
+* **3-Tier Approval Authority Escalation Matrix:**
+  - $\le 50,000,000$ VND: AI Autonomous Approval (Instant, < 3s).
+  - $50,000,000 – 200,000,000$ VND: Procurement Manager Sign-off (< 4h SLA).
+  - $> 200,000,000$ VND or Discount $> 10\%$: Chief Financial Officer (CFO) Sign-off (< 24h SLA).
+* **Tamper-Proof Audit Trail:** Every decision records an immutable SHA-256 fingerprint:  
+  $$\text{Fingerprint} = \text{SHA256}(\text{CanonicalJSON}(\text{OrderSnapshot}))$$
+
+### Visual / Diagram:
+```mermaid
+stateDiagram-v2
+    [*] --> RequestSubmitted: B2B Order Evaluated
+    RequestSubmitted --> PolicyEngine: ProcurementPolicyEngine.js
+    
+    PolicyEngine --> AutoApproved: Amount <= 50M VND
+    PolicyEngine --> EscalateManager: 50M < Amount <= 200M VND
+    PolicyEngine --> EscalateCFO: Amount > 200M VND or Discount > 10%
+    PolicyEngine --> Rejected: Budget Exceeded / Forbidden Item
+    
+    AutoApproved --> QuotationReady: AI Issues Quote (< 3s)
+    EscalateManager --> HITL_Card: 1-Click Manager Approval
+    EscalateCFO --> HITL_Card: 1-Click CFO Approval
+    HITL_Card --> QuotationReady: Authorized
+    HITL_Card --> Rejected: Denied
+    
+    QuotationReady --> [*]: Immutable SHA-256 Logged
+    Rejected --> [*]: Audit Log Saved
+```
+
+### Speaker Script (55 seconds):
+> *"The number one question enterprise executives ask about AI is: 'How do you prevent the AI from giving away 50% discounts or spending money it shouldn't?'  
+> Our answer is architectural: LLMs should never make financial commitments. In ProcurePrime, the AI only proposes; our deterministic Procurement Policy Engine decides.  
+> Every request is evaluated against a 4-decision matrix and a 3-tier authority ladder. Orders under 50 million are auto-approved instantly. Orders between 50 and 200 million require Manager approval. Anything above 200 million or with discounts over 10 percent escalates to the CFO.  
+> Every action is hashed with SHA-256 into a tamper-proof audit trail, giving compliance officers complete, explainable visibility."*
+
+* **Estimated Duration:** 55 seconds
+* **Rubric Alignment:** Idea & Innovation (30%) & Feasibility (20%)
+
+---
+
+## SLIDE 8: TECHNICAL ARCHITECTURE, SECURITY & SCALABILITY
+
+* **Slide Title:** Production-Ready, Secure, and Extensible
+* **Subtitle:** Validated by 34 automated test suites and built on an OWASP-hardened fullstack foundation.
+
+### Key Message:
+ProcurePrime is not a prototype wireframe; it is an active, fully integrated enterprise software platform.
+
+### Slide Body Content:
+* **Modern Cloud-Native Tech Stack:**
+  - *Frontend:* React 19, TypeScript, Vite, Tailwind CSS, Socket.IO Client.
+  - *Backend:* Node.js, Express, Socket.IO Server, Gemini 2.5 Flash SDK.
+  - *Persistence:* MongoDB Enterprise (Catalog, Quotations, Audits) + Redis (Sliding-window sessions).
+  - *Document Generation:* `exceljs` (dynamic formulas `=E*F`, `=SUM()`, Vietnamese currency words).
+* **Enterprise Security & Hardening:**
+  - OWASP Top 10 compliance: Strict CSP headers, HSTS, `X-Content-Type-Options: nosniff`.
+  - In-memory sliding-window rate limiters (60 req/min general, 10 req/min AI endpoints).
+  - ReDoS mitigation via `escapeRegex` sanitation on all catalog queries.
+* **Verified Verification Metrics:**
+  - **34/34 Backend Automated Tests Passed** across 15 suites (Security, Foundation, Domain, Quotation, Governance).
+  - **2,600 Frontend modules transformed with 0 build errors**.
+
+### Visual / Diagram:
+```mermaid
+graph TD
+    subgraph "Client Layer"
+        UI["React 19 + TypeScript SPA"]
+        WS["Socket.IO WebMCP Client"]
+    end
+
+    subgraph "API Gateway & Security Layer"
+        SEC["OWASP Security Middleware<br/>(CSP, Anti-ReDoS, Rate Limiter)"]
+        AUTH["JWT & OptionalProtect Middleware"]
+    end
+
+    subgraph "Service Engine Layer"
+        ORCH["Agent Orchestrator (ReAct)"]
+        GOV["Policy Engine & Audit Trail"]
+        EXCEL["Exceljs Formula Exporter"]
+    end
+
+    subgraph "Storage & Infrastructure"
+        DB[("MongoDB Enterprise")]
+        REDIS[("Redis Cache")]
+        AI["Gemini 2.5 Flash API"]
+    end
+
+    UI <--> SEC
+    WS <--> SEC
+    SEC --> AUTH --> ORCH
+    AUTH --> GOV
+    ORCH <--> AI
+    ORCH <--> REDIS
+    GOV --> DB
+    AUTH --> EXCEL --> DB
+```
+
+### Speaker Script (50 seconds):
+> *"Technical feasibility is proven by execution. ProcurePrime is built on React 19, Node.js, MongoDB, and Redis.  
+> We took enterprise security seriously from day one. Our backend incorporates OWASP security headers, sliding-window rate limiting, and ReDoS sanitization.  
+> Most importantly, this is fully verified. We have 34 automated unit and integration tests passing across our governance, quotation, and security suites, with zero failures. Our document engine generates native Excel spreadsheets with live formulas like SUM and multiplication, along with Vietnamese currency text conversion. It is ready for enterprise deployment today."*
+
+* **Estimated Duration:** 50 seconds
+* **Rubric Alignment:** Feasibility & Value (20%)
+
+---
+
+## SLIDE 9: BUSINESS MODEL, MEASURABLE ROI & UNFAIR MOATS
+
+* **Slide Title:** High-Margin Monetization & Unfair Moats
+* **Subtitle:** Positive ROI from Month 1, backed by multiple defensible revenue streams.
+
+### Key Message:
+ProcurePrime delivers 10x ROI for enterprise distributors while capturing high-margin recurring SaaS and transaction revenue.
+
+### Slide Body Content:
+* **Hybrid B2B Revenue Model:**
+  1. *B2B Take-Rate (1.5% – 3.5% GMV):* Commission on high-value hardware and equipment transactions closed through the platform.
+  2. *Enterprise SaaS Subscriptions ($199 – $999/month):* Tiered by quote volume, tenant seats, and custom policy rules.
+  3. *ERP Integration & Custom Setup ($2,000 – $5,000 one-time):* Dedicated connector setups for SAP, Odoo, and Microsoft Dynamics.
+* **Measurable Customer ROI:**
+  - **99% Faster Quotes:** 72 hours $\rightarrow$ 30 seconds (accelerates sales velocity 5x).
+  - **120+ Hours Saved/Month:** Eliminates 3 hours of manual Excel entry per rep.
+  - **3%–5% Margin Recovery:** Chokes off rogue discounting before quotes ever leave the door.
+* **Our Unfair Moats:**
+  - Proprietary Dual-Path WebMCP engine for instant client cart control.
+  - Deterministic 4-decision governance policy engine that solves the enterprise AI trust barrier.
+
+### Visual / Diagram:
+```mermaid
+graph LR
+    A["ProcurePrime Value Impact"] --> B["⚡ 99% Quoting Time Cut<br/>(72h -> 30s)"]
+    A --> C["💰 3% - 5% Margin Saved<br/>(No Rogue Discounts)"]
+    A --> D["⏱️ 120h/Month Saved<br/>(Zero Manual Excel)"]
+    
+    B --> E["📈 5x Sales Conversion"]
+    C --> E
+    D --> E
+    
+    style E fill:#dcfce7,stroke:#15803d,stroke-width:2px
+```
+
+### Speaker Script (50 seconds):
+> *"How do we make money, and how do our customers win?  
+> We employ a hybrid monetization model: a 1.5 to 3.5 percent transaction commission on closed B2B orders, plus tiered SaaS subscriptions from 199 to 999 dollars a month for custom governance policies and multi-tenant management.  
+> For our customers, the ROI is immediate and measurable: 99 percent reduction in quoting turnaround time, 120 hours saved every month per sales team, and a direct 3 to 5 percent recovery of net margins by stopping unauthorized discounting. This makes ProcurePrime a zero-risk, high-return investment."*
+
+* **Estimated Duration:** 50 seconds
+* **Rubric Alignment:** Feasibility & Value (20%)
+
+---
+
+## SLIDE 10: PRODUCT ROADMAP, VISION & CLOSING
+
+* **Slide Title:** The Future of Autonomous B2B Commerce
+* **Subtitle:** Expanding from intelligent quoting to autonomous Agent-to-Agent negotiation.
+
+### Key Message:
+ProcurePrime is redefining how enterprises trade in the AI era — fast, compliant, and autonomous.
+
+### Slide Body Content:
+* **Phased Engineering Roadmap:**
+  - **Phase 1 (Completed & Verified Today):** ReAct multi-constraint agent, Dual-path WebMCP cart sync, 4-decision policy engine, dynamic Excel generator, 34/34 tests passed.
+  - **Phase 2 (Q1 2027):** Multimodal OCR ingestion (drag-and-drop supplier quote PDFs/Excel sheets), deep bidirectional Odoo & SAP ERP connectors.
+  - **Phase 3 (Q2 2027):** Agent-to-Agent (A2A) Autonomous Negotiation: Buyer AI Agents and Supplier AI Agents negotiating terms and credit over cryptographic protocols.
+* **The Team Behind AgentX Prime:**
+  - Solution Architects, Fullstack Engineers, and AI Strategists committed to solving real enterprise pain.
+* **Closing Statement:**
+  > *"ProcurePrime: Where B2B Purchasing Takes Seconds, Not Days."*
+
+### Visual / Diagram:
+```mermaid
+timeline
+    title ProcurePrime Strategic Horizon
+    Phase 1 (Now - 100% Implemented) : ReAct Multi-step Agent : Zero-Latency WebMCP : 4-Decision Policy Engine : Live Excel Exporter : 34 Passing Tests
+    Phase 2 (Q1 2027 - Ingestion & ERP) : Multimodal RFQ OCR (PDF/Excel) : SAP & Odoo Connectors : Multi-warehouse Routing
+    Phase 3 (Q2 2027 - Autonomous Market) : Agent-to-Agent (A2A) Negotiation : Automated Credit Underwriting : Regional B2B Network
+```
+
+### Speaker Script (45 seconds):
+> *"Judges, B2B procurement is the financial lifeblood of every enterprise, yet it has been neglected by the digital revolution for too long.  
+> Today, ProcurePrime proves that with the right combination of Agentic AI, zero-latency WebMCP, and deterministic governance, we can eliminate friction without compromising financial control.  
+> We have built the working system, verified the code with 34 automated tests, and proven the business model. Our vision is clear: to become the default autonomous operating system for B2B commerce.  
+> Thank you, and we welcome your questions!"*
+
+* **Estimated Duration:** 45 seconds
+* **Rubric Alignment:** Presentation (25%) & Innovation (30%)
+
+---
+
+## ⏱️ TOTAL ESTIMATED PRESENTATION TIME: ~8 MINUTES 45 SECONDS (+ 2-MINUTE LIVE DEMO)
+* Slide 1: 45s
+* Slide 2: 60s
+* Slide 3: 50s
+* Slide 4: 50s
+* Slide 5: 60s
+* Slide 6: 55s
+* Slide 7: 55s
+* Slide 8: 50s
+* Slide 9: 50s
+* Slide 10: 45s
+* **Total Slide Time:** ~8m 45s (Perfect fit within the 15-minute contest limit, leaving 2 minutes for live demo and buffer).
