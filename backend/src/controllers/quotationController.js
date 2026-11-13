@@ -78,8 +78,8 @@ export class QuotationController {
   static async approve(req, res, next) {
     try {
       const { quotationNumber } = req.params;
-      const { approverRole, approverNote } = req.body;
-      const finalRole = req.user?.isAdmin ? "ADMIN" : (req.user?.name || approverRole || "MANAGER");
+      const { approverNote } = req.body;
+      const finalRole = "ADMIN";
       const quotation = await QuotationService.approveQuotation(quotationNumber, finalRole, approverNote);
       return successResponse(res, quotation, "Phê duyệt báo giá thành công");
     } catch (error) {

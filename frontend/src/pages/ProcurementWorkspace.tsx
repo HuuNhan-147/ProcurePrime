@@ -320,16 +320,15 @@ export const ProcurementWorkspace: React.FC = () => {
         }),
       });
       const data = await res.json();
-      if (data.success) {
+      if (res.ok && data.success) {
         setStatus("ISSUED");
         alert(tx("workspace:quotationValueApprovedSuccessfully", { v0: (quotationNumber) }));
         fetchQuotationData(quotationNumber);
       } else {
-        alert(data.message || tx("workspace:quotationValueApproved", { v0: (quotationNumber) }));
+        alert(data.message || tx("quotation:approvalFailed"));
       }
     } catch {
-      setStatus("ISSUED");
-      alert(tx("workspace:quotationValueApproved", { v0: (quotationNumber) }));
+      alert(tx("quotation:approvalFailed"));
     }
   };
 
